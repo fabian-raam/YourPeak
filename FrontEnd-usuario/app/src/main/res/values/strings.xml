@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Your Peak</string>
+    <string name="title_your_peak">Your Peak</string>
+    <string name="subtitle_crear_cuenta">Crear cuenta</string>
+
+    <string name="label_nombre">Nombre</string>
+    <string name="label_apellido">Apellido</string>
+    <string name="label_correo">Correo electrónico</string>
+    <string name="label_contrasena">Contraseña</string>
+
+    <string name="btn_crear_cuenta">Crear cuenta</string>
+    <string name="cd_toggle_password">Mostrar u ocultar contraseña</string>
+    <string name="show_password">Mostrar</string>
+    <string name="hide_password">Ocultar</string>
+
+    <string name="msg_cuenta_pendiente">Registro completado con éxito. Su cuenta está pendiente de aprobación por un administrador.</string>
+
+    <string name="error_campo_requerido">Este campo es obligatorio</string>
+    <string name="error_nombre_longitud">El nombre no puede exceder 100 caracteres</string>
+    <string name="error_apellido_longitud">El apellido no puede exceder 100 caracteres</string>
+    <string name="error_correo_longitud">El correo no puede exceder 254 caracteres</string>
+    <string name="error_correo_invalido">Ingresa un correo electrónico válido</string>
+    <string name="error_contrasena_longitud">La contraseña debe tener entre 15 y 128 caracteres</string>
+    <string name="error_conexion_general">No se pudo conectar con el servidor. Verifica tu conexión o el estado del backend.</string>
+    <string name="error_timeout">No se pudo confirmar el resultado debido a un tiempo de espera agotado. El servidor podría haber completado el registro.</string>
+    <string name="error_servidor_general">Error interno en el servidor. Intenta nuevamente más tarde.</string>
+</resources>
