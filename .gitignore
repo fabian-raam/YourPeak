@@ -1,0 +1,10 @@
+**/.idea/
+*.iml
+**/.gradle/
+**/.kotlin/
+**/build/
+**/target/
+**/local.properties
+.env
+.env.*
+!.env.example
