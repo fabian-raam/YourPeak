@@ -19,10 +19,14 @@ public class SecurityConfig {
 
         var registro = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.POST, "/api/auth/registro");
+        var login = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, "/api/auth/login");
+        var usuarioInterno = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/auth/usuarios/{idUsuario}");
 
         http
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(registro)
+                        .ignoringRequestMatchers(registro, login)
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -32,7 +36,7 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(registro).permitAll()
+                        .requestMatchers(registro, login, usuarioInterno).permitAll()
                         .anyRequest().denyAll()
                 );
 

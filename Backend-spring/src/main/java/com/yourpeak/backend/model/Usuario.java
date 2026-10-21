@@ -65,6 +65,10 @@ public class Usuario {
         return correo;
     }
 
+    public String getContrasenaHash() {
+        return contrasenaHash;
+    }
+
     public LocalDate getFechaNacimiento() {
         return fechaNacimiento;
     }

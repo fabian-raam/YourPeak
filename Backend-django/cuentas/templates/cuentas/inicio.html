@@ -1,0 +1,12 @@
+{% extends 'cuentas/base.html' %}
+{% block title %}Tu cuenta | YourPeak{% endblock %}
+{% block content %}
+{% if error %}
+  <h1>No se pudo cargar tu perfil</h1><p class="alert" role="alert">{{ error }}</p>
+{% else %}
+  <h1>Hola, {{ usuario.nombre }}</h1>
+  <p class="muted">Has iniciado sesión en YourPeak.</p>
+  <p>{{ usuario.correo }}</p>
+{% endif %}
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit">Cerrar sesión</button></form>
+{% endblock %}

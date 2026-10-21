@@ -1,0 +1,16 @@
+{% extends 'cuentas/base.html' %}
+{% block title %}Iniciar sesión | YourPeak{% endblock %}
+{% block content %}
+<h1>Bienvenido</h1>
+<p class="muted">Inicia sesión para continuar con tu entrenamiento.</p>
+{% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+<form method="post">
+  {% csrf_token %}
+  <label for="correo">Correo electrónico</label>
+  <input id="correo" name="correo" type="email" autocomplete="email" required value="{{ request.POST.correo|default:'' }}">
+  <label for="contrasena">Contraseña</label>
+  <input id="contrasena" name="contrasena" type="password" autocomplete="current-password" required>
+  <button type="submit">Iniciar sesión</button>
+</form>
+<p class="switch">¿Aún no tienes cuenta? <a href="{% url 'registro' %}">Regístrate</a></p>
+{% endblock %}

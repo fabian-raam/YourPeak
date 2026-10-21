@@ -1,0 +1,27 @@
+{% extends 'cuentas/base.html' %}
+{% block title %}Crear cuenta | YourPeak{% endblock %}
+{% block content %}
+<h1>Crea tu cuenta</h1>
+<p class="muted">Regístrate para comenzar tu progreso.</p>
+{% if error %}<p class="alert" role="alert">{{ error }}</p>{% endif %}
+{% if exito %}<p class="alert success" role="status">{{ exito }}</p>{% endif %}
+{% if exito %}
+<a class="button" href="{% url 'login' %}">Ir a iniciar sesión</a>
+{% else %}
+<form method="post">
+  {% csrf_token %}
+  <div class="row">
+    <div><label for="nombre">Nombre</label><input id="nombre" name="nombre" autocomplete="given-name" maxlength="100" required value="{{ datos.nombre|default:'' }}"></div>
+    <div><label for="apellido">Apellido</label><input id="apellido" name="apellido" autocomplete="family-name" maxlength="100" required value="{{ datos.apellido|default:'' }}"></div>
+  </div>
+  <label for="correo">Correo electrónico</label>
+  <input id="correo" name="correo" type="email" autocomplete="email" maxlength="254" required value="{{ datos.correo|default:'' }}">
+  <label for="contrasena">Contraseña</label>
+  <input id="contrasena" name="contrasena" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+  <label for="confirmar_contrasena">Confirma tu contraseña</label>
+  <input id="confirmar_contrasena" name="confirmar_contrasena" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+  <button type="submit">Crear cuenta</button>
+</form>
+{% endif %}
+<p class="switch">¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+{% endblock %}
