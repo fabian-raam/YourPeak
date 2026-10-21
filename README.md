@@ -1,6 +1,29 @@
 # YourPeak
 
-Sistema para un gimnasio. Spring Boot es dueño de los datos de usuario y se conecta a MySQL. Django sirve temporalmente las páginas de login y registro, guarda la sesión en su propia base SQLite y consulta los datos de usuario mediante endpoints de Spring Boot. React se integrará después.
+## Contexto del proyecto
+
+YourPeak es una plataforma de gestión y seguimiento de entrenamiento para un gimnasio. La idea general contempla cuentas de clientes, membresías, registro físico, disponibilidad, rutinas, ejercicios y sesiones de entrenamiento. El esquema SQL que está ahora en el repositorio cubre solo una parte de esa base; no representa todavía todas las áreas del diseño.
+
+El objetivo es tener una aplicación web en React y un backend Django, además de la aplicación móvil Android. Spring Boot ofrece los servicios de cuenta y conserva los datos de usuario en MySQL. La base de Django es SQLite y se usa para la sesión web; no es una copia de MySQL ni debe almacenar las cuentas de usuario.
+
+## Arquitectura y estado actual
+
+| Parte | Tecnología | Estado |
+|---|---|---|
+| Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
+| Web/backend | Django y SQLite | Tiene formularios provisionales de login y registro. Los envía a Spring Boot, conserva el ID de usuario en la sesión y pide el perfil a Spring por endpoint. |
+| Web/interfaz final | React | Pendiente. El diseño provisional de Django se reemplazará al desarrollar el frontend React. |
+| Aplicación móvil | Android, Kotlin y Jetpack Compose | Está creado el proyecto inicial; las funciones del gimnasio y la conexión completa con los servicios están pendientes. |
+| Base de datos | MySQL/MariaDB | Hay scripts iniciales de estructura y catálogo en `Backend-spring/database/`. No son un respaldo con todos los datos de una instalación existente. |
+
+### Recorrido actual de login
+
+1. El formulario de Django envía el correo y la contraseña al endpoint `POST /api/auth/login` de Spring Boot.
+2. Spring Boot valida la contraseña y consulta la cuenta en MySQL.
+3. Django guarda solo el identificador del usuario en su sesión SQLite.
+4. Para mostrar el perfil, Django pide `GET /api/auth/usuarios/{idUsuario}` a Spring usando `X-Internal-Api-Key`.
+
+El registro sigue el mismo principio: Django envía los datos del formulario a `POST /api/auth/registro`, y Spring crea la cuenta en MySQL. Las contraseñas no se guardan en la base SQLite de Django.
 
 ## Requisitos
 
