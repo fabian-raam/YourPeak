@@ -11,19 +11,20 @@ El objetivo es tener una aplicación web en React y un backend Django, además d
 | Parte | Tecnología | Estado |
 |---|---|---|
 | Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
-| Web/backend | Django y SQLite | Tiene formularios provisionales de login y registro. Los envía a Spring Boot, conserva el ID de usuario en la sesión y pide el perfil a Spring por endpoint. |
+| Web/backend | Django y SQLite | Recibe los formularios de login y registro, llama a los endpoints de Spring Boot y conserva solo el ID del usuario en su sesión SQLite. |
 | Web/interfaz final | React | Pendiente. El diseño provisional de Django se reemplazará al desarrollar el frontend React. |
 | Aplicación móvil | Android, Kotlin y Jetpack Compose | Está creado el proyecto inicial; las funciones del gimnasio y la conexión completa con los servicios están pendientes. |
-| Base de datos | MySQL/MariaDB | Hay scripts iniciales de estructura y catálogo en `Backend-spring/database/`. No son un respaldo con todos los datos de una instalación existente. |
+| Base de datos | MySQL/MariaDB | El esquema completo y sus catálogos iniciales están en `Backend-spring/database/yourpeak_schema.sql`. No contiene cuentas reales. |
 
 ### Recorrido actual de login
 
-1. El formulario de Django envía el correo y la contraseña al endpoint `POST /api/auth/login` de Spring Boot.
-2. Spring Boot valida la contraseña y consulta la cuenta en MySQL.
-3. Django guarda solo el identificador del usuario en su sesión SQLite.
-4. Para mostrar el perfil, Django pide `GET /api/auth/usuarios/{idUsuario}` a Spring usando `X-Internal-Api-Key`.
+1. La persona envía el formulario web de Django.
+2. Django reenvía correo y contraseña a Spring Boot mediante `POST /api/auth/login`; Django no comprueba contraseñas ni busca cuentas en SQLite.
+3. Spring Boot valida la contraseña y consulta la cuenta en MySQL. El registro funciona igual: Django envía los datos a `POST /api/auth/registro` y Spring crea el usuario y su perfil de cliente en MySQL.
+4. Si el login es correcto, Django guarda solo el ID de usuario en su sesión SQLite. Al cerrar sesión, Django borra esa sesión.
+5. Para mostrar el perfil, Django pide `GET /api/auth/usuarios/{idUsuario}` a Spring usando el encabezado `X-Internal-Api-Key`.
 
-El registro sigue el mismo principio: Django envía los datos del formulario a `POST /api/auth/registro`, y Spring crea la cuenta en MySQL. Las contraseñas no se guardan en la base SQLite de Django.
+Por tanto, MySQL es la fuente de verdad para las cuentas. SQLite guarda los datos de sesión propios de Django y no es una copia de MySQL. La misma variable `SPRING_INTERNAL_API_KEY` debe configurarse en ambos procesos para que Django pueda consultar el perfil; no se necesita para enviar el login o el registro.
 
 ## Requisitos
 
@@ -35,12 +36,11 @@ El registro sigue el mismo principio: Django envía los datos del formulario a `
 ## 1. Preparar MySQL para Spring Boot
 
 1. Inicia el servicio local de MySQL/MariaDB.
-2. En MySQL Workbench abre y ejecuta, en este orden:
-   - `Backend-spring/database/01_estructura.sql`: crea `yourpeak_db` y las tablas incluidas en el esquema del proyecto.
-   - `Backend-spring/database/02_catalogos.sql`: carga los estados iniciales del cliente.
-3. Los scripts no contienen cuentas reales. Crea una cuenta usando el formulario de registro cuando los servicios estén en marcha.
+2. En MySQL Workbench abre y ejecuta `Backend-spring/database/yourpeak_schema.sql`. El archivo crea `yourpeak_db`, las tablas y los catálogos iniciales.
+3. Ejecútalo sobre una base vacía. Si ya existe una base de prueba con tablas, expórtala primero si quieres conservar sus datos y luego vacíala o elimínala antes de cargar el esquema nuevo: el archivo no borra ni reemplaza tablas existentes.
+4. El SQL no contiene cuentas reales. Crea una cuenta desde el formulario de registro cuando Spring Boot y Django estén en marcha.
 
-Estos archivos son el esquema y los catálogos que están guardados en el repositorio; no son una copia completa de los datos de MySQL de otro desarrollador. Spring tiene `ddl-auto=validate`: al arrancar comprueba que las tablas requeridas existan, pero no crea ni modifica el esquema.
+Este archivo es el esquema y los catálogos iniciales del proyecto; no es una copia de los datos de MySQL de otro desarrollador. Spring tiene `ddl-auto=validate`: al arrancar comprueba que las tablas que usa existan, pero no crea ni modifica el esquema.
 
 ## 2. Configurar y arrancar Spring Boot
 
