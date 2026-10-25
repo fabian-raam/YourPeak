@@ -59,7 +59,8 @@ public class RegistroService {
                 request.nombre(),
                 request.apellido(),
                 request.correo(),
-                hash
+                hash,
+                request.fechaNacimiento()
         );
 
         usuarioRepository.save(usuario);
