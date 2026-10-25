@@ -37,11 +37,12 @@ public class Usuario {
     }
 
     public Usuario(String nombre, String apellido,
-                   String correo, String contrasenaHash) {
+                   String correo, String contrasenaHash, LocalDate fechaNacimiento) {
         this.nombre = nombre;
         this.apellido = apellido;
         this.correo = correo;
         this.contrasenaHash = contrasenaHash;
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     @PrePersist

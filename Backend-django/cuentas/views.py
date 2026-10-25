@@ -3,6 +3,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from django.conf import settings
+from .validation import validar_correo, validar_fecha
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -58,6 +59,9 @@ def inicio(request):
         return render(request, "cuentas/inicio.html", {
             "error": "Spring Boot no está disponible en este momento.",
         }, status=503)
+    if validar_correo(usuario.get("correo", "").strip().lower()):
+        request.session.flush()
+        return redirect("login")
     return render(request, "cuentas/inicio.html", {"usuario": usuario})
 
 
@@ -71,6 +75,8 @@ def login_view(request):
         contrasena = request.POST.get("contrasena", "")
         if not correo or not contrasena:
             error = "Ingresa tu correo y contraseña."
+        elif validar_correo(correo):
+            error = validar_correo(correo)
         else:
             try:
                 usuario = _spring_request("/api/auth/login", {
@@ -103,12 +109,16 @@ def login_view(request):
 @require_http_methods(["GET", "POST"])
 def registro_view(request):
     error = ""
-    datos = {key: request.POST.get(key, "") for key in ("nombre", "apellido", "correo")}
+    datos = {key: request.POST.get(key, "") for key in ("nombre", "apellido", "correo", "fechaNacimiento")}
     if request.method == "POST":
         contrasena = request.POST.get("contrasena", "")
         confirmar = request.POST.get("confirmar_contrasena", "")
         if not all(datos.values()) or not contrasena:
             error = "Completa todos los campos."
+        elif validar_correo(datos["correo"].strip().lower()):
+            error = validar_correo(datos["correo"].strip().lower())
+        elif validar_fecha(datos["fechaNacimiento"]):
+            error = validar_fecha(datos["fechaNacimiento"])
         elif contrasena != confirmar:
             error = "Las contraseñas no coinciden."
         else:

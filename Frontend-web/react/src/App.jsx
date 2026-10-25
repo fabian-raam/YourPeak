@@ -1,122 +1,131 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+import { useEffect, useState } from 'react'
+import Field from './components/Field'
+import { request } from './services/auth'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+const empty = { nombre: '', apellido: '', fechaNacimiento: '', correo: '', contrasena: '', confirmar_contrasena: '' }
+const emailValid = value => /^[^@\s]+@tecsup\.edu\.pe$/.test(value.trim().toLowerCase())
+const localDate = (offset = 0) => {
+  const date = new Date()
+  date.setDate(date.getDate() + offset)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
-export default App
+export default function App() {
+  const [page, setPage] = useState(location.pathname === '/registro' ? 'registro' : 'login')
+  const [values, setValues] = useState(empty)
+  const [fields, setFields] = useState({})
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const registering = page === 'registro'
+
+  useEffect(() => {
+    let active = true
+    request('perfil/').then(data => { if (active) setUser(data.usuario) })
+      .catch(err => { if (active && err.status !== 401) setError(err.message) })
+      .finally(() => { if (active) setLoading(false) })
+    const onPop = () => { setPage(location.pathname === '/registro' ? 'registro' : 'login'); setError(''); setFields({}); setValues(empty); setNotice('') }
+    window.addEventListener('popstate', onPop)
+    return () => { active = false; window.removeEventListener('popstate', onPop) }
+  }, [])
+  useEffect(() => { document.title = `${user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering])
+
+  function navigate(next) {
+    history.pushState({}, '', next === 'registro' ? '/registro' : '/login')
+    setPage(next); setValues(empty); setFields({}); setError(''); setNotice('')
+  }
+  function update(event) {
+    const { name, value } = event.target
+    setValues(previous => ({ ...previous, [name]: value }))
+    setFields(previous => ({ ...previous, [name]: undefined }))
+  }
+  async function submit(event) {
+    event.preventDefault()
+    const errors = {}
+    if (!emailValid(values.correo)) errors.correo = 'Usa tu correo institucional @tecsup.edu.pe.'
+    if (registering) {
+      if (!values.nombre.trim()) errors.nombre = 'Ingresa tu nombre.'
+      if (!values.apellido.trim()) errors.apellido = 'Ingresa tu apellido.'
+      if (!values.fechaNacimiento || values.fechaNacimiento >= localDate()) errors.fechaNacimiento = 'Ingresa una fecha anterior a hoy.'
+      if (values.contrasena.length < 15) errors.contrasena = 'Usa al menos 15 caracteres.'
+      if (values.contrasena !== values.confirmar_contrasena) errors.confirmar_contrasena = 'Las contraseñas no coinciden.'
+    }
+    setFields(errors); setError(''); setNotice('')
+    if (Object.keys(errors).length) {
+      setError('Revisa los campos indicados.')
+      document.getElementById(Object.keys(errors)[0])?.focus()
+      return
+    }
+    setBusy(true)
+    try {
+      const data = await request(registering ? 'registro/' : 'login/', { ...values, correo: values.correo.trim().toLowerCase() })
+      if (registering) {
+        const correo = values.correo
+        navigate('login'); setValues({ ...empty, correo }); setNotice(data.detail)
+      } else { setUser(data.usuario); setValues(empty); history.replaceState({}, '', '/') }
+    } catch (err) { setError(err.message); setFields(err.fields || {}) }
+    finally { setBusy(false) }
+  }
+  async function logout() {
+    setBusy(true); setError('')
+    try { await request('logout/', {}); setUser(null); navigate('login') }
+    catch (err) { setError(err.message) }
+    finally { setBusy(false) }
+  }
+  const field = (name, label, props = {}) => <Field key={name} name={name} label={label} value={values[name]}
+    onChange={update} error={fields[name]} required disabled={busy} {...props} />
+
+  return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
+    <section className="brand-side" aria-label="Your Peak">
+      <img className="brand-scene" src="/assets/scene.png" alt="" />
+      <a className="brand" href="/login" onClick={event => { event.preventDefault(); if (!busy) navigate('login') }}>
+        <img src="/assets/logo.svg" alt="" /><span>YOUR PEAK</span>
+      </a>
+      <div className="mobile-tagline">TU MEJOR VERSIÓN EMPIEZA AQUÍ.</div>
+    </section>
+    <section className="form-side" aria-label="Acceso a YourPeak">
+      <div className="auth-card" key={loading ? 'loading' : user ? 'profile' : page}>
+        {loading ? <p role="status">Comprobando tu sesión…</p> : user ? <>
+          <span className="eyebrow">YOUR PEAK · MI CUENTA</span>
+          <h1>Hola, {user.nombre}</h1>
+          <p className="intro">Tu próxima meta empieza aquí.</p>
+          <div className="profile"><span>Correo institucional</span><strong>{user.correo}</strong></div>
+          {error && <p className="alert" role="alert">{error}</p>}
+          <button className="primary" disabled={busy} onClick={logout}>{busy ? 'Cerrando sesión…' : 'Cerrar sesión'}</button>
+        </> : <>
+          <span className="eyebrow">COMUNIDAD TECSUP</span>
+          <h1>{registering ? 'Crea tu cuenta' : 'Iniciar sesión'}</h1>
+          <p className="intro">{registering ? 'Comienza tu camino con Your Peak.' : 'Bienvenido de nuevo a Your Peak.'}</p>
+          {notice && <p className="alert success" role="status">{notice}</p>}
+          {error && <p className="alert" role="alert">{error}</p>}
+          <form onSubmit={submit}>
+            <fieldset disabled={busy}>
+              {registering && <>
+                <div className="name-row">
+                  {field('nombre', 'Nombre', { autoComplete: 'given-name', maxLength: 100, placeholder: 'Tu nombre' })}
+                  {field('apellido', 'Apellido', { autoComplete: 'family-name', maxLength: 100, placeholder: 'Tu apellido' })}
+                </div>
+                {field('fechaNacimiento', 'Fecha de nacimiento', { type: 'date', autoComplete: 'bday', max: localDate(-1) })}
+              </>}
+              {field('correo', 'Correo institucional', { type: 'email', autoComplete: 'username', maxLength: 254,
+                placeholder: 'nombre@tecsup.edu.pe', hint: 'Acceso exclusivo con tu correo @tecsup.edu.pe.' })}
+              {field('contrasena', 'Contraseña', { type: 'password', autoComplete: registering ? 'new-password' : 'current-password',
+                maxLength: 128, placeholder: 'Ingresa tu contraseña', hint: registering ? 'Entre 15 y 128 caracteres. Puedes usar una frase.' : undefined })}
+              {registering && field('confirmar_contrasena', 'Confirmar contraseña', { type: 'password', autoComplete: 'new-password', maxLength: 128, placeholder: 'Repite tu contraseña' })}
+              <button className="primary" type="submit">{busy ? 'Un momento…' : registering ? 'Crear cuenta' : 'Iniciar sesión'}</button>
+            </fieldset>
+          </form>
+          <p className="switch">{registering ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}{' '}
+            <a href={registering ? '/login' : '/registro'} aria-disabled={busy} onClick={event => { event.preventDefault(); if (!busy) navigate(registering ? 'login' : 'registro') }}>
+              {registering ? 'Inicia sesión' : 'Regístrate'}
+            </a>
+          </p>
+        </>}
+      </div>
+      <p className="footer-note">Entrena con propósito. Supera tus límites.</p>
+    </section>
+  </main>
+}
