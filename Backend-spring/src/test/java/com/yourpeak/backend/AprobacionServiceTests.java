@@ -83,6 +83,24 @@ class AprobacionServiceTests {
         return new Cliente(usuario, estado(nombreEstado));
     }
 
+    @Test
+    void cuentaAdministradoraNoSePuedeAprobarNiConsultarComoPendiente() {
+        Cliente cliente = mock(Cliente.class);
+        Usuario usuario = mock(Usuario.class);
+        when(cliente.getUsuario()).thenReturn(usuario);
+        when(usuario.getIdUsuario()).thenReturn(7L);
+        when(administradores.existsByUsuario_IdUsuario(7L)).thenReturn(true);
+        when(clientes.findById(12L)).thenReturn(Optional.of(cliente));
+        when(clientes.findByIdClienteAndTipoEstado_NombreIgnoreCase(12L, "PENDIENTE"))
+                .thenReturn(Optional.of(cliente));
+
+        assertEquals(409, assertThrows(ResponseStatusException.class,
+                () -> servicio.aprobarCliente(12L, 7L)).getStatusCode().value());
+        assertEquals(409, assertThrows(ResponseStatusException.class,
+                () -> servicio.obtenerPendiente(12L, 7L)).getStatusCode().value());
+        verifyNoInteractions(estados);
+    }
+
     private TipoEstado estado(String nombre) {
         TipoEstado estado = mock(TipoEstado.class);
         when(estado.getNombre()).thenReturn(nombre);
