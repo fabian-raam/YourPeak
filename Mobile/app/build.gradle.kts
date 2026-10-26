@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -18,9 +20,16 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Dirección de Spring Boot. 10.0.2.2 es el "localhost" de la PC visto desde el emulador.
-        // En un celular físico usa la IP de la PC: ./gradlew installDebug -Pyourpeak.apiUrl=http://192.168.1.50:8080/
-        val apiUrl = providers.gradleProperty("yourpeak.apiUrl").getOrElse("http://10.0.2.2:8080/")
+        // Dirección de Spring Boot. Busca en local.properties, gradle.properties (-Pyourpeak.apiUrl=...)
+        // o usa http://10.0.2.2:8080/ por defecto para los demás integrantes del equipo.
+        val localProperties = Properties()
+        val localFile = rootProject.file("local.properties")
+        if (localFile.exists()) {
+            localProperties.load(localFile.inputStream())
+        }
+        val apiUrl = providers.gradleProperty("yourpeak.apiUrl").orNull
+            ?: localProperties.getProperty("yourpeak.apiUrl")
+            ?: "http://10.0.2.2:8080/"
         buildConfigField("String", "API_BASE_URL", "\"${apiUrl.trimEnd('/')}/\"")
     }
 

@@ -1,5 +1,6 @@
 package com.ramirez.yourpeak.data.repository
 
+import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import com.ramirez.yourpeak.data.model.ApiErrorResponse
@@ -57,11 +58,13 @@ class AuthRepository(
     private suspend fun <T> llamar(peticion: suspend () -> Response<T>): ApiResult<T> {
         val respuesta = try {
             peticion()
-        } catch (_: IOException) {
+        } catch (e: IOException) {
+            Log.e("AuthRepository", "Error de red al comunicarse con la API: ${e.message}", e)
             return ApiResult.Error(
                 "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
             )
-        } catch (_: RuntimeException) {
+        } catch (e: RuntimeException) {
+            Log.e("AuthRepository", "Error inesperado en respuesta del servidor", e)
             return ApiResult.Error("El servidor devolvió una respuesta inválida.")
         }
 

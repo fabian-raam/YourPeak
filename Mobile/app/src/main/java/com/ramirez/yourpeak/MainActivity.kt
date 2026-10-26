@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
      * Sin este permiso el sistema bloquea la conexión y la app solo ve un timeout.
      */
     private fun pedirPermisoRedLocal() {
-        if (!BuildConfig.DEBUG || Build.VERSION.SDK_INT < 37) return
+        if (!BuildConfig.DEBUG || (Build.VERSION.SDK_INT < 37)) return
         if (checkSelfPermission(PERMISO_RED_LOCAL) != PackageManager.PERMISSION_GRANTED) {
             permisoRedLocal.launch(PERMISO_RED_LOCAL)
         }
