@@ -17,6 +17,11 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Dirección de Spring Boot. 10.0.2.2 es el "localhost" de la PC visto desde el emulador.
+        // En un celular físico usa la IP de la PC: ./gradlew installDebug -Pyourpeak.apiUrl=http://192.168.1.50:8080/
+        val apiUrl = providers.gradleProperty("yourpeak.apiUrl").getOrElse("http://10.0.2.2:8080/")
+        buildConfigField("String", "API_BASE_URL", "\"${apiUrl.trimEnd('/')}/\"")
     }
 
     buildTypes {
@@ -32,6 +37,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -58,8 +64,11 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     // ViewModel Compose: Maneja la lógica de estado y llamadas asíncronas
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    // Runtime Compose: collectAsStateWithLifecycle para observar el estado de los ViewModel
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

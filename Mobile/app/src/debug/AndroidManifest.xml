@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Solo en debug: Android 17 (API 37) exige este permiso para conectarse a la red local,
+         como Spring Boot en la PC (10.0.2.2 desde el emulador o 192.168.x.x desde un celular) -->
+    <uses-permission android:name="android.permission.ACCESS_LOCAL_NETWORK" />
+
+    <!-- Solo en debug: Spring Boot corre localmente por HTTP (sin TLS) -->
+    <application android:networkSecurityConfig="@xml/network_security_config" />
+
+</manifest>
