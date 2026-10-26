@@ -1,47 +1,43 @@
 package com.ramirez.yourpeak
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.activity.result.contract.ActivityResultContracts
+import com.ramirez.yourpeak.ui.navigation.AppNavigation
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val permisoRedLocal =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        pedirPermisoRedLocal()
         setContent {
             YourPeakTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                AppNavigation()
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    /**
+     * En desarrollo Spring Boot corre en la PC, que para Android 17 (API 37) es "red local".
+     * Sin este permiso el sistema bloquea la conexión y la app solo ve un timeout.
+     */
+    private fun pedirPermisoRedLocal() {
+        if (!BuildConfig.DEBUG || Build.VERSION.SDK_INT < 37) return
+        if (checkSelfPermission(PERMISO_RED_LOCAL) != PackageManager.PERMISSION_GRANTED) {
+            permisoRedLocal.launch(PERMISO_RED_LOCAL)
+        }
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    YourPeakTheme {
-        Greeting("Android")
+    private companion object {
+        const val PERMISO_RED_LOCAL = "android.permission.ACCESS_LOCAL_NETWORK"
     }
 }

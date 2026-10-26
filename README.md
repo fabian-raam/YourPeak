@@ -13,7 +13,7 @@ La aplicación web utiliza React como interfaz y Django como backend web, ademá
 | Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
 | Web/backend | Django y SQLite | Expone la API web para React, llama a los endpoints de Spring Boot y conserva solo el ID del usuario en su sesión SQLite. Mantiene los formularios provisionales. |
 | Web/interfaz final | React | Registro, login, perfil básico y cierre de sesión implementados con React y Vite. Diseño adaptable y animaciones suaves basados en Figma. |
-| Aplicación móvil | Android, Kotlin y Jetpack Compose | Está creado el proyecto inicial; las funciones del gimnasio y la conexión completa con los servicios están pendientes. |
+| Aplicación móvil | Android, Kotlin y Jetpack Compose | Registro, login, perfil básico y cierre de sesión conectados directamente a Spring Boot con Retrofit. Diseño en tonos pastel. |
 | Base de datos | MySQL/MariaDB | El esquema completo y sus catálogos iniciales están en `Backend-spring/database/yourpeak_schema.sql`. No contiene cuentas reales. |
 
 ### Recorrido actual de login
@@ -185,6 +185,44 @@ Desde `Backend-spring`, con Java 21:
 ```powershell
 .\mvnw.cmd test
 ```
+
+## 5. Configurar y arrancar la aplicación móvil
+
+La app Android (`Mobile/`) se conecta **directamente a Spring Boot**, sin pasar por Django:
+
+| Pantalla | Endpoint de Spring |
+|---|---|
+| Registro | `POST /api/auth/registro` |
+| Inicio de sesión | `POST /api/auth/login` |
+
+Tras el login, la app guarda en el teléfono solo los datos de perfil que devuelve Spring (nunca la contraseña) y muestra el estado de la cuenta: `PENDIENTE` hasta que un administrador la apruebe, luego `ACTIVO`. Cerrar sesión borra esos datos. La app no usa la clave interna `X-Internal-Api-Key`, porque esa clave no debe viajar dentro de un APK.
+
+### Pasos
+
+1. Arranca MySQL y Spring Boot como en los pasos 1 y 2.
+2. Abre la carpeta `Mobile` en Android Studio y espera a que termine la sincronización de Gradle.
+3. Ejecuta la app en un emulador. Por defecto apunta a `http://10.0.2.2:8080/`, que es el `localhost` de la PC visto desde el emulador.
+4. En un celular físico conectado a la misma red Wi-Fi, usa la IP de tu PC (por ejemplo, `ipconfig` en Windows) y pásala al compilar:
+
+```powershell
+.\gradlew.bat installDebug -Pyourpeak.apiUrl=http://192.168.1.50:8080/
+```
+
+También puedes dejarla fija en `Mobile/gradle.properties` con `yourpeak.apiUrl=http://192.168.1.50:8080/`. Si Windows pregunta, permite que Java acepte conexiones en el firewall para el puerto de Spring.
+
+La compilación debug permite HTTP sin cifrar (`app/src/debug/res/xml/network_security_config.xml`) solo para desarrollo local.
+
+En Android 17 (API 37) la app debug pide al abrirse el permiso para conectarse a dispositivos de la red local. **Acéptalo**: sin él, Android bloquea la conexión con Spring en la PC y la app muestra que no hay conexión. Si lo rechazaste, actívalo en Ajustes → Apps → YourPeak → Permisos, o reinstala la app.
+
+### Pruebas de la app
+
+Desde `Mobile`:
+
+```powershell
+.\gradlew.bat testDebugUnitTest
+```
+
+Comprueban las validaciones (mismas reglas que Spring) y cómo la app interpreta las respuestas de Spring (login correcto, 401, 400 con errores por campo y servidor apagado).
 
 ### Funcionalidades pendientes
 
