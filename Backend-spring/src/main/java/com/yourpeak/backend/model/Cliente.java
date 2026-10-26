@@ -59,6 +59,32 @@ public class Cliente {
         return tipoEstado;
     }
 
+    /**
+     * Activa al cliente después de que un administrador aprueba su registro.
+     *
+     * @param estadoActivo estado ACTIVO obtenido del catálogo tipo_estado
+     * @throws IllegalStateException si el cliente no está PENDIENTE
+     * @throws IllegalArgumentException si el estado recibido no es ACTIVO
+     */
+    public void activar(TipoEstado estadoActivo) {
+        // La aprobación solo es válida para clientes que aún están pendientes.
+        if (!"PENDIENTE".equalsIgnoreCase(tipoEstado.getNombre())) {
+            throw new IllegalStateException(
+                    "Solo se pueden activar clientes pendientes"
+            );
+        }
+
+        // Recibimos el estado desde el catálogo; no creamos un estado nuevo aquí.
+        if (estadoActivo == null || !"ACTIVO".equalsIgnoreCase(estadoActivo.getNombre())) {
+            throw new IllegalArgumentException(
+                    "El nuevo estado del cliente debe ser ACTIVO"
+            );
+        }
+
+        // JPA detectará este cambio y lo guardará al confirmar la transacción.
+        this.tipoEstado = estadoActivo;
+    }
+
     public LocalDateTime getFechaAlta() {
         return fechaAlta;
     }

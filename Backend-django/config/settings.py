@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in {"true", "1", "yes"}
 SPRING_API_BASE_URL = os.environ.get("SPRING_API_BASE_URL", "http://localhost:8080")
-SPRING_INTERNAL_API_KEY = os.environ.get("SPRING_INTERNAL_API_KEY", "")
+SPRING_INTERNAL_API_KEY = "yourpeak-dev-internal-key"
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     if not DEBUG:

@@ -8,7 +8,8 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
 
-def _spring_request(path, payload=None, headers=None):
+def _spring_request(path, payload=None, headers=None, method=None):
+    """Envia una solicitud JSON a Spring y devuelve la respuesta parseada."""
     request_headers = {"Accept": "application/json"}
     request_headers.update(headers or {})
     body = None
@@ -19,7 +20,9 @@ def _spring_request(path, payload=None, headers=None):
         f"{settings.SPRING_API_BASE_URL.rstrip('/')}{path}",
         data=body,
         headers=request_headers,
-        method="POST" if body is not None else "GET",
+        # Sin metodo explicito, un cuerpo implica POST y la ausencia de cuerpo implica GET.
+        # Algunos POST, como aprobar un cliente, no necesitan enviar cuerpo JSON.
+        method=method or ("POST" if body is not None else "GET"),
     )
     with urlopen(request, timeout=5) as response:
         return json.loads(response.read().decode("utf-8"))

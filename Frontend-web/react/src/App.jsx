@@ -50,7 +50,7 @@ export default function App() {
       if (!values.nombre.trim()) errors.nombre = 'Ingresa tu nombre.'
       if (!values.apellido.trim()) errors.apellido = 'Ingresa tu apellido.'
       if (!values.fechaNacimiento || values.fechaNacimiento >= localDate()) errors.fechaNacimiento = 'Ingresa una fecha anterior a hoy.'
-      if (values.contrasena.length < 15) errors.contrasena = 'Usa al menos 15 caracteres.'
+      if (values.contrasena.length < 8) errors.contrasena = 'Usa al menos 8 caracteres.'
       if (values.contrasena !== values.confirmar_contrasena) errors.confirmar_contrasena = 'Las contraseñas no coinciden.'
     }
     setFields(errors); setError(''); setNotice('')
@@ -113,7 +113,7 @@ export default function App() {
               {field('correo', 'Correo institucional', { type: 'email', autoComplete: 'username', maxLength: 254,
                 placeholder: 'nombre@tecsup.edu.pe', hint: 'Acceso exclusivo con tu correo @tecsup.edu.pe.' })}
               {field('contrasena', 'Contraseña', { type: 'password', autoComplete: registering ? 'new-password' : 'current-password',
-                maxLength: 128, placeholder: 'Ingresa tu contraseña', hint: registering ? 'Entre 15 y 128 caracteres. Puedes usar una frase.' : undefined })}
+                maxLength: 128, placeholder: 'Ingresa tu contraseña', hint: registering ? 'Entre 8 y 128 caracteres. Puedes usar una frase.' : undefined })}
               {registering && field('confirmar_contrasena', 'Confirmar contraseña', { type: 'password', autoComplete: 'new-password', maxLength: 128, placeholder: 'Repite tu contraseña' })}
               <button className="primary" type="submit">{busy ? 'Un momento…' : registering ? 'Crear cuenta' : 'Iniciar sesión'}</button>
             </fieldset>

@@ -24,7 +24,7 @@ La aplicación web utiliza React como interfaz y Django como backend web, ademá
 4. Si el login es correcto, Django guarda solo el ID de usuario en su sesión SQLite. Al cerrar sesión, Django borra esa sesión.
 5. Para mostrar el perfil, Django pide `GET /api/auth/usuarios/{idUsuario}` a Spring usando el encabezado `X-Internal-Api-Key`.
 
-Por tanto, MySQL es la fuente de verdad para las cuentas. SQLite guarda los datos de sesión propios de Django y no es una copia de MySQL. La misma variable `SPRING_INTERNAL_API_KEY` debe configurarse en ambos procesos para que Django pueda consultar el perfil; no se necesita para enviar el login o el registro.
+Por tanto, MySQL es la fuente de verdad para las cuentas. SQLite guarda los datos de sesión propios de Django y no es una copia de MySQL. Django y Spring comparten una clave interna de desarrollo definida en sus archivos de configuración para que Django pueda consultar el perfil y comunicarse con los endpoints internos.
 
 ## Requisitos
 
@@ -59,19 +59,13 @@ Si MySQL usa un puerto distinto de `3306`, cambia el puerto en `DB_URL`, por eje
 $env:SERVER_PORT = "8081"
 ```
 
-Configura también una clave compartida para que Django pueda pedir el perfil del usuario. Usa el mismo valor en las terminales de Spring y Django:
-
-```powershell
-$env:SPRING_INTERNAL_API_KEY = "cambia-esto-por-una-clave-local"
-```
-
 Arranca Spring:
 
 ```powershell
 .\mvnw.cmd spring-boot:run
 ```
 
-Las variables definidas con `$env:` aplican a esa terminal. No guardes contraseñas ni claves reales en los archivos del repositorio.
+La clave interna de desarrollo ya está configurada en el repositorio y coincide con el valor de `Backend-django/config/settings.py`. En este proyecto académico se usa un valor compartido para facilitar las pruebas locales; no debe reutilizarse fuera del entorno de desarrollo.
 
 ## 3. Configurar y arrancar Django
 
@@ -89,7 +83,6 @@ Django usa SQLite para su propia sesión; no pongas ahí los usuarios ni configu
 ```powershell
 .\.venv\Scripts\python.exe manage.py migrate
 $env:SPRING_API_BASE_URL = "http://127.0.0.1:8080"
-$env:SPRING_INTERNAL_API_KEY = "cambia-esto-por-una-clave-local"
 ```
 
 Si configuraste Spring en otro puerto, usa ese mismo puerto en `SPRING_API_BASE_URL`; por ejemplo, `http://127.0.0.1:8081`. Después inicia Django:
@@ -106,7 +99,7 @@ Mantén Spring y Django ejecutándose en sus respectivas terminales y continúa 
 - `POST /api/auth/login`: valida el correo y la contraseña en Spring/MySQL.
 - `GET /api/auth/usuarios/{idUsuario}`: Django consulta los datos del usuario con el encabezado `X-Internal-Api-Key`.
 
-Si el login acepta las credenciales pero Django muestra que no puede cargar el perfil, comprueba que ambos procesos tengan el mismo `SPRING_INTERNAL_API_KEY` y que `SPRING_API_BASE_URL` apunte al puerto donde está Spring.
+Si el login acepta las credenciales pero Django muestra que no puede cargar el perfil, comprueba que la clave interna de desarrollo coincida en `Backend-django/config/settings.py` y `Backend-spring/src/main/resources/application.properties`, y que `SPRING_API_BASE_URL` apunte al puerto donde está Spring.
 
 
 ## 4. Configurar y arrancar el frontend React
@@ -151,7 +144,7 @@ React envía las solicitudes a Django mediante el proxy de Vite. Django administ
 - Solo se aceptan correos con el dominio exacto `@tecsup.edu.pe`.
 - El registro solicita nombre, apellido, fecha de nacimiento, correo institucional, contraseña y confirmación.
 - La fecha de nacimiento debe ser anterior al día actual. No se establece una edad mínima.
-- La contraseña del registro debe contener entre 15 y 128 caracteres.
+- La contraseña del registro debe contener entre 8 y 128 caracteres.
 - Las contraseñas deben coincidir y el correo no debe estar registrado.
 
 Estas reglas se validan en la interfaz y en el backend.

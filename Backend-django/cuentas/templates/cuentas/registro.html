@@ -19,9 +19,9 @@
   <label for="correo">Correo institucional</label>
   <input id="correo" name="correo" type="email" placeholder="nombre@tecsup.edu.pe" autocomplete="email" maxlength="254" required value="{{ datos.correo|default:'' }}">
   <label for="contrasena">Contraseña</label>
-  <input id="contrasena" name="contrasena" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+  <input id="contrasena" name="contrasena" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
   <label for="confirmar_contrasena">Confirma tu contraseña</label>
-  <input id="confirmar_contrasena" name="confirmar_contrasena" type="password" autocomplete="new-password" minlength="15" maxlength="128" required>
+  <input id="confirmar_contrasena" name="confirmar_contrasena" type="password" autocomplete="new-password" minlength="8" maxlength="128" required>
   <button type="submit">Crear cuenta</button>
 </form>
 {% endif %}

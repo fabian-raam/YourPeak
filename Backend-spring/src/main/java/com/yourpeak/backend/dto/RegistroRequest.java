@@ -32,9 +32,9 @@ public record RegistroRequest(
 
         @NotBlank(message = "La contraseña es obligatoria")
         @Size(
-                min = 15,
+                min = 8,
                 max = 128,
-                message = "La contraseña debe tener entre 15 y 128 caracteres"
+                message = "La contraseña debe tener entre 8 y 128 caracteres"
         )
         String contrasena
 

@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import jakarta.servlet.DispatcherType;
 
 @Configuration
 public class SecurityConfig {
@@ -23,11 +24,16 @@ public class SecurityConfig {
                 .matcher(HttpMethod.POST, "/api/auth/login");
         var usuarioInterno = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/auth/usuarios/{idUsuario}");
+        var listarPendientes = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/clientes/pendientes");
+        var obtenerPendiente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/clientes/pendientes/{idCliente}");
 
         http
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers(registro, login)
-                )
+                // Esta API no usa cookies ni sesión para autenticar solicitudes.
+                // Las operaciones internas se protegen con la API key y la validación
+                // del administrador en AprobacionService.
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -36,7 +42,17 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(registro, login, usuarioInterno).permitAll()
+                        // Permite que Spring complete el despacho interno de errores
+                        // y conserve el código HTTP real (por ejemplo, 409 Conflict).
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers(
+                                registro,
+                                login,
+                                usuarioInterno,
+                                listarPendientes,
+                                obtenerPendiente
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admin/clientes/*/aprobar").permitAll()
                         .anyRequest().denyAll()
                 );
 
