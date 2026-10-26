@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Field from './components/Field'
 import { request } from './services/auth'
+import AuthHero from './components/AuthHero'
+import AdminPanel from './pages/AdminPanel'
+import AccountStatus from './pages/AccountStatus'
 import './App.css'
 
 const empty = { nombre: '', apellido: '', fechaNacimiento: '', correo: '', contrasena: '', confirmar_contrasena: '' }
@@ -21,6 +24,33 @@ export default function App() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const registering = page === 'registro'
+  const isAdmin = user?.rol === 'ADMINISTRADOR'
+  const isActive = user?.rol === 'CLIENTE' && user.estado?.toUpperCase() === 'ACTIVO'
+
+  const sessionExpired = useCallback(() => {
+    setUser(null); setPage('login'); setValues(empty)
+    setFields({}); setNotice('')
+    setError('Tu sesión terminó. Inicia sesión de nuevo.')
+    history.replaceState({}, '', '/login')
+  }, [])
+
+  async function refreshProfile() {
+    setError('')
+    try {
+      const data = await request('perfil/')
+      setUser(data.usuario)
+      return data.usuario
+    } catch (err) {
+      if (err.status === 401) sessionExpired()
+      else setError(err.message)
+      return null
+    }
+  }
+
+  // La URL refleja el acceso que informa el servidor, no un rol guardado en el navegador.
+  useEffect(() => {
+    if (user) history.replaceState({}, '', isAdmin ? '/admin/usuarios' : isActive ? '/' : '/pendiente')
+  }, [user, isAdmin, isActive])
 
   useEffect(() => {
     let active = true
@@ -31,7 +61,7 @@ export default function App() {
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
-  useEffect(() => { document.title = `${user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering])
+  useEffect(() => { document.title = `${isAdmin ? 'Usuarios · Administración' : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin])
 
   function navigate(next) {
     history.pushState({}, '', next === 'registro' ? '/registro' : '/login')
@@ -78,17 +108,15 @@ export default function App() {
   const field = (name, label, props = {}) => <Field key={name} name={name} label={label} value={values[name]}
     onChange={update} error={fields[name]} required disabled={busy} {...props} />
 
+  if (user && isAdmin) return <AdminPanel user={user} onLogout={logout} logoutBusy={busy}
+    onExpired={sessionExpired} logoutError={error} />
+
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
-    <section className="brand-side" aria-label="Your Peak">
-      <img className="brand-scene" src="/assets/scene.png" alt="" />
-      <a className="brand" href="/login" onClick={event => { event.preventDefault(); if (!busy) navigate('login') }}>
-        <img src="/assets/logo.svg" alt="" /><span>YOUR PEAK</span>
-      </a>
-      <div className="mobile-tagline">TU MEJOR VERSIÓN EMPIEZA AQUÍ.</div>
-    </section>
+    <AuthHero registering={registering} onNavigate={event => { event.preventDefault(); if (!busy) navigate('login') }} />
     <section className="form-side" aria-label="Acceso a YourPeak">
       <div className="auth-card" key={loading ? 'loading' : user ? 'profile' : page}>
-        {loading ? <p role="status">Comprobando tu sesión…</p> : user ? <>
+        {loading ? <p role="status">Comprobando tu sesión…</p> : user && !isActive ?
+          <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : user ? <>
           <span className="eyebrow">YOUR PEAK · MI CUENTA</span>
           <h1>Hola, {user.nombre}</h1>
           <p className="intro">Tu próxima meta empieza aquí.</p>

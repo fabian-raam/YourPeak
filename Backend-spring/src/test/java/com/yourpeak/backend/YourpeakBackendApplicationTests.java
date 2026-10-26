@@ -5,6 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import com.yourpeak.backend.service.RegistroService;
 import com.yourpeak.backend.repository.UsuarioRepository;
+import com.yourpeak.backend.repository.ClienteRepository;
+import com.yourpeak.backend.repository.TipoEstadoRepository;
+import com.yourpeak.backend.model.Cliente;
+import com.yourpeak.backend.model.Usuario;
+import org.springframework.transaction.annotation.Transactional;
 import com.yourpeak.backend.dto.RegistroRequest;
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +27,24 @@ class YourpeakBackendApplicationTests {
     @Autowired RegistroService registro;
     @Autowired UsuarioRepository usuarios;
     @Autowired JdbcTemplate jdbc;
+    @Autowired ClienteRepository clientes;
+    @Autowired TipoEstadoRepository estados;
+
+    @Test
+    @Transactional
+    void listaPendientesExcluyeUsuariosConRolAdministrador() {
+        jdbc.update("INSERT INTO tipo_estado(nombre) SELECT 'pendiente' WHERE NOT EXISTS (SELECT 1 FROM tipo_estado WHERE nombre = 'pendiente')");
+        var pendiente = estados.findByNombre("pendiente").orElseThrow();
+        var admin = usuarios.saveAndFlush(new Usuario("Admin", "Prueba", "admin.consulta@tecsup.edu.pe", "hash", null));
+        var usuario = usuarios.saveAndFlush(new Usuario("Cliente", "Prueba", "cliente.consulta@tecsup.edu.pe", "hash", null));
+        var perfilAdmin = clientes.saveAndFlush(new Cliente(admin, pendiente));
+        var perfilCliente = clientes.saveAndFlush(new Cliente(usuario, pendiente));
+        jdbc.update("INSERT INTO administrador(id_usuario) VALUES (?)", admin.getIdUsuario());
+
+        var resultado = clientes.findAllByTipoEstado_NombreIgnoreCaseOrderByFechaAltaAsc("PENDIENTE");
+        assertTrue(resultado.stream().anyMatch(item -> item.getIdCliente().equals(perfilCliente.getIdCliente())));
+        assertFalse(resultado.stream().anyMatch(item -> item.getIdCliente().equals(perfilAdmin.getIdCliente())));
+    }
 
     @Test
     void registrationPersistsBirthDateAndHashesPassword() {

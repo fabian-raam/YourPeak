@@ -66,6 +66,7 @@ public class AprobacionService {
                         "No se encontró un cliente pendiente con ese identificador."
                 ));
 
+        verificarCuentaCliente(cliente);
         return convertirRespuesta(cliente);
     }
 
@@ -86,6 +87,8 @@ public class AprobacionService {
                         "No se encontró el cliente indicado."
                 ));
 
+        verificarCuentaCliente(cliente);
+
         // Una cuenta activa o inactiva no puede aprobarse de nuevo.
         if (!"PENDIENTE".equalsIgnoreCase(cliente.getTipoEstado().getNombre())) {
             throw new ResponseStatusException(
@@ -104,6 +107,16 @@ public class AprobacionService {
         cliente.activar(estadoActivo);
 
         // JPA detecta el cambio y lo escribe al confirmar esta transacción.
+    }
+
+    /** Una cuenta administrativa no participa en la aprobación de clientes. */
+    private void verificarCuentaCliente(Cliente cliente) {
+        if (administradorRepository.existsByUsuario_IdUsuario(cliente.getUsuario().getIdUsuario())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Las cuentas administradoras no requieren aprobación como clientes."
+            );
+        }
     }
 
     /** Comprueba que el usuario que realiza la operación esté registrado como administrador. */
