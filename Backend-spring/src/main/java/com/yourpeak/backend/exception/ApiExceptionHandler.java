@@ -81,6 +81,11 @@ public class ApiExceptionHandler {
                         || restriccion.endsWith(".uq_usuario_correo"))) {
                     return conflictoCorreo();
                 }
+                if (restriccion != null
+                        && (restriccion.equals("uq_plan_membresia_nombre")
+                        || restriccion.endsWith(".uq_plan_membresia_nombre"))) {
+                    return conflictoPlanMembresia();
+                }
             }
 
             causa = causa.getCause();
@@ -102,6 +107,14 @@ public class ApiExceptionHandler {
                 HttpStatus.CONFLICT,
                 "Registro no disponible",
                 "No se puede completar el registro con ese correo."
+        );
+    }
+
+    private ProblemDetail conflictoPlanMembresia() {
+        return problema(
+                HttpStatus.CONFLICT,
+                "Plan no disponible",
+                "Ya existe un plan de membresía con ese nombre."
         );
     }
 

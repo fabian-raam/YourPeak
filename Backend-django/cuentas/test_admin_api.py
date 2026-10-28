@@ -70,3 +70,112 @@ class AdminApiTests(TestCase):
         spring.return_value = {"idUsuario": 7, "rol": "CLIENTE"}
         self.assertEqual(self.client.post("/api/web/admin/clientes/15/aprobar/").status_code, 403)
         self.assertEqual(spring.call_count, 1)
+
+
+@override_settings(SPRING_INTERNAL_API_KEY="test-internal")
+class PlanMembresiaApiTests(TestCase):
+    def setUp(self):
+        session = self.client.session
+        session["id_usuario"] = 7
+        session.save()
+        self.admin = {"idUsuario": 7, "rol": "ADMINISTRADOR"}
+
+    def post_json(self, path, data):
+        return self.client.post(
+            path,
+            json.dumps(data),
+            content_type="application/json",
+        )
+
+    @patch("cuentas.api._spring_request")
+    def test_anonymous_cannot_create_plan(self, spring):
+        response = Client().post(
+            "/api/web/admin/planes-membresia/",
+            json.dumps({"nombre": "Plan mensual", "duracionMeses": 1}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 401)
+        spring.assert_not_called()
+
+    @patch("cuentas.api._spring_request")
+    def test_non_admin_cannot_change_plan(self, spring):
+        spring.return_value = {"idUsuario": 7, "rol": "CLIENTE", "estado": "ACTIVO"}
+        response = self.post_json(
+            "/api/web/admin/planes-membresia/",
+            {"nombre": "Plan mensual", "duracionMeses": 1},
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(spring.call_count, 1)
+
+    @patch("cuentas.api._spring_request")
+    def test_admin_creates_plan_and_preserves_created_status(self, spring):
+        created = {
+            "idPlanMembresia": 3,
+            "nombre": "Plan trimestral",
+            "duracionMeses": 3,
+            "estado": "ACTIVO",
+        }
+        spring.side_effect = [self.admin, created]
+
+        response = self.post_json(
+            "/api/web/admin/planes-membresia/",
+            {"nombre": "Plan trimestral", "duracionMeses": 3},
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json(), created)
+        self.assertEqual(spring.call_args.args[0], "/api/admin/planes-membresia")
+        self.assertEqual(spring.call_args.kwargs["method"], "POST")
+        self.assertEqual(spring.call_args.kwargs["payload"]["duracionMeses"], 3)
+        self.assertEqual(spring.call_args.kwargs["headers"]["X-Admin-User-Id"], "7")
+
+    @patch("cuentas.api._spring_request")
+    def test_admin_updates_only_plan_name(self, spring):
+        updated = {
+            "idPlanMembresia": 3,
+            "nombre": "Trimestral renovado",
+            "duracionMeses": 3,
+            "estado": "ACTIVO",
+        }
+        spring.side_effect = [self.admin, updated]
+
+        response = self.client.put(
+            "/api/web/admin/planes-membresia/3/",
+            json.dumps({"nombre": "Trimestral renovado"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(spring.call_args.kwargs["method"], "PUT")
+        self.assertEqual(spring.call_args.kwargs["payload"], {"nombre": "Trimestral renovado"})
+
+    @patch("cuentas.api._spring_request")
+    def test_admin_changes_plan_state_with_patch(self, spring):
+        updated = {
+            "idPlanMembresia": 3,
+            "nombre": "Plan trimestral",
+            "duracionMeses": 3,
+            "estado": "INACTIVO",
+        }
+        spring.side_effect = [self.admin, updated]
+
+        response = self.client.patch(
+            "/api/web/admin/planes-membresia/3/estado/",
+            json.dumps({"estado": "INACTIVO"}),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(spring.call_args.kwargs["method"], "PATCH")
+        self.assertEqual(spring.call_args.kwargs["payload"], {"estado": "INACTIVO"})
+
+    @patch("cuentas.api._spring_request")
+    def test_create_plan_requires_csrf(self, spring):
+        client = Client(enforce_csrf_checks=True)
+        response = client.post(
+            "/api/web/admin/planes-membresia/",
+            json.dumps({"nombre": "Plan mensual", "duracionMeses": 1}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 403)
+        spring.assert_not_called()

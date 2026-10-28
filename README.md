@@ -223,9 +223,59 @@ Maneja estos codigos en la interfaz:
 
 El flujo descrito ya esta implementado en `Frontend-web/react/src`: despues del login, React dirige administradores al panel, clientes pendientes a la pantalla de espera y clientes activos a su cuenta. El panel administrativo lista, busca, ordena y pagina solicitudes; permite abrir el detalle y aprobar. Tambien maneja expiracion de sesion, errores, estados vacios y actualizacion de la lista despues de aprobar.
 
-La proxima HU de membresias aun no esta implementada en el panel: la opcion **Membresias** aparece deshabilitada como "Proximamente" en `Frontend-web/react/src/pages/AdminPanel.jsx`.
+El backend de administracion de planes de membresia se encuentra descrito en la seccion HU-01. La interfaz de gestion aun esta pendiente: la opcion **Membresias** aparece deshabilitada como "Proximamente" en `Frontend-web/react/src/pages/AdminPanel.jsx`.
 
 La interfaz no sustituye la autorizacion del servidor. Cualquier endpoint futuro de funciones del gimnasio debe volver a comprobar en el backend que la sesion corresponda a un cliente `ACTIVO`.
+
+## HU-01: administracion de planes de membresia
+
+### Reglas actuales del esquema
+
+- Un plan tiene nombre unico de hasta 60 caracteres, duracion de 1 a 127 meses y estado `ACTIVO` o `INACTIVO`.
+- Los planes nuevos se crean `ACTIVO`.
+- Cambiar el estado a `INACTIVO` es una baja logica. No se elimina fisicamente porque `membresia` conserva una clave foranea al plan y representa periodos historicos.
+- La tabla actual no tiene precio ni descripcion; el backend conserva el modelo definido en `plan_membresia` (`nombre`, `duracion_meses`, `id_tipo_estado`). Si el producto requiere precio, hay que acordar e incorporar esa columna antes de conectar la interfaz.
+- La tabla `membresia` es el historial de periodos asignados/pagados y almacena fechas concretas; cambiar la duracion del catalogo no alarga periodos ya registrados. Por esta razon, el backend no permite editar la duracion despues de crear el plan.
+- Las membresias historicas apuntan al plan por clave foranea. Renombrar un plan cambia el nombre que se ve al consultar tambien sus periodos antiguos. Si se necesita conservar la etiqueta original, la tabla `membresia` debera guardar una copia historica del nombre.
+
+### Rutas para el panel administrativo
+
+React debe llamar a Django usando la sesion web. Django vuelve a comprobar el rol administrador y reenvia a Spring usando la clave interna. Nunca enviar la clave interna desde el navegador.
+
+| Metodo | Ruta Django | Funcion |
+|---|---|---|
+| GET | `/api/web/admin/planes-membresia/` | Listar planes activos e inactivos. |
+| POST | `/api/web/admin/planes-membresia/` | Crear un plan activo. |
+| GET | `/api/web/admin/planes-membresia/{idPlan}/` | Consultar un plan. |
+| PUT | `/api/web/admin/planes-membresia/{idPlan}/` | Editar solo el nombre; la duracion del plan no se cambia. |
+| PATCH | `/api/web/admin/planes-membresia/{idPlan}/estado/` | Activar o desactivar con `{ "estado": "ACTIVO" }` o `{ "estado": "INACTIVO" }`. |
+
+El cuerpo de alta usa `{ "nombre": "Plan mensual", "duracionMeses": 1 }`; el cuerpo de edicion usa `{ "nombre": "Plan mensual actualizado" }`. La duracion queda fija al crear el plan, para que futuras ediciones no cambien las condiciones compradas por clientes. Para ofrecer otra duracion se crea otro plan. La respuesta incluye `idPlanMembresia`, `nombre`, `duracionMeses` y `estado`. Las escrituras deben incluir el token CSRF de Django. Spring tambien comprueba la API key y el rol contra la tabla `administrador`.
+
+Las rutas servidor-a-servidor de Spring son `GET/POST /api/admin/planes-membresia`, `GET/PUT /api/admin/planes-membresia/{idPlan}` y `PATCH /api/admin/planes-membresia/{idPlan}/estado`.
+
+Para probar Spring directamente con Postman, usa `X-Internal-Api-Key` y `X-Admin-User-Id`; esa clave solo se comparte entre backends y nunca se incluye en React. Django toma el ID de usuario de la sesion, consulta su rol actual en Spring y pasa la identidad validada. Spring vuelve a comprobar la clave y que el ID exista en la tabla `administrador`.
+
+### Respuestas y errores
+
+- `201 Created`: plan creado correctamente y con estado `ACTIVO`.
+- `200 OK`: consulta, edicion o cambio de estado completado.
+- `400 Bad Request`: nombre o duracion invalidos, o estado distinto de `ACTIVO`/`INACTIVO`.
+- `401 Unauthorized`: la sesion Django no existe o vencio.
+- `403 Forbidden`: el usuario no es administrador o falta/es incorrecta la clave interna de Spring.
+- `404 Not Found`: no existe el plan indicado.
+- `409 Conflict`: ya existe un plan con ese nombre.
+- `503 Service Unavailable`: Django no puede comunicarse con Spring.
+
+### Estado de implementacion
+
+Implementado en Spring: entidad JPA `PlanMembresia`, repositorio, DTOs, validaciones, servicio transaccional y controlador interno protegido. La configuracion de seguridad permite las rutas del CRUD; el controlador comprueba la clave interna y el servicio comprueba el rol administrador. Los nombres duplicados responden conflicto.
+
+Implementado en Django: proxy de las cinco operaciones del CRUD, validacion de la sesion y rol administrador antes de reenviar, conservacion del `201 Created` en el alta y proteccion CSRF de las escrituras.
+
+Pruebas automatizadas agregadas: `PlanMembresiaServiceTests` cubre alta, rol no administrador, duplicidad, edicion que conserva duracion/estado y activar/desactivar; `PlanMembresiaApiTests` cubre sesion, rol, proxy de alta/edicion/estado y CSRF. React aun no tiene la pantalla de membresias; el helper actual necesita soportar `PUT` y `PATCH` con CSRF antes de poder conectarla.
+
+La implementacion se apega a las columnas existentes en `plan_membresia`; no crea tablas ni agrega precio o descripcion. La tabla historial `membresia` se mantiene separada y no se altera al cambiar el catalogo.
 
 ### API web de Django
 
