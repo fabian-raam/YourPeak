@@ -154,6 +154,79 @@ La columna `fecha_nacimiento` ya existe en el esquema. Si la base actual utiliza
 
 Después de actualizar el backend Java, reinicia Spring Boot para cargar los cambios.
 
+## HU-2: aprobacion administrativa de clientes
+
+### Flujo y responsabilidades
+
+1. Al registrarse, Spring crea el usuario y su perfil `CLIENTE` con estado `PENDIENTE` en MySQL. Las cuentas normales siempre comienzan como clientes; el rol administrador se asigna por separado en la tabla `administrador`.
+2. El login devuelve `idUsuario`, `nombre`, `apellido`, `correo`, `rol` y `estado`. Los roles usados son `ADMINISTRADOR` y `CLIENTE`; los estados de cliente incluyen `PENDIENTE` y `ACTIVO`. El rol administrador tiene prioridad si una cuenta tambien tiene perfil de cliente.
+3. Django conserva el `id_usuario` en su sesion SQLite. Para las rutas administrativas, Django consulta el perfil actual a Spring y exige que `rol` sea `ADMINISTRADOR`; no confia en un ID de administrador enviado por React.
+4. Si el rol es valido, Django llama a Spring con `X-Internal-Api-Key` y `X-Admin-User-Id`. Spring vuelve a verificar la clave y confirma que el ID exista en la tabla `administrador` antes de listar, consultar o aprobar clientes.
+5. Spring realiza el cambio de estado en MySQL dentro de una transaccion. Solo permite `PENDIENTE` -> `ACTIVO`; un cliente que ya no esta pendiente no se puede aprobar otra vez.
+
+La clave interna de desarrollo esta definida en `Backend-spring/src/main/resources/application.properties` y `Backend-django/config/settings.py`. React nunca debe recibirla ni enviarla. El navegador solo llama a Django; Django actua como intermediario entre React y Spring.
+
+### Rutas internas de Spring
+
+Estas rutas son llamadas servidor-a-servidor desde Django; no son endpoints para el navegador.
+
+| Metodo | Ruta Spring | Funcion |
+|---|---|---|
+| GET | `/api/admin/clientes/pendientes` | Lista clientes pendientes, en orden de registro. |
+| GET | `/api/admin/clientes/pendientes/{idCliente}` | Devuelve el detalle si el cliente aun esta pendiente. |
+| POST | `/api/admin/clientes/{idCliente}/aprobar` | Cambia el estado de `PENDIENTE` a `ACTIVO`. No requiere cuerpo. |
+
+Las tres requieren `X-Internal-Api-Key` y `X-Admin-User-Id`. Spring valida la clave y vuelve a comprobar el rol administrador en MySQL.
+
+### Rutas que consume React
+
+Todas las rutas usan la sesion Django existente. Las solicitudes `POST` deben incluir CSRF, igual que el resto de la API web.
+
+| Metodo | Ruta Django | Respuesta / uso |
+|---|---|---|
+| GET | `/api/web/admin/clientes/pendientes/` | Lista JSON de clientes en estado `PENDIENTE`. |
+| GET | `/api/web/admin/clientes/pendientes/{idCliente}/` | Detalle de un cliente que sigue pendiente. |
+| POST | `/api/web/admin/clientes/{idCliente}/aprobar/` | Aprueba al cliente y devuelve el estado `ACTIVO`. Enviar `{}` como cuerpo JSON para usar el helper actual de React. |
+
+Ejemplos de uso con `Frontend-web/react/src/services/auth.js`:
+
+```js
+const clientes = await request('admin/clientes/pendientes/')
+const cliente = await request(`admin/clientes/pendientes/${idCliente}/`)
+const resultado = await request(`admin/clientes/${idCliente}/aprobar/`, {})
+```
+
+El helper `request` conserva las cookies de sesion y obtiene automaticamente un token CSRF para los `POST`. No se debe llamar desde React directamente a `localhost:8080` ni copiar al frontend los encabezados internos de Spring.
+
+### Formatos y estados esperados
+
+La lista y el detalle contienen los campos seguros `idCliente`, `idUsuario`, `nombre`, `apellido`, `correo`, `fechaNacimiento`, `fechaAlta` y `estado`. No incluyen contrasenas ni hashes.
+
+La aprobacion exitosa responde con este formato:
+
+```json
+{
+  "estado": "ACTIVO",
+  "detail": "El cliente fue aprobado."
+}
+```
+
+Maneja estos codigos en la interfaz:
+
+- `401`: no hay una sesion valida; volver al login.
+- `403`: la sesion no corresponde a un administrador; no mostrar el panel administrativo.
+- `404`: el cliente no existe o ya no aparece como pendiente; actualizar la lista.
+- `409`: ya no esta pendiente y no se puede aprobar otra vez; actualizar la lista.
+- `503`: Spring no esta disponible o falta configuracion interna; mostrar un error reintentable.
+
+### Estado de React para HU-2
+
+El flujo descrito ya esta implementado en `Frontend-web/react/src`: despues del login, React dirige administradores al panel, clientes pendientes a la pantalla de espera y clientes activos a su cuenta. El panel administrativo lista, busca, ordena y pagina solicitudes; permite abrir el detalle y aprobar. Tambien maneja expiracion de sesion, errores, estados vacios y actualizacion de la lista despues de aprobar.
+
+La proxima HU de membresias aun no esta implementada en el panel: la opcion **Membresias** aparece deshabilitada como "Proximamente" en `Frontend-web/react/src/pages/AdminPanel.jsx`.
+
+La interfaz no sustituye la autorizacion del servidor. Cualquier endpoint futuro de funciones del gimnasio debe volver a comprobar en el backend que la sesion corresponda a un cliente `ACTIVO`.
+
 ### API web de Django
 
 | Método | Ruta | Función |
