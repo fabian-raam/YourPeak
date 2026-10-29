@@ -12,7 +12,7 @@ La aplicación web utiliza React como interfaz y Django como backend web, ademá
 |---|---|---|
 | Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
 | Web/backend | Django y SQLite | Expone la API web para React, llama a los endpoints de Spring Boot y conserva solo el ID del usuario en su sesión SQLite. Mantiene los formularios provisionales. |
-| Web/interfaz final | React | Registro, login, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios y planes de membresía. Interfaz azul adaptable y animaciones suaves basadas en Figma. |
+| Web/interfaz final | React | Registro, login, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios y planes de membresía. Acceso basado en Figma y panel administrativo azul marino con tipografía propia, adaptable a escritorio y móvil. |
 | Aplicación móvil | Android, Kotlin y Jetpack Compose | Registro, login, perfil básico y cierre de sesión conectados directamente a Spring Boot con Retrofit. Diseño basado en el front web, en tonos azules. |
 | Base de datos | MySQL/MariaDB | El esquema completo y sus catálogos iniciales están en `Backend-spring/database/yourpeak_schema.sql`. No contiene cuentas reales. |
 
@@ -105,7 +105,15 @@ Si el login acepta las credenciales pero Django muestra que no puede cargar el p
 
 ## 4. Configurar y arrancar el frontend React
 
-El frontend web incluye registro, inicio de sesión, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios. Está desarrollado con React y Vite, siguiendo el estilo de Figma del equipo. El atleta y el logo son recursos separados; los textos, el fondo y la figura azul se construyen con HTML y CSS para ajustar correctamente la distribución. Conserva animaciones suaves y respeta la preferencia de movimiento reducido. Esta etapa corresponde a la web; no modifica la aplicación Android de `Mobile`.
+El frontend web incluye registro, inicio de sesión, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios. Está desarrollado con React y Vite. El acceso conserva el estilo de Figma del equipo y el panel administrativo utiliza el diseño descrito a continuación. El atleta y el logo son recursos separados; los textos, el fondo y la figura azul se construyen con HTML y CSS para ajustar correctamente la distribución. Conserva animaciones suaves y respeta la preferencia de movimiento reducido. Esta etapa corresponde a la web; no modifica la aplicación Android de `Mobile`.
+
+### Diseño del panel administrativo
+
+Usuarios y Membresías comparten una interfaz azul marino con navegación lateral, resúmenes compactos y tablas de texto más legible. Los títulos utilizan **Barlow Condensed Bold** y los textos **IBM Plex Sans**; los diálogos mantienen la misma tipografía. Las fuentes se sirven desde `Frontend-web/react/public/fonts`, junto con sus licencias OFL, sin consultar servicios externos durante el uso del panel.
+
+![Panel administrativo de YourPeak con datos de ejemplo](docs/images/panel-administrativo.png)
+
+El rediseño conserva los flujos de aprobación y gestión de planes. Se verificaron compilación, análisis estático, las cuatro pruebas del helper HTTP y los flujos en navegador con datos simulados. También se comprobó la carga local de las fuentes y la distribución de Usuarios entre 320 y 1920 píxeles.
 
 ### Requisitos adicionales
 
@@ -488,6 +496,8 @@ El resultado debe mostrar ACTIVO. No es necesario borrar la base ni volver a imp
 ### Ejecución y problemas frecuentes
 
 - Orden recomendado: MySQL → Spring Boot (`8080`) → Django (`8000`) → React (`5173`). SQLyog es opcional para consultar datos; no necesita permanecer abierto.
+- Si la terminal ya está dentro de `Backend-spring`, `Backend-django` o `Frontend-web/react`, ejecuta directamente el comando de inicio de ese servicio; no repitas el `cd` hacia la misma carpeta.
+- Si Vite muestra `Port 5173 is already in use`, comprueba si React ya está ejecutándose en otra terminal. Usa esa instancia o detenla con `Ctrl + C` antes de iniciar otra.
 - Abre la carpeta clonada que contiene esta versión del código. Una copia anterior descargada como ZIP no se actualiza al hacer pull en otra carpeta.
 - Si aparece un error al entrar al login sin enviar el formulario, comprueba los servidores: React consulta automáticamente la sesión al cargar y la petición puede fallar si Django no está disponible.
 - Si el panel no abre, verifica el rol de esa cuenta en tu base local y vuelve a iniciar sesión.
