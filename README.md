@@ -496,8 +496,6 @@ El resultado debe mostrar ACTIVO. No es necesario borrar la base ni volver a imp
 ### Ejecución y problemas frecuentes
 
 - Orden recomendado: MySQL → Spring Boot (`8080`) → Django (`8000`) → React (`5173`). SQLyog es opcional para consultar datos; no necesita permanecer abierto.
-- Si la terminal ya está dentro de `Backend-spring`, `Backend-django` o `Frontend-web/react`, ejecuta directamente el comando de inicio de ese servicio; no repitas el `cd` hacia la misma carpeta.
-- Si Vite muestra `Port 5173 is already in use`, comprueba si React ya está ejecutándose en otra terminal. Usa esa instancia o detenla con `Ctrl + C` antes de iniciar otra.
 - Abre la carpeta clonada que contiene esta versión del código. Una copia anterior descargada como ZIP no se actualiza al hacer pull en otra carpeta.
 - Si aparece un error al entrar al login sin enviar el formulario, comprueba los servidores: React consulta automáticamente la sesión al cargar y la petición puede fallar si Django no está disponible.
 - Si el panel no abre, verifica el rol de esa cuenta en tu base local y vuelve a iniciar sesión.
