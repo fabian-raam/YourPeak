@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Brand from '../components/Brand'
 import Icon from '../components/Icon'
 import ApprovalDialog from '../components/ApprovalDialog'
 import { listPending } from '../services/admin'
@@ -9,7 +8,7 @@ import './AdminPanel.css'
 const PAGE_SIZE = 8
 const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
-export default function AdminPanel({ user, onLogout, logoutBusy, onExpired, logoutError }) {
+export default function AdminPanel({ onExpired, logoutError, onPendingCount }) {
   const [clients, setClients] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -34,7 +33,7 @@ export default function AdminPanel({ user, onLogout, logoutBusy, onExpired, logo
     const current = ++sequence.current
     listPending().then(data => {
       if (sequence.current !== current) return
-      setClients(data); setLastUpdated(new Date()); setForbidden(false)
+      setClients(data); onPendingCount(data.length); setLastUpdated(new Date()); setForbidden(false)
     }).catch(err => {
       if (sequence.current !== current) return
       if (err.status === 401) { onExpired(); return }
@@ -42,7 +41,7 @@ export default function AdminPanel({ user, onLogout, logoutBusy, onExpired, logo
       setError(err.message)
     }).finally(() => { if (sequence.current === current) setLoading(false) })
     return () => { sequence.current += 1 }
-  }, [onExpired, revision])
+  }, [onExpired, revision, onPendingCount])
 
   const filtered = useMemo(() => {
     const search = normalize(query.trim())
@@ -71,29 +70,13 @@ export default function AdminPanel({ user, onLogout, logoutBusy, onExpired, logo
     reload()
   }
 
-  return <div className="admin-layout">
-    <aside className="admin-sidebar">
-      <Brand onNavigate={event => event.preventDefault()} />
-      <span className="sidebar-label">ADMINISTRACIÓN</span>
-      <nav aria-label="Administración">
-        <button disabled><Icon name="grid" /><span>Resumen</span><small>Próximamente</small></button>
-        <a href="/admin/usuarios" className="active" aria-current="page" onClick={event => event.preventDefault()}><Icon name="users" /><span>Usuarios</span><b>{clients.length}</b></a>
-        <button disabled><Icon name="activity" /><span>Entrenamientos</span><small>Próximamente</small></button>
-        <button disabled><Icon name="card" /><span>Membresías</span><small>Próximamente</small></button>
-      </nav>
-      <div className="sidebar-note"><Icon name="shield" /><p>El primer paso<br /><strong>empieza contigo.</strong></p><span>Revisa cada solicitud y acompaña a nuestra comunidad hacia su mejor versión.</span></div>
-      <div className="sidebar-account"><span className="avatar">{initials(user)}</span><div><strong>{user.nombre}</strong><span>Administrador</span></div>
-        <button className="icon-button" aria-label="Cerrar sesión" disabled={logoutBusy} onClick={onLogout}><Icon name="logout" /></button>
-      </div>
-    </aside>
-    <div className="admin-workspace">
-      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>Usuarios</strong></span><span className="admin-role"><Icon name="shield" /> Acceso de administrador</span></header>
+  return <>
       <main className="admin-main">
         <div className="admin-heading"><div><span className="eyebrow">CADA NUEVA META EMPIEZA CON UNA OPORTUNIDAD</span><h1>Tu comunidad.<br className="mobile-break" /> <span>Su próximo paso.</span></h1><p>Revisa los registros y da la bienvenida a los próximos miembros de Your Peak.</p></div>
           <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
         <section className="admin-stats" aria-label="Resumen de solicitudes">
-          <article><span className="stat-icon brand"><Icon name="users" /></span><div><span>Solicitudes pendientes</span><strong>{loading ? '…' : clients.length}</strong><small>Esperan una revisión</small></div></article>
+          <article><span className="stat-icon accent"><Icon name="users" /></span><div><span>Solicitudes pendientes</span><strong>{loading ? '…' : clients.length}</strong><small>Esperan una revisión</small></div></article>
           <article><span className="stat-icon amber"><Icon name="clock" /></span><div><span>Primera solicitud pendiente</span><strong className="stat-date">{loading ? '…' : clients.length ? registrationDate([...clients].sort((a, b) => String(a.fechaAlta).localeCompare(String(b.fechaAlta)))[0].fechaAlta) : 'Sin pendientes'}</strong><small>Atiende primero a quienes llegaron antes</small></div></article>
           <article><span className="stat-icon green"><Icon name="shield" /></span><div><span>Comunidad institucional</span><strong className="stat-domain">@tecsup.edu.pe</strong><small>El acceso comienza con una aprobación</small></div></article>
         </section>
@@ -114,7 +97,6 @@ export default function AdminPanel({ user, onLogout, logoutBusy, onExpired, logo
         </section>
         <footer className="admin-footer"><span>YOUR PEAK <b>·</b> Cada aprobación abre una nueva posibilidad.</span><span>{lastUpdated ? `Actualizado a las ${lastUpdated.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}` : 'Esperando actualización'}</span></footer>
       </main>
-    </div>
     {selected !== null && <ApprovalDialog key={selected} clientId={selected} onClose={closeDetail} onApproved={approved} onExpired={onExpired} onStale={reload} />}
-  </div>
+  </>
 }

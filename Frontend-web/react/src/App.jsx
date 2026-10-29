@@ -3,6 +3,8 @@ import Field from './components/Field'
 import { request } from './services/auth'
 import AuthHero from './components/AuthHero'
 import AdminPanel from './pages/AdminPanel'
+import MembershipPlans from './pages/MembershipPlans'
+import AdminLayout from './components/AdminLayout'
 import AccountStatus from './pages/AccountStatus'
 import './App.css'
 
@@ -15,6 +17,8 @@ const localDate = (offset = 0) => {
 }
 
 export default function App() {
+  const [pendingCount, setPendingCount] = useState(null)
+  const [adminSection, setAdminSection] = useState(location.pathname === '/admin/membresias' ? 'membresias' : 'usuarios')
   const [page, setPage] = useState(location.pathname === '/registro' ? 'registro' : 'login')
   const [values, setValues] = useState(empty)
   const [fields, setFields] = useState({})
@@ -28,7 +32,7 @@ export default function App() {
   const isActive = user?.rol === 'CLIENTE' && user.estado?.toUpperCase() === 'ACTIVO'
 
   const sessionExpired = useCallback(() => {
-    setUser(null); setPage('login'); setValues(empty)
+    setUser(null); setPendingCount(null); setPage('login'); setValues(empty)
     setFields({}); setNotice('')
     setError('Tu sesión terminó. Inicia sesión de nuevo.')
     history.replaceState({}, '', '/login')
@@ -49,19 +53,25 @@ export default function App() {
 
   // La URL refleja el acceso que informa el servidor, no un rol guardado en el navegador.
   useEffect(() => {
-    if (user) history.replaceState({}, '', isAdmin ? '/admin/usuarios' : isActive ? '/' : '/pendiente')
-  }, [user, isAdmin, isActive])
+    if (user) history.replaceState({}, '', isAdmin ? `/admin/${adminSection}` : isActive ? '/' : '/pendiente')
+  }, [user, isAdmin, isActive, adminSection])
 
   useEffect(() => {
     let active = true
     request('perfil/').then(data => { if (active) setUser(data.usuario) })
       .catch(err => { if (active && err.status !== 401) setError(err.message) })
       .finally(() => { if (active) setLoading(false) })
-    const onPop = () => { setPage(location.pathname === '/registro' ? 'registro' : 'login'); setError(''); setFields({}); setValues(empty); setNotice('') }
+    const onPop = () => { setAdminSection(location.pathname === '/admin/membresias' ? 'membresias' : 'usuarios'); setPage(location.pathname === '/registro' ? 'registro' : 'login'); setError(''); setFields({}); setValues(empty); setNotice('') }
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
-  useEffect(() => { document.title = `${isAdmin ? 'Usuarios · Administración' : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin])
+  useEffect(() => { document.title = `${isAdmin ? `${adminSection === 'membresias' ? 'Membresías' : 'Usuarios'} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
+
+  function navigateAdmin(section) {
+    if (section === adminSection) return
+    history.pushState({}, '', `/admin/${section}`)
+    setAdminSection(section)
+  }
 
   function navigate(next) {
     history.pushState({}, '', next === 'registro' ? '/registro' : '/login')
@@ -101,15 +111,19 @@ export default function App() {
   }
   async function logout() {
     setBusy(true); setError('')
-    try { await request('logout/', {}); setUser(null); navigate('login') }
+    try { await request('logout/', {}); setUser(null); setPendingCount(null); navigate('login') }
     catch (err) { setError(err.message) }
     finally { setBusy(false) }
   }
   const field = (name, label, props = {}) => <Field key={name} name={name} label={label} value={values[name]}
     onChange={update} error={fields[name]} required disabled={busy} {...props} />
 
-  if (user && isAdmin) return <AdminPanel user={user} onLogout={logout} logoutBusy={busy}
-    onExpired={sessionExpired} logoutError={error} />
+  if (user && isAdmin) return <AdminLayout user={user} section={adminSection} onNavigate={navigateAdmin}
+    onLogout={logout} logoutBusy={busy} pendingCount={pendingCount}>
+    {adminSection === 'membresias'
+      ? <MembershipPlans onExpired={sessionExpired} logoutError={error} />
+      : <AdminPanel onExpired={sessionExpired} logoutError={error} onPendingCount={setPendingCount} />}
+  </AdminLayout>
 
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
     <AuthHero registering={registering} onNavigate={event => { event.preventDefault(); if (!busy) navigate('login') }} />

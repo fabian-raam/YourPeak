@@ -1,0 +1,32 @@
+.stat-icon.neutral { color: #aebbd0; background: #91baff12; }
+.plan-row-icon { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border: 1px solid var(--brand-border-soft); border-radius: 10px; color: var(--brand-link); background: var(--brand-soft); }
+.plans-table { white-space: normal; }
+.plans-table .user-cell > div { min-width: 0; }
+.plans-table .user-cell strong { overflow-wrap: anywhere; line-height: 1.6; }
+.plans-table td:first-child { width: 36%; }
+.plan-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.plan-actions .secondary-button { font-size: 11px; padding: 9px 12px; }
+.plan-status.is-active { color: #9ae0c1; border-color: #5ab99144; background: #5ab99112; }
+.plan-status.is-inactive { color: #b9c5d5; border-color: #91a4bd44; background: #91a4bd10; }
+.membership-note { display: flex; gap: 10px; align-items: flex-start; color: #9ba8b5; font-size: 12px; line-height: 1.7; margin-top: 22px; }
+.membership-note svg { flex-shrink: 0; }
+.plan-info { padding: 14px; margin: 0; background: var(--brand-soft); border: 1px solid var(--brand-border-soft); border-radius: 9px; color: #bac8dc; font-size: 12px; line-height: 1.8; }
+.plan-summary { display: flex; align-items: center; gap: 14px; padding-block: 18px; border-block: 1px solid #35414a; }
+.plan-summary h3 { margin: 0 0 10px; font-size: 20px; line-height: 1.5; overflow-wrap: anywhere; }
+.plan-summary > .stat-icon { flex-shrink: 0; }
+.plan-dialog .detail-grid { grid-template-columns: 1fr 1fr; }
+.plan-dialog .detail-grid > div:first-child { grid-column: auto; }
+.plan-dialog .input-wrap:has(input:disabled) { opacity: .65; }
+/* La navegación sigue disponible en ventanas estrechas del navegador. */
+@media (max-width: 700px) {
+  .admin-sidebar { flex-wrap: wrap; }
+  .admin-sidebar nav { display: flex; width: 100%; order: 3; gap: 8px; }
+  .admin-sidebar nav button:disabled { display: none; }
+  .admin-sidebar nav a { flex: 1; padding: 11px; font-size: 12px; }
+  .admin-sidebar nav a span { display: inline; }
+  .plans-table td:first-child { width: auto; }
+  .plans-table .plan-actions { flex-wrap: nowrap; }
+  .plans-table .plan-actions > button { width: auto; flex: 1; justify-content: center; min-height: 38px; }
+  .membership-main .users-panel-heading { align-items: flex-start; }
+  .membership-main .admin-heading .primary { width: 100%; }
+}

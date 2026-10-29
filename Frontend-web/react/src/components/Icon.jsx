@@ -1,4 +1,6 @@
 const paths = {
+  plus: <path d="M12 5v14M5 12h14" />,
+  pause: <><path d="M9 8v8m6-8v8" /><circle cx="12" cy="12" r="9" /></>,
   users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87" /><circle cx="9" cy="7" r="4" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></>,
   grid: <><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></>,
   check: <path d="m5 12 4 4L19 6" />,
