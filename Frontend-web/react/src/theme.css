@@ -1,0 +1,25 @@
+/* Paleta compartida por el acceso y el panel administrativo. */
+:root {
+  --brand-primary: #2166e8;
+  --brand-hover: #1854c7;
+  --brand-highlight: #3283ff;
+  --brand-link: #91baff;
+  --brand-link-hover: #c2d8ff;
+  --brand-focus: #83b2ff;
+  --brand-border: #4a8aff;
+  --brand-soft: #2166e814;
+  --brand-tint: #2166e824;
+  --brand-border-soft: #2166e84d;
+  --brand-glow: #2166e838;
+  --brand-gradient-end: #1559d6;
+  --brand-halo: #2166e844;
+  --page-background: #10131d;
+  --hero-glow: #202b46;
+  --surface-start: #202536;
+  --surface-end: #191e2b;
+  --input-background: #252c40;
+  /* Los errores conservan su significado, independiente del color de marca. */
+  --error-border: #ff8585;
+  --error-text: #ff9a9b;
+  --error-background: #ff090b12;
+}

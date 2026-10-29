@@ -11,6 +11,5 @@ export default function AuthHero({ registering, onNavigate }) {
     </div>
     <div className="hero-shape" aria-hidden="true" />
     <img className="hero-athlete" src="/assets/athlete.png" alt="Atleta de Your Peak" width="408" height="612" fetchPriority="high" />
-    <p className="hero-caption"><span /> TU PRÓXIMO OBJETIVO EMPIEZA AQUÍ</p>
   </section>
 }
