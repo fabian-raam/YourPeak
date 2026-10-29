@@ -93,7 +93,7 @@ export default function AdminPanel({ user, onLogout, logoutBusy, onExpired, logo
           <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
         <section className="admin-stats" aria-label="Resumen de solicitudes">
-          <article><span className="stat-icon red"><Icon name="users" /></span><div><span>Solicitudes pendientes</span><strong>{loading ? '…' : clients.length}</strong><small>Esperan una revisión</small></div></article>
+          <article><span className="stat-icon brand"><Icon name="users" /></span><div><span>Solicitudes pendientes</span><strong>{loading ? '…' : clients.length}</strong><small>Esperan una revisión</small></div></article>
           <article><span className="stat-icon amber"><Icon name="clock" /></span><div><span>Primera solicitud pendiente</span><strong className="stat-date">{loading ? '…' : clients.length ? registrationDate([...clients].sort((a, b) => String(a.fechaAlta).localeCompare(String(b.fechaAlta)))[0].fechaAlta) : 'Sin pendientes'}</strong><small>Atiende primero a quienes llegaron antes</small></div></article>
           <article><span className="stat-icon green"><Icon name="shield" /></span><div><span>Comunidad institucional</span><strong className="stat-domain">@tecsup.edu.pe</strong><small>El acceso comienza con una aprobación</small></div></article>
         </section>

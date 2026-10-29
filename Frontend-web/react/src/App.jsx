@@ -153,7 +153,6 @@ export default function App() {
           </p>
         </>}
       </div>
-      <p className="footer-note">Entrena con propósito. Supera tus límites.</p>
     </section>
   </main>
 }

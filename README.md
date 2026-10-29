@@ -105,7 +105,7 @@ Si el login acepta las credenciales pero Django muestra que no puede cargar el p
 
 ## 4. Configurar y arrancar el frontend React
 
-El frontend web incluye registro, inicio de sesión, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios. Está desarrollado con React y Vite, siguiendo el estilo de Figma del equipo. El atleta y el logo son recursos separados; los textos, el fondo y la figura roja se construyen con HTML y CSS para ajustar correctamente la distribución. Conserva animaciones suaves y respeta la preferencia de movimiento reducido. Esta etapa corresponde a la web; no modifica la aplicación Android de `Mobile`.
+El frontend web incluye registro, inicio de sesión, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios. Está desarrollado con React y Vite, siguiendo el estilo de Figma del equipo. El atleta y el logo son recursos separados; los textos, el fondo y la figura azul se construyen con HTML y CSS para ajustar correctamente la distribución. Conserva animaciones suaves y respeta la preferencia de movimiento reducido. Esta etapa corresponde a la web; no modifica la aplicación Android de `Mobile`.
 
 ### Requisitos adicionales
 
