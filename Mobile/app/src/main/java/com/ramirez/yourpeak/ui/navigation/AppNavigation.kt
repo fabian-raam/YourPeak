@@ -34,12 +34,17 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = Rutas.SPLASH) {
 
         composable(Rutas.SPLASH) {
-            SplashScreen(alTerminar = {
-                val destino = if (sesion.usuarioActual() != null) Rutas.INICIO else Rutas.login()
-                navController.navigate(destino) {
-                    popUpTo(Rutas.SPLASH) { inclusive = true }
-                }
-            })
+            val haySesion = remember { sesion.usuarioActual() != null }
+            SplashScreen(
+                haySesion = haySesion,
+                alContinuarConSesion = {
+                    navController.navigate(Rutas.INICIO) {
+                        popUpTo(Rutas.SPLASH) { inclusive = true }
+                    }
+                },
+                alIniciarSesion = { navController.navigate(Rutas.login()) },
+                alRegistrarse = { navController.navigate(Rutas.REGISTRO) }
+            )
         }
 
         composable(
@@ -57,7 +62,11 @@ fun AppNavigation() {
                         popUpTo(navController.graph.id) { inclusive = true }
                     }
                 },
-                alIrARegistro = { navController.navigate(Rutas.REGISTRO) }
+                alIrARegistro = {
+                    navController.navigate(Rutas.REGISTRO) {
+                        popUpTo(Rutas.SPLASH)
+                    }
+                }
             )
         }
 
@@ -65,11 +74,13 @@ fun AppNavigation() {
             RegistroScreen(
                 alRegistrarse = { correo, mensaje ->
                     navController.navigate(Rutas.login(correo, mensaje)) {
-                        popUpTo(navController.graph.id) { inclusive = true }
+                        popUpTo(Rutas.SPLASH)
                     }
                 },
                 alIrALogin = {
-                    if (!navController.popBackStack()) navController.navigate(Rutas.login())
+                    navController.navigate(Rutas.login()) {
+                        popUpTo(Rutas.SPLASH)
+                    }
                 }
             )
         }
@@ -77,9 +88,9 @@ fun AppNavigation() {
         composable(Rutas.INICIO) {
             val usuario = remember { sesion.usuarioActual() }
             if (usuario == null) {
-                // Sesión borrada o dañada: volver al login.
+                // Sesión borrada o dañada: volver a la bienvenida.
                 LaunchedEffect(Unit) {
-                    navController.navigate(Rutas.login()) {
+                    navController.navigate(Rutas.SPLASH) {
                         popUpTo(navController.graph.id) { inclusive = true }
                     }
                 }
@@ -88,7 +99,7 @@ fun AppNavigation() {
                     usuario = usuario,
                     alCerrarSesion = {
                         sesion.cerrarSesion()
-                        navController.navigate(Rutas.login()) {
+                        navController.navigate(Rutas.SPLASH) {
                             popUpTo(navController.graph.id) { inclusive = true }
                         }
                     }

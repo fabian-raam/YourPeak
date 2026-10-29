@@ -68,7 +68,7 @@ fun HomeScreen(usuario: LoginResponse, alCerrarSesion: () -> Unit) {
                             Text(
                                 text = "YOUR PEAK · MI CUENTA",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.tertiary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(4.dp))
                             EtiquetaEstado(estado, usuario.rol)
@@ -102,7 +102,7 @@ fun HomeScreen(usuario: LoginResponse, alCerrarSesion: () -> Unit) {
                     OutlinedButton(
                         onClick = alCerrarSesion,
                         modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.tertiary)
                     ) {
@@ -165,7 +165,7 @@ private fun DatoPerfil(etiqueta: String, valor: String, ultimo: Boolean = false)
         Spacer(Modifier.height(2.dp))
         Text(valor, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
     }
-    if (!ultimo) HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f))
+    if (!ultimo) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 }
 
 private fun capitalizar(texto: String) =
@@ -174,7 +174,7 @@ private fun capitalizar(texto: String) =
 @Preview(showBackground = true, heightDp = 860)
 @Composable
 private fun HomePreview() {
-    YourPeakTheme(darkTheme = false) {
+    YourPeakTheme {
         HomeScreen(
             usuario = LoginResponse(1, "Ana", "Torres", "ana.torres@tecsup.edu.pe", "CLIENTE", "PENDIENTE"),
             alCerrarSesion = {}

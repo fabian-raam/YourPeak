@@ -260,7 +260,7 @@ private fun SelectorFecha(fechaActual: String, alConfirmar: (String) -> Unit, al
 @Preview(showBackground = true, heightDp = 1000)
 @Composable
 private fun RegistroPreview() {
-    YourPeakTheme(darkTheme = false) {
+    YourPeakTheme {
         RegistroContenido(
             estado = RegistroUiState(errores = mapOf("correo" to "Usa tu correo institucional @tecsup.edu.pe.")),
             acciones = RegistroAcciones({}, {}, {}, {}, {}, {}, {}, {})

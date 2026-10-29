@@ -8,6 +8,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,15 +60,15 @@ import androidx.compose.ui.unit.sp
 import com.ramirez.yourpeak.R
 import com.ramirez.yourpeak.ui.theme.LocalEstadoColors
 
-/** Fondo suave con un degradado rosado en la parte superior. */
+/** Fondo azul marino de la web con un brillo azulado muy tenue en la parte superior. */
 @Composable
 fun FondoMarca(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val colores = MaterialTheme.colorScheme
     Box(
         modifier = modifier.background(
             Brush.verticalGradient(
-                0f to colores.primaryContainer,
-                0.45f to colores.background,
+                0f to colores.primaryContainer.copy(alpha = 0.55f),
+                0.35f to colores.background,
                 1f to colores.background
             )
         )
@@ -81,7 +82,7 @@ fun MarcaYourPeak(modifier: Modifier = Modifier, tamanoLogo: Int = 30, conLema: 
             Icon(
                 painter = painterResource(R.drawable.ic_logo),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.tertiary,
+                tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.size(width = (tamanoLogo * 0.6f).dp, height = tamanoLogo.dp)
             )
             Spacer(Modifier.width(12.dp))
@@ -112,15 +113,18 @@ fun TarjetaAuth(modifier: Modifier = Modifier, content: @Composable ColumnScope.
         visibleState = visible,
         enter = fadeIn(tween(450)) + slideInVertically(tween(500)) { it / 10 }
     ) {
+        val estados = LocalEstadoColors.current
         Surface(
             modifier = modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            shadowElevation = 2.dp
+            shape = RoundedCornerShape(20.dp),
+            color = Color.Transparent,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            shadowElevation = 6.dp
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 22.dp, vertical = 28.dp),
+                modifier = Modifier
+                    .background(Brush.linearGradient(listOf(estados.tarjetaInicio, estados.tarjetaFin)))
+                    .padding(horizontal = 22.dp, vertical = 28.dp),
                 content = content
             )
         }
@@ -133,7 +137,7 @@ fun EncabezadoTarjeta(etiqueta: String?, titulo: String, introduccion: String) {
         Text(
             text = etiqueta,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.tertiary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(10.dp))
     }
@@ -169,7 +173,8 @@ fun Aviso(mensaje: String?, tipo: TipoAviso, modifier: Modifier = Modifier) {
             modifier = modifier
                 .fillMaxWidth()
                 .padding(bottom = 18.dp)
-                .background(fondo, RoundedCornerShape(12.dp))
+                .background(fondo, RoundedCornerShape(10.dp))
+                .border(1.dp, texto.copy(alpha = 0.35f), RoundedCornerShape(10.dp))
                 .padding(horizontal = 14.dp, vertical = 12.dp)
                 .semantics { liveRegion = LiveRegionMode.Polite }
         )
@@ -237,7 +242,7 @@ fun CampoTexto(
                     imeAction = if (ultimo) ImeAction.Done else ImeAction.Next
                 ),
                 keyboardActions = accionesTeclado,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(11.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = colores.surfaceVariant,
                     unfocusedContainerColor = colores.surfaceVariant,
@@ -251,8 +256,10 @@ fun CampoTexto(
                     focusedTrailingIconColor = colores.onSurfaceVariant,
                     unfocusedTrailingIconColor = colores.onSurfaceVariant,
                     cursorColor = colores.tertiary,
-                    unfocusedPlaceholderColor = colores.onSurfaceVariant.copy(alpha = 0.7f),
-                    focusedPlaceholderColor = colores.onSurfaceVariant.copy(alpha = 0.7f),
+                    unfocusedPlaceholderColor = LocalEstadoColors.current.placeholder,
+                    focusedPlaceholderColor = LocalEstadoColors.current.placeholder,
+                    focusedTextColor = colores.onSurface,
+                    unfocusedTextColor = colores.onSurface,
                     disabledTextColor = colores.onSurface,
                     disabledBorderColor = colores.outline,
                     disabledLeadingIconColor = colores.onSurfaceVariant
@@ -290,8 +297,8 @@ fun BotonPrincipal(
     Button(
         onClick = alPresionar,
         enabled = !cargando,
-        modifier = modifier.fillMaxWidth().heightIn(min = 54.dp),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary,

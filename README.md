@@ -13,7 +13,7 @@ La aplicación web utiliza React como interfaz y Django como backend web, ademá
 | Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
 | Web/backend | Django y SQLite | Expone la API web para React, llama a los endpoints de Spring Boot y conserva solo el ID del usuario en su sesión SQLite. Mantiene los formularios provisionales. |
 | Web/interfaz final | React | Registro, login, perfil básico y cierre de sesión implementados con React y Vite. Diseño adaptable y animaciones suaves basados en Figma. |
-| Aplicación móvil | Android, Kotlin y Jetpack Compose | Registro, login, perfil básico y cierre de sesión conectados directamente a Spring Boot con Retrofit. Diseño en tonos pastel. |
+| Aplicación móvil | Android, Kotlin y Jetpack Compose | Registro, login, perfil básico y cierre de sesión conectados directamente a Spring Boot con Retrofit. Diseño basado en el front web, en tonos azules. |
 | Base de datos | MySQL/MariaDB | El esquema completo y sus catálogos iniciales están en `Backend-spring/database/yourpeak_schema.sql`. No contiene cuentas reales. |
 
 ### Recorrido actual de login
