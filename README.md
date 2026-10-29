@@ -12,7 +12,7 @@ La aplicación web utiliza React como interfaz y Django como backend web, ademá
 |---|---|---|
 | Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
 | Web/backend | Django y SQLite | Expone la API web para React, llama a los endpoints de Spring Boot y conserva solo el ID del usuario en su sesión SQLite. Mantiene los formularios provisionales. |
-| Web/interfaz final | React | Registro, login, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios y planes de membresía. Interfaz azul adaptable y animaciones suaves basadas en Figma. |
+| Web/interfaz final | React | Registro, login, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios y planes de membresía. Acceso basado en Figma y panel administrativo azul marino con tipografía propia, adaptable a escritorio y móvil. |
 | Aplicación móvil | Android, Kotlin y Jetpack Compose | Registro, login, perfil básico y cierre de sesión conectados directamente a Spring Boot con Retrofit. Diseño basado en el front web, en tonos azules. |
 | Base de datos | MySQL/MariaDB | El esquema completo y sus catálogos iniciales están en `Backend-spring/database/yourpeak_schema.sql`. No contiene cuentas reales. |
 
@@ -105,7 +105,15 @@ Si el login acepta las credenciales pero Django muestra que no puede cargar el p
 
 ## 4. Configurar y arrancar el frontend React
 
-El frontend web incluye registro, inicio de sesión, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios. Está desarrollado con React y Vite, siguiendo el estilo de Figma del equipo. El atleta y el logo son recursos separados; los textos, el fondo y la figura azul se construyen con HTML y CSS para ajustar correctamente la distribución. Conserva animaciones suaves y respeta la preferencia de movimiento reducido. Esta etapa corresponde a la web; no modifica la aplicación Android de `Mobile`.
+El frontend web incluye registro, inicio de sesión, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios. Está desarrollado con React y Vite. El acceso conserva el estilo de Figma del equipo y el panel administrativo utiliza el diseño descrito a continuación. El atleta y el logo son recursos separados; los textos, el fondo y la figura azul se construyen con HTML y CSS para ajustar correctamente la distribución. Conserva animaciones suaves y respeta la preferencia de movimiento reducido. Esta etapa corresponde a la web; no modifica la aplicación Android de `Mobile`.
+
+### Diseño del panel administrativo
+
+Usuarios y Membresías comparten una interfaz azul marino con navegación lateral, resúmenes compactos y tablas de texto más legible. Los títulos utilizan **Barlow Condensed Bold** y los textos **IBM Plex Sans**; los diálogos mantienen la misma tipografía. Las fuentes se sirven desde `Frontend-web/react/public/fonts`, junto con sus licencias OFL, sin consultar servicios externos durante el uso del panel.
+
+![Panel administrativo de YourPeak con datos de ejemplo](docs/images/panel-administrativo.png)
+
+El rediseño conserva los flujos de aprobación y gestión de planes. Se verificaron compilación, análisis estático, las cuatro pruebas del helper HTTP y los flujos en navegador con datos simulados. También se comprobó la carga local de las fuentes y la distribución de Usuarios entre 320 y 1920 píxeles.
 
 ### Requisitos adicionales
 

@@ -5,7 +5,7 @@
 .plans-table .user-cell strong { overflow-wrap: anywhere; line-height: 1.6; }
 .plans-table td:first-child { width: 36%; }
 .plan-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.plan-actions .secondary-button { font-size: 11px; padding: 9px 12px; }
+.plan-actions .secondary-button { font-size: 13px; padding: 9px 12px; }
 .plan-status.is-active { color: #9ae0c1; border-color: #5ab99144; background: #5ab99112; }
 .plan-status.is-inactive { color: #b9c5d5; border-color: #91a4bd44; background: #91a4bd10; }
 .membership-note { display: flex; gap: 10px; align-items: flex-start; color: #9ba8b5; font-size: 12px; line-height: 1.7; margin-top: 22px; }

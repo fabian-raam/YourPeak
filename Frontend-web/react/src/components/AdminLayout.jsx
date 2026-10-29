@@ -24,8 +24,6 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
         <button disabled><Icon name="activity" /><span>Entrenamientos</span><small>Próximamente</small></button>
         {link('membresias', 'Membresías', 'card')}
       </nav>
-      <div className="sidebar-note"><Icon name="shield" /><p>El primer paso<br /><strong>empieza contigo.</strong></p>
-        <span>{memberships ? 'Organiza los planes que acompañarán las metas de nuestra comunidad.' : 'Revisa cada solicitud y acompaña a nuestra comunidad hacia su mejor versión.'}</span></div>
       <div className="sidebar-account"><span className="avatar">{initials(user)}</span><div><strong>{user.nombre}</strong><span>Administrador</span></div>
         <button className="icon-button" aria-label="Cerrar sesión" disabled={logoutBusy} onClick={onLogout}><Icon name="logout" /></button>
       </div>

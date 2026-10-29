@@ -72,8 +72,8 @@ export default function MembershipPlans({ onExpired, logoutError }) {
   }
 
   return <main className="admin-main membership-main">
-    <div className="admin-heading"><div><span className="eyebrow">UN PLAN PARA CADA NUEVA META</span>
-      <h1>Planes que acompañan.<br className="mobile-break" /> <span>Metas que avanzan.</span></h1>
+    <div className="admin-heading"><div><span className="eyebrow">02 / MEMBRESÍAS</span>
+      <h1>Planes de membresía</h1>
       <p>Organiza el catálogo de planes de membresía de Your Peak.</p></div>
       <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Crear plan</button>
     </div>
