@@ -8,9 +8,12 @@ export class ApiError extends Error {
   }
 }
 
-export async function request(path, data) {
+export async function request(path, data, options = {}) {
+  const method = options.method || (data === undefined ? 'GET' : 'POST')
+  // Todas las escrituras, incluidas PUT y PATCH, conservan la protección CSRF.
+  const writing = !['GET', 'HEAD', 'OPTIONS'].includes(method)
   const headers = { Accept: 'application/json' }
-  if (data !== undefined) {
+  if (writing) {
     if (!csrfToken) {
       const response = await request('csrf/')
       csrfToken = response.csrfToken
@@ -21,7 +24,7 @@ export async function request(path, data) {
   let response
   try {
     response = await fetch(`/api/web/${path}`, {
-      method: data === undefined ? 'GET' : 'POST',
+      method,
       headers,
       credentials: 'same-origin',
       cache: 'no-store',

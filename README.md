@@ -12,7 +12,7 @@ La aplicación web utiliza React como interfaz y Django como backend web, ademá
 |---|---|---|
 | Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
 | Web/backend | Django y SQLite | Expone la API web para React, llama a los endpoints de Spring Boot y conserva solo el ID del usuario en su sesión SQLite. Mantiene los formularios provisionales. |
-| Web/interfaz final | React | Registro, login, perfil básico y cierre de sesión implementados con React y Vite. Diseño adaptable y animaciones suaves basados en Figma. |
+| Web/interfaz final | React | Registro, login, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios y planes de membresía. Interfaz azul adaptable y animaciones suaves basadas en Figma. |
 | Aplicación móvil | Android, Kotlin y Jetpack Compose | Registro, login, perfil básico y cierre de sesión conectados directamente a Spring Boot con Retrofit. Diseño basado en el front web, en tonos azules. |
 | Base de datos | MySQL/MariaDB | El esquema completo y sus catálogos iniciales están en `Backend-spring/database/yourpeak_schema.sql`. No contiene cuentas reales. |
 
@@ -223,7 +223,7 @@ Maneja estos codigos en la interfaz:
 
 El flujo descrito ya esta implementado en `Frontend-web/react/src`: despues del login, React dirige administradores al panel, clientes pendientes a la pantalla de espera y clientes activos a su cuenta. El panel administrativo lista, busca, ordena y pagina solicitudes; permite abrir el detalle y aprobar. Tambien maneja expiracion de sesion, errores, estados vacios y actualizacion de la lista despues de aprobar.
 
-El backend de administracion de planes de membresia se encuentra descrito en la seccion HU-01. La interfaz de gestion aun esta pendiente: la opcion **Membresias** aparece deshabilitada como "Proximamente" en `Frontend-web/react/src/pages/AdminPanel.jsx`.
+La opción **Membresías** ya está habilitada en el panel administrativo. La gestión de planes y sus reglas se describen en la sección HU-01.
 
 La interfaz no sustituye la autorizacion del servidor. Cualquier endpoint futuro de funciones del gimnasio debe volver a comprobar en el backend que la sesion corresponda a un cliente `ACTIVO`.
 
@@ -273,9 +273,51 @@ Implementado en Spring: entidad JPA `PlanMembresia`, repositorio, DTOs, validaci
 
 Implementado en Django: proxy de las cinco operaciones del CRUD, validacion de la sesion y rol administrador antes de reenviar, conservacion del `201 Created` en el alta y proteccion CSRF de las escrituras.
 
-Pruebas automatizadas agregadas: `PlanMembresiaServiceTests` cubre alta, rol no administrador, duplicidad, edicion que conserva duracion/estado y activar/desactivar; `PlanMembresiaApiTests` cubre sesion, rol, proxy de alta/edicion/estado y CSRF. React aun no tiene la pantalla de membresias; el helper actual necesita soportar `PUT` y `PATCH` con CSRF antes de poder conectarla.
+Pruebas automatizadas agregadas: `PlanMembresiaServiceTests` cubre alta, rol no administrador, duplicidad, edicion que conserva duracion/estado y activar/desactivar; `PlanMembresiaApiTests` cubre sesion, rol, proxy de alta/edicion/estado y CSRF. React ya incluye la pantalla de gestión de planes. El helper compartido `src/services/auth.js` conserva las llamadas existentes y admite `PUT` y `PATCH` con CSRF para editar nombres y cambiar estados.
 
 La implementacion se apega a las columnas existentes en `plan_membresia`; no crea tablas ni agrega precio o descripcion. La tabla historial `membresia` se mantiene separada y no se altera al cambiar el catalogo.
+
+### Interfaz web de planes de membresía
+
+Accede con una cuenta administradora desde **http://127.0.0.1:5173/login** y selecciona **Membresías** en el menú. La pantalla utiliza la ruta `/admin/membresias`. Mantén MySQL, Spring Boot, Django y React ejecutándose; utiliza la misma cuenta administradora preparada en la sección de aprobación de usuarios.
+
+Funciones disponibles:
+
+- Listar los planes y consultar los totales de activos e inactivos.
+- Buscar por nombre o número de plan, filtrar por estado y recorrer páginas de ocho resultados.
+- Crear un plan indicando nombre y duración en meses; comienza con estado ACTIVO.
+- Consultar el detalle y editar únicamente el nombre.
+- Desactivar y reactivar planes mediante una confirmación explícita.
+- Actualizar el catálogo y mostrar estados vacíos, errores recuperables y vencimiento de sesión.
+
+El nombre es obligatorio, único y admite hasta 60 caracteres. La duración debe ser un entero entre 1 y 127 meses y queda fija después del alta. Renombrar un plan también cambia el nombre visible en las membresías históricas vinculadas. Desactivar es una baja lógica: conserva el plan y sus periodos históricos.
+
+Esta pantalla administra el catálogo de planes; no asigna membresías a clientes ni registra pagos. No incluye precio ni descripción porque el backend actual no dispone de esos campos. Esta etapa no requiere volver a importar el esquema ni eliminar la base existente que ya utiliza el backend de planes.
+
+### Organización del frontend
+
+Dentro de `Frontend-web/react`:
+
+- `src/components/AdminLayout.jsx`: navegación y estructura compartidas por Usuarios y Membresías.
+- `src/pages/MembershipPlans.jsx` y su CSS: listado, filtros, paginación y resumen de planes.
+- `src/components/PlanDialog.jsx`: detalle, formularios y confirmación del cambio de estado.
+- `src/services/memberships.js`: operaciones de planes a través de Django.
+- `src/services/auth.js`: sesión y protección CSRF compartidas, incluidos POST, PUT y PATCH.
+- `tests/auth.test.js`: pruebas del helper HTTP, ejecutables con `npm test` sin instalar dependencias adicionales.
+
+La identidad del administrador y la autorización se comprueban en los servidores. React no envía claves internas ni permite escoger permisos desde los formularios.
+
+### Prueba del flujo de planes
+
+1. Inicia sesión como administrador y abre Membresías.
+2. Crea un plan de prueba con un nombre único y una duración de 3 meses. Debe aparecer ACTIVO.
+3. Consulta su detalle y cambia el nombre. La duración debe conservarse.
+4. Intenta crear otro plan con el mismo nombre: debe mostrarse el conflicto sin duplicarlo.
+5. Abre Desactivar y pulsa Cancelar: el estado debe mantenerse. Después confirma la desactivación y comprueba que aparece INACTIVO.
+6. Filtra por Inactivos, reactiva el plan y verifica que vuelve a ACTIVO.
+7. Recarga la página para comprobar los datos persistidos y vuelve a Usuarios para verificar la navegación.
+
+Verificación realizada: compilación y análisis del frontend sin errores, cuatro pruebas del helper HTTP y pruebas en navegador con datos simulados para validaciones, creación, edición, activación/desactivación, cancelación, filtros, paginación, rutas, permisos y errores. También se volvió a comprobar el flujo de aprobación de usuarios. Las pruebas con datos simulados no modifican MySQL; el flujo anterior permite validar la instalación local de cada integrante.
 
 ### API web de Django
 
@@ -299,6 +341,7 @@ Desde `Frontend-web/react`:
 ```powershell
 npm run build
 npm run lint
+npm test
 ```
 
 Desde `Backend-django`:
@@ -419,7 +462,7 @@ Este procedimiento es para preparar el entorno local de desarrollo. El formulari
 - Confirmar la aprobación: el estado cambia de PENDIENTE a ACTIVO y la solicitud desaparece de la lista.
 - Actualizar la lista y manejar estados vacíos, errores de conexión o solicitudes ya atendidas por otro administrador.
 
-Solo el apartado **Usuarios** está habilitado. Resumen, Entrenamientos y Membresías aparecen como próximos módulos. No se implementó rechazo de solicitudes porque el backend actual solo ofrece aprobación.
+Los apartados **Usuarios** y **Membresías** están habilitados y comparten la navegación administrativa. Resumen y Entrenamientos continúan como próximos módulos. No se implementó rechazo de solicitudes porque el backend actual solo ofrece aprobación.
 
 ### Prueba completa del flujo
 
