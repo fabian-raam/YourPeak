@@ -142,7 +142,7 @@ private fun LoginContenido(
 @Preview(showBackground = true, heightDp = 820)
 @Composable
 private fun LoginPreview() {
-    YourPeakTheme(darkTheme = false) {
+    YourPeakTheme {
         LoginContenido(
             estado = LoginUiState(aviso = "Registro exitoso. Tu cuenta está pendiente de aprobación."),
             alCambiarCorreo = {}, alCambiarContrasena = {}, alEnviar = {}, alIrARegistro = {}

@@ -2,40 +2,33 @@ package com.ramirez.yourpeak.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta pastel de YourPeak: el rojo de la marca se suaviza a tonos rosa/coral
-// para que la interfaz no transmita sensación de "peligro".
+// Paleta del front web (Frontend-web/react): fondo azul marino muy oscuro, tarjeta con
+// degradado y azul como color de la marca en botones, enlaces y acentos.
 
-// Tema claro
-val Crema = Color(0xFFFBF5F4)
-val Blanco = Color(0xFFFFFFFF)
-val RosaNiebla = Color(0xFFFDF0EF)
-val RosaBorde = Color(0xFFEBD6D5)
-val RosaPastel = Color(0xFFF2A9AE)
-val RosaPolvo = Color(0xFFF7D4D6)
-val VinoSuave = Color(0xFFA9505B)
-val Granate = Color(0xFF4A1A21)
-val Tinta = Color(0xFF2F2426)
-val TintaSuave = Color(0xFF76666A)
-val ErrorSuave = Color(0xFFA8434E)
-val ErrorFondo = Color(0xFFFBE5E6)
-val SalviaTexto = Color(0xFF3D7258)
-val SalviaFondo = Color(0xFFE2F1E8)
-val MielTexto = Color(0xFF7D5E22)
-val MielFondo = Color(0xFFFBEFD7)
+// Fondos y bordes
+val Marino = Color(0xFF10131C)
+val TarjetaInicio = Color(0xFF1C1F30)
+val TarjetaFin = Color(0xFF161A26)
+val TarjetaBorde = Color(0xFF262A3A)
+val Campo = Color(0xFF1E2233)
+val CampoBorde = Color(0xFF30354A)
 
-// Tema oscuro
-val Carbon = Color(0xFF1C1819)
-val CarbonSuperficie = Color(0xFF262022)
-val CarbonCampo = Color(0xFF2F282A)
-val CarbonBorde = Color(0xFF4A3E41)
-val RosaNoche = Color(0xFFF0B0B5)
-val RosaNocheAcento = Color(0xFFF6C6CA)
-val GranateNoche = Color(0xFF3D1519)
-val TintaClara = Color(0xFFF5ECEC)
-val TintaClaraSuave = Color(0xFFBFB0B2)
-val ErrorNoche = Color(0xFFF2B8BD)
-val ErrorNocheFondo = Color(0xFF4A2A2E)
-val SalviaNoche = Color(0xFFA9D8BF)
-val SalviaNocheFondo = Color(0xFF23362C)
-val MielNoche = Color(0xFFEBD09A)
-val MielNocheFondo = Color(0xFF3B3020)
+// Textos
+val Texto = Color(0xFFF8F9FA)
+val TextoSuave = Color(0xFFB2B5C6)
+val TextoPlaceholder = Color(0xFF7C8196)
+
+// Azules de la marca
+val Azul = Color(0xFF1D72FF)
+val AzulAcento = Color(0xFF2F7BFF)
+val AzulEnlace = Color(0xFF97A8FF)
+val AzulFondo = Color(0xFF1C2747)
+val AzulClaro = Color(0xFFA9C4FF)
+
+// Avisos
+val ErrorTexto = Color(0xFFF4A7A9)
+val ErrorFondo = Color(0xFF33232B)
+val ExitoTexto = Color(0xFFA4E9C4)
+val ExitoFondo = Color(0xFF182B2A)
+val PendienteTexto = Color(0xFFEBD39B)
+val PendienteFondo = Color(0xFF2E2A24)
