@@ -10,6 +10,7 @@ import com.yourpeak.backend.repository.AdministradorRepository;
 import com.yourpeak.backend.repository.ClienteRepository;
 import com.yourpeak.backend.repository.MembresiaRepository;
 import com.yourpeak.backend.repository.PlanMembresiaRepository;
+import com.yourpeak.backend.repository.TipoEstadoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,17 +29,20 @@ public class MembresiaService {
     private final ClienteRepository clienteRepository;
     private final PlanMembresiaRepository planRepository;
     private final MembresiaRepository membresiaRepository;
+    private final TipoEstadoRepository tipoEstadoRepository;
 
     public MembresiaService(
             AdministradorRepository administradorRepository,
             ClienteRepository clienteRepository,
             PlanMembresiaRepository planRepository,
-            MembresiaRepository membresiaRepository
+            MembresiaRepository membresiaRepository,
+            TipoEstadoRepository tipoEstadoRepository
     ) {
         this.administradorRepository = administradorRepository;
         this.clienteRepository = clienteRepository;
         this.planRepository = planRepository;
         this.membresiaRepository = membresiaRepository;
+        this.tipoEstadoRepository = tipoEstadoRepository;
     }
 
     /**
@@ -66,7 +70,8 @@ public class MembresiaService {
                         "No se encontró el cliente."
                 ));
 
-        if (!"ACTIVO".equalsIgnoreCase(cliente.getTipoEstado().getNombre())) {
+        String estadoCliente = cliente.getTipoEstado().getNombre();
+        if (!"ACTIVO".equalsIgnoreCase(estadoCliente) && !"INACTIVO".equalsIgnoreCase(estadoCliente)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Solo se puede asignar una membresía a un cliente aprobado."
@@ -113,7 +118,13 @@ public class MembresiaService {
                 fechaVencimiento,
                 observacion
         );
-        return membresiaRepository.save(periodo);
+        Membresia guardada = membresiaRepository.save(periodo);
+        if ("INACTIVO".equalsIgnoreCase(estadoCliente)) {
+            var estadoActivo = tipoEstadoRepository.findByNombre("ACTIVO")
+                    .orElseThrow(() -> new IllegalStateException("Falta configurar el estado ACTIVO"));
+            cliente.reactivar(estadoActivo);
+        }
+        return guardada;
     }
 
     @Transactional(readOnly = true)
@@ -165,11 +176,67 @@ public class MembresiaService {
                             cliente.getUsuario().getNombre(),
                             cliente.getUsuario().getApellido(),
                             cliente.getUsuario().getCorreo(),
+                            cliente.getTipoEstado().getNombre(),
                             vencimiento,
                             estado
                     );
                 })
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClienteMembresiaResumen> listarClientesInactivos(Long idUsuarioAdministrador) {
+        verificarAdministrador(idUsuarioAdministrador);
+        return resumirClientes("INACTIVO");
+    }
+
+    @Transactional
+    public int desactivarClientesVencidos() {
+        LocalDate hoy = LocalDate.now(ZONA_GIMNASIO);
+        var clientesVigentes = clienteRepository.findAllActivosNoAdministradores("ACTIVO");
+        if (clientesVigentes.isEmpty()) {
+            return 0;
+        }
+        var estadoInactivo = tipoEstadoRepository.findByNombre("INACTIVO")
+                .orElseThrow(() -> new IllegalStateException("Falta configurar el estado INACTIVO"));
+        int desactivados = 0;
+        for (Cliente cliente : clientesVigentes) {
+            boolean tienePeriodoVigente = membresiaRepository
+                    .existsByCliente_IdClienteAndFechaInicioLessThanEqualAndFechaVencimientoGreaterThanEqual(
+                            cliente.getIdCliente(), hoy, hoy
+                    );
+            if (!tienePeriodoVigente) {
+                cliente.cambiarAInactivo(estadoInactivo);
+                desactivados++;
+            }
+        }
+        return desactivados;
+    }
+
+    private List<ClienteMembresiaResumen> resumirClientes(String estadoCliente) {
+        LocalDate hoy = LocalDate.now(ZONA_GIMNASIO);
+        return clienteRepository.findAllActivosNoAdministradores(estadoCliente).stream()
+                .map(cliente -> {
+                    var periodo = membresiaRepository
+                            .findFirstByCliente_IdClienteOrderByFechaVencimientoDesc(cliente.getIdCliente())
+                            .orElse(null);
+                    LocalDate vencimiento = periodo == null ? null : periodo.getFechaVencimiento();
+                    String estado = vencimiento == null ? "SIN_MEMBRESIA"
+                            : vencimiento.isBefore(hoy) ? "VENCIDA" : "VIGENTE";
+                    return new ClienteMembresiaResumen(
+                            cliente.getIdCliente(), cliente.getUsuario().getNombre(),
+                            cliente.getUsuario().getApellido(), cliente.getUsuario().getCorreo(),
+                            cliente.getTipoEstado().getNombre(), vencimiento, estado
+                    );
+                }).toList();
+    }
+
+    private void verificarAdministrador(Long idUsuarioAdministrador) {
+        administradorRepository.findByUsuario_IdUsuario(idUsuarioAdministrador)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Solo un administrador puede consultar clientes."
+                ));
     }
 
     private String estadoPeriodo(Membresia periodo, LocalDate hoy) {

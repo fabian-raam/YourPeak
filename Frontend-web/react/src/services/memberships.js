@@ -20,5 +20,10 @@ export async function listActiveClients() {
   if (!Array.isArray(data)) throw new Error('No se pudo interpretar la lista de clientes.')
   return data
 }
+export async function listInactiveClients() {
+  const data = await request('admin/clientes/inactivos/')
+  if (!Array.isArray(data)) throw new Error('No se pudo interpretar la lista de clientes inactivos.')
+  return data
+}
 export const listClientMemberships = id => request(clientPath(id))
 export const renewClientMembership = (id, data) => request(clientPath(id), data)

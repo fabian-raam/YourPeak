@@ -48,4 +48,23 @@ public class ClientesMembresiaController {
                 .listarClientesActivos(idUsuarioAdministrador);
         return ResponseEntity.ok(clientes);
     }
+
+    @GetMapping("/inactivos")
+    public ResponseEntity<?> listarInactivos(
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String apiKey,
+            @RequestHeader(value = "X-Admin-User-Id", required = false) Long idUsuarioAdministrador
+    ) {
+        if (internalApiKey.isBlank() || apiKey == null || !MessageDigest.isEqual(
+                internalApiKey.getBytes(StandardCharsets.UTF_8),
+                apiKey.getBytes(StandardCharsets.UTF_8)
+        )) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("detail", "Acceso no autorizado."));
+        }
+        if (idUsuarioAdministrador == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("detail", "Falta identificar al administrador."));
+        }
+        return ResponseEntity.ok(membresiaService.listarClientesInactivos(idUsuarioAdministrador));
+    }
 }

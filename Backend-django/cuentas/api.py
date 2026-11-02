@@ -325,6 +325,24 @@ def clientes_activos(request):
     return _respuesta_spring_json(resultado)
 
 
+@require_GET
+def clientes_inactivos(request):
+    """Lista todos los clientes INACTIVOS para que administración pueda renovarlos."""
+    id_usuario, respuesta_error = _validar_administrador(request)
+    if respuesta_error:
+        return respuesta_error
+    try:
+        resultado = _spring_request(
+            "/api/admin/clientes/inactivos",
+            headers=_headers_administrador(id_usuario),
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo consultar los clientes inactivos.", 503)
+    return _respuesta_spring_json(resultado)
+
+
 def _solicitar_plan_membresia(request, ruta, metodo, mensaje_error, data=None):
     """Valida al administrador y reenvía la gestión del plan a Spring."""
     id_usuario, respuesta_error = _validar_administrador(request)

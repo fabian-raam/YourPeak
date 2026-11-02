@@ -91,6 +91,14 @@ class AdminApiTests(TestCase):
         self.assertEqual(spring.call_args.kwargs["headers"]["X-Admin-User-Id"], "7")
 
     @patch("cuentas.api._spring_request")
+    def test_admin_can_list_inactive_clients_to_renew_them(self, spring):
+        spring.side_effect = [self.admin, [{"idCliente": 18, "estadoUsuario": "INACTIVO"}]]
+        response = self.client.get("/api/web/admin/clientes/inactivos/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["estadoUsuario"], "INACTIVO")
+        self.assertEqual(spring.call_args.args[0], "/api/admin/clientes/inactivos")
+
+    @patch("cuentas.api._spring_request")
     def test_admin_can_renew_membership_through_spring(self, spring):
         spring.side_effect = [self.admin, {"idMembresia": 5, "estadoPeriodo": "PROGRAMADA"}]
         response = self.client.post(

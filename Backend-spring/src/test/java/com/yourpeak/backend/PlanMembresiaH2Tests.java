@@ -248,6 +248,65 @@ class PlanMembresiaH2Tests {
         assertEquals(hoy.plusMonths(1).minusDays(1), resultado.get(0).fechaVencimiento());
     }
 
+    @Test
+    void vencimientoAutomaticoCambiaElEstadoDelClienteAInactivo() {
+        Cliente cliente = crearCliente("cliente-vencido@tecsup.edu.pe", "ACTIVO");
+        var plan = servicio.crear(new PlanMembresiaRequest("Plan vencido", 1), idUsuarioAdministrador);
+        var entidadPlan = planes.findById(plan.idPlanMembresia()).orElseThrow();
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/Lima"));
+        membresias.saveAndFlush(new Membresia(
+                cliente,
+                administradores.findByUsuario_IdUsuario(idUsuarioAdministrador).orElseThrow(),
+                entidadPlan,
+                hoy.minusMonths(1).minusDays(1),
+                hoy.minusDays(1),
+                null
+        ));
+
+        int cantidad = servicioMembresias.desactivarClientesVencidos();
+
+        assertEquals(1, cantidad);
+        assertEquals("INACTIVO", clientes.findById(cliente.getIdCliente()).orElseThrow()
+                .getTipoEstado().getNombre());
+    }
+
+    @Test
+    void renovarClienteInactivoGuardaPeriodoYLoReactiva() {
+        Cliente cliente = crearCliente("cliente-renovado@tecsup.edu.pe", "INACTIVO");
+        var plan = servicio.crear(new PlanMembresiaRequest("Plan de renovación", 1), idUsuarioAdministrador);
+
+        Membresia periodo = servicioMembresias.registrarPeriodo(
+                cliente.getIdCliente(), plan.idPlanMembresia(), idUsuarioAdministrador, null
+        );
+
+        assertEquals("ACTIVO", clientes.findById(cliente.getIdCliente()).orElseThrow()
+                .getTipoEstado().getNombre());
+        assertEquals(LocalDate.now(ZoneId.of("America/Lima")), periodo.getFechaInicio());
+    }
+
+    @Test
+    void listarClientesInactivosIncluyeLosVencidosParaRenovar() {
+        Cliente cliente = crearCliente("cliente-inactivo@tecsup.edu.pe", "INACTIVO");
+        var plan = servicio.crear(new PlanMembresiaRequest("Plan para inactivo", 1), idUsuarioAdministrador);
+        var entidadPlan = planes.findById(plan.idPlanMembresia()).orElseThrow();
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/Lima"));
+        membresias.saveAndFlush(new Membresia(
+                cliente,
+                administradores.findByUsuario_IdUsuario(idUsuarioAdministrador).orElseThrow(),
+                entidadPlan,
+                hoy.minusMonths(1).minusDays(1),
+                hoy.minusDays(1),
+                null
+        ));
+
+        var resultado = servicioMembresias.listarClientesInactivos(idUsuarioAdministrador);
+
+        assertEquals(1, resultado.size());
+        assertEquals(cliente.getIdCliente(), resultado.get(0).idCliente());
+        assertEquals("INACTIVO", resultado.get(0).estadoUsuario());
+        assertEquals("VENCIDA", resultado.get(0).estadoMembresia());
+    }
+
     private Cliente crearCliente(String correo, String estadoNombre) {
         Usuario usuario = usuarios.saveAndFlush(new Usuario(
                 "Cliente", "Prueba", correo, "hash-de-prueba", LocalDate.of(1995, 5, 5)

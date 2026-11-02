@@ -7,6 +7,7 @@ public record ClienteMembresiaResumen(
         String nombre,
         String apellido,
         String correo,
+        String estadoUsuario,
         LocalDate fechaVencimiento,
         String estadoMembresia
 ) {

@@ -167,12 +167,13 @@ Después de actualizar el backend Java, reinicia Spring Boot para cargar los cam
 ### Flujo y responsabilidades
 
 1. Al registrarse, Spring crea el usuario y su perfil `CLIENTE` con estado `PENDIENTE` en MySQL. Las cuentas normales siempre comienzan como clientes; el rol administrador se asigna por separado en la tabla `administrador`.
-2. El login devuelve `idUsuario`, `nombre`, `apellido`, `correo`, `rol`, `estado` y `membresiaVigente`. Los roles usados son `ADMINISTRADOR` y `CLIENTE`; los estados de cliente incluyen `PENDIENTE` y `ACTIVO`. El rol administrador tiene prioridad si una cuenta tambien tiene perfil de cliente. Un cliente puede tener la cuenta aprobada y la membresía vencida: en ese caso `estado` sigue siendo `ACTIVO`, pero `membresiaVigente` es `false`.
+2. El login devuelve `idUsuario`, `nombre`, `apellido`, `correo`, `rol`, `estado` y `membresiaVigente`. Los roles usados son `ADMINISTRADOR` y `CLIENTE`; los estados de cliente incluyen `PENDIENTE`, `ACTIVO` e `INACTIVO`. El rol administrador tiene prioridad si una cuenta tambien tiene perfil de cliente.
 3. Django conserva el `id_usuario` en su sesion SQLite. Para las rutas administrativas, Django consulta el perfil actual a Spring y exige que `rol` sea `ADMINISTRADOR`; no confia en un ID de administrador enviado por React.
 4. Si el rol es valido, Django llama a Spring con `X-Internal-Api-Key` y `X-Admin-User-Id`. Spring vuelve a verificar la clave y confirma que el ID exista en la tabla `administrador` antes de listar, consultar o aprobar clientes.
 5. Spring realiza en una sola transacción el cambio `PENDIENTE` -> `ACTIVO` y el registro del primer período de membresía. El administrador debe seleccionar un plan activo. Si falla el registro del período, también se revierte la aprobación.
 6. La fecha de vencimiento es inclusiva: un plan de N meses cubre desde la fecha de inicio hasta `fechaInicio + N meses - 1 día`. Renovar antes del vencimiento programa el nuevo período para el día siguiente al vencimiento más lejano; si ya venció, empieza hoy. El historial conserva cada período por separado.
-7. El backend calcula `membresiaVigente` al iniciar sesión. La interfaz web restringe el acceso del cliente a las funciones cuando está vencida, aunque su cuenta permanezca aprobada. Los endpoints que implementen funciones del gimnasio también deben validar la vigencia en el servidor.
+7. Un proceso de Spring revisa vencimientos al iniciar y cada medianoche en la zona horaria de Lima. Cuando el período inclusivo ya terminó, cambia el estado del cliente de `ACTIVO` a `INACTIVO`. Si Spring estuvo apagado a medianoche, procesa el vencimiento al volver a iniciar.
+8. Desde **Clientes > Inactivos**, el administrador puede revisar el historial y renovar. La renovación registra el período y devuelve al cliente a `ACTIVO` en una sola transacción. `membresiaVigente` se conserva como dato derivado en el login.
 
 La clave interna de desarrollo esta definida en `Backend-spring/src/main/resources/application.properties` y `Backend-django/config/settings.py`. React nunca debe recibirla ni enviarla. El navegador solo llama a Django; Django actua como intermediario entre React y Spring.
 
@@ -188,6 +189,7 @@ Estas rutas son llamadas servidor-a-servidor desde Django; no son endpoints para
 | GET | `/api/admin/clientes/{idCliente}/membresias` | Lista el historial de períodos del cliente. |
 | POST | `/api/admin/clientes/{idCliente}/membresias` | Registra una renovación con el plan seleccionado. Requiere `idPlanMembresia` y opcionalmente `observacion`. |
 | GET | `/api/admin/clientes/activos` | Lista clientes aprobados con la fecha y el estado de su período más reciente. |
+| GET | `/api/admin/clientes/inactivos` | Lista clientes inactivos con la fecha y el estado de su período más reciente. |
 
 Las tres requieren `X-Internal-Api-Key` y `X-Admin-User-Id`. Spring valida la clave y vuelve a comprobar el rol administrador en MySQL.
 
@@ -203,6 +205,7 @@ Todas las rutas usan la sesion Django existente. Las solicitudes `POST` deben in
 | GET | `/api/web/admin/clientes/{idCliente}/membresias/` | Consulta el historial de membresías del cliente. |
 | POST | `/api/web/admin/clientes/{idCliente}/membresias/` | Registra una renovación. |
 | GET | `/api/web/admin/clientes/activos/` | Lista los clientes aprobados para administrar sus membresías. |
+| GET | `/api/web/admin/clientes/inactivos/` | Lista los clientes inactivos y permite abrir su historial para renovarlos. |
 
 Ejemplos de uso con `Frontend-web/react/src/services/auth.js`:
 
@@ -215,6 +218,7 @@ const resultado = await request(`admin/clientes/${idCliente}/aprobar/`, {
 })
 const historial = await request(`admin/clientes/${idCliente}/membresias/`)
 const clientes = await request('admin/clientes/activos/')
+const clientesInactivos = await request('admin/clientes/inactivos/')
 const renovacion = await request(`admin/clientes/${idCliente}/membresias/`, {
   idPlanMembresia: 2,
   observacion: 'Renovación solicitada en administración',
@@ -364,6 +368,7 @@ Verificación realizada: compilación y análisis del frontend sin errores, cuat
 | GET | `/api/web/admin/clientes/{idCliente}/membresias/` | Consultar sus períodos; requiere administrador. |
 | POST | `/api/web/admin/clientes/{idCliente}/membresias/` | Registrar una renovación; requiere administrador y CSRF. |
 | GET | `/api/web/admin/clientes/activos/` | Listar clientes aprobados y estado de su membresía; requiere administrador. |
+| GET | `/api/web/admin/clientes/inactivos/` | Listar clientes inactivos para renovarlos; requiere administrador. |
 
 Las operaciones de escritura requieren CSRF. Las contraseñas y los identificadores de sesión no se guardan en `localStorage`.
 

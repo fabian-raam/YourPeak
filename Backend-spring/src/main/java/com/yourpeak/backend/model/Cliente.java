@@ -85,6 +85,25 @@ public class Cliente {
         this.tipoEstado = estadoActivo;
     }
 
+    /** Cambia a INACTIVO al vencer el período o por decisión administrativa. */
+    public void cambiarAInactivo(TipoEstado estadoInactivo) {
+        if (estadoInactivo == null || !"INACTIVO".equalsIgnoreCase(estadoInactivo.getNombre())) {
+            throw new IllegalArgumentException("El nuevo estado del cliente debe ser INACTIVO");
+        }
+        this.tipoEstado = estadoInactivo;
+    }
+
+    /** Reactiva una cuenta inactiva cuando el administrador registra una renovación. */
+    public void reactivar(TipoEstado estadoActivo) {
+        if (!"INACTIVO".equalsIgnoreCase(tipoEstado.getNombre())) {
+            throw new IllegalStateException("Solo se pueden reactivar clientes inactivos");
+        }
+        if (estadoActivo == null || !"ACTIVO".equalsIgnoreCase(estadoActivo.getNombre())) {
+            throw new IllegalArgumentException("El nuevo estado del cliente debe ser ACTIVO");
+        }
+        this.tipoEstado = estadoActivo;
+    }
+
     public LocalDateTime getFechaAlta() {
         return fechaAlta;
     }

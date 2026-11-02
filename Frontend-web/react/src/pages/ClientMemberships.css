@@ -1,4 +1,8 @@
 .client-membership-main .users-panel-heading { padding-inline: 22px; }
+.client-state-tabs { display: flex; gap: 8px; padding: 16px 22px 0; }
+.client-state-tabs button { min-height: 38px; padding: 8px 14px; color: #a9bddb; background: #111b2a; border: 1px solid #354861; border-radius: 4px; font: inherit; font-size: 13px; }
+.client-state-tabs button[aria-pressed="true"] { color: #edf4ff; border-color: #6baaff; background: #1a2a42; }
+.membership-expiry-note { display: block; margin-top: 5px; color: #a7bbd5; font-size: 11px; }
 .membership-current { color: #9ae0c1; border-color: #5ab99144; background: #5ab99112; }
 .membership-expired { color: #f3b2a8; border-color: #ed806844; background: #ed806812; }
 .client-membership-dialog { position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); margin: 0; }
