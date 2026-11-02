@@ -42,6 +42,18 @@ public class SecurityConfig {
                 .matcher(HttpMethod.PUT, "/api/admin/planes-membresia/{idPlan}");
         var cambiarEstadoPlan = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.PATCH, "/api/admin/planes-membresia/{idPlan}/estado");
+        var listarEjercicios = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/ejercicios");
+        var listarCatalogosEjercicio = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/ejercicios/catalogos");
+        var obtenerEjercicio = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/ejercicios/{idEjercicio}");
+        var crearEjercicio = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, "/api/admin/ejercicios");
+        var actualizarEjercicio = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.PUT, "/api/admin/ejercicios/{idEjercicio}");
+        var cambiarEstadoEjercicio = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.PATCH, "/api/admin/ejercicios/{idEjercicio}/estado");
         var listarMembresiasCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/admin/clientes/{idCliente}/membresias");
         var renovarMembresiaCliente = PathPatternRequestMatcher.withDefaults()
@@ -76,6 +88,12 @@ public class SecurityConfig {
                                 crearPlan,
                                 actualizarPlan,
                                 cambiarEstadoPlan,
+                                listarEjercicios,
+                                listarCatalogosEjercicio,
+                                obtenerEjercicio,
+                                crearEjercicio,
+                                actualizarEjercicio,
+                                cambiarEstadoEjercicio,
                                 listarMembresiasCliente,
                                 renovarMembresiaCliente
                         ).permitAll()

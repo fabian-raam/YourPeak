@@ -5,6 +5,7 @@ import AuthHero from './components/AuthHero'
 import AdminPanel from './pages/AdminPanel'
 import MembershipPlans from './pages/MembershipPlans'
 import ClientMemberships from './pages/ClientMemberships'
+import ExercisesCatalog from './pages/ExercisesCatalog'
 import AdminLayout from './components/AdminLayout'
 import AccountStatus from './pages/AccountStatus'
 import './App.css'
@@ -19,7 +20,8 @@ const localDate = (offset = 0) => {
 
 export default function App() {
   const [pendingCount, setPendingCount] = useState(null)
-  const [adminSection, setAdminSection] = useState(location.pathname === '/admin/membresias' ? 'membresias' : location.pathname === '/admin/clientes' ? 'clientes' : 'usuarios')
+  const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios'].find(section => path === `/admin/${section}`) || 'usuarios'
+  const [adminSection, setAdminSection] = useState(sectionFromPath(location.pathname))
   const [page, setPage] = useState(location.pathname === '/registro' ? 'registro' : 'login')
   const [values, setValues] = useState(empty)
   const [fields, setFields] = useState({})
@@ -63,11 +65,11 @@ export default function App() {
     request('perfil/').then(data => { if (active) setUser(data.usuario) })
       .catch(err => { if (active && err.status !== 401) setError(err.message) })
       .finally(() => { if (active) setLoading(false) })
-    const onPop = () => { setAdminSection(location.pathname === '/admin/membresias' ? 'membresias' : location.pathname === '/admin/clientes' ? 'clientes' : 'usuarios'); setPage(location.pathname === '/registro' ? 'registro' : 'login'); setError(''); setFields({}); setValues(empty); setNotice('') }
+    const onPop = () => { setAdminSection(sectionFromPath(location.pathname)); setPage(location.pathname === '/registro' ? 'registro' : 'login'); setError(''); setFields({}); setValues(empty); setNotice('') }
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
-  useEffect(() => { document.title = `${isAdmin ? `${adminSection === 'membresias' ? 'Planes' : adminSection === 'clientes' ? 'Clientes' : 'Usuarios'} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
+  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Clientes', ejercicios: 'Ejercicios', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
 
   function navigateAdmin(section) {
     if (section === adminSection) return
@@ -126,7 +128,9 @@ export default function App() {
       ? <MembershipPlans onExpired={sessionExpired} logoutError={error} />
       : adminSection === 'clientes'
         ? <ClientMemberships onExpired={sessionExpired} logoutError={error} />
-        : <AdminPanel onExpired={sessionExpired} logoutError={error} onPendingCount={setPendingCount} />}
+        : adminSection === 'ejercicios'
+          ? <ExercisesCatalog onExpired={sessionExpired} logoutError={error} />
+          : <AdminPanel onExpired={sessionExpired} logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>

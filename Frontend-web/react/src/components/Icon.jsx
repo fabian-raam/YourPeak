@@ -13,6 +13,7 @@ const paths = {
   shield: <><path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6Z" /><path d="m8 12 3 3 5-6" /></>,
   activity: <path d="M2 12h5l3-8 4 16 3-8h5" />,
   card: <><rect x="2" y="4" width="20" height="16" rx="3" /><path d="M2 9h20M6 15h4" /></>,
+  dumbbell: <><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6m18-6v6M6.5 12h11" /><path d="M3 9h3.5M17.5 9H21M3 15h3.5m11 0H21" /></>,
 }
 
 export default function Icon({ name, ...props }) {
