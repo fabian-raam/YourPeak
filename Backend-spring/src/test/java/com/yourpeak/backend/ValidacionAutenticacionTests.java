@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import static org.junit.jupiter.api.Assertions.*;
 
-class AuthValidationTests {
+class ValidacionAutenticacionTests {
     @Test
-    void onlyExactInstitutionalDomainIsAccepted() {
+    void soloSeAceptaElDominioInstitucionalExacto() {
         try (var factory = Validation.buildDefaultValidatorFactory()) {
             var validator = factory.getValidator();
             assertTrue(validator.validate(new LoginRequest(" ANA@TECSUP.EDU.PE ", "secret")).isEmpty());
@@ -21,7 +21,7 @@ class AuthValidationTests {
     }
 
     @Test
-    void registrationRequiresPastBirthDateAndInstitutionalEmail() {
+    void registroExigeFechaDeNacimientoPasadaYCorreoInstitucional() {
         try (var factory = Validation.buildDefaultValidatorFactory()) {
             var validator = factory.getValidator();
             assertTrue(validator.validate(registration(LocalDate.of(2000, 2, 29), "ana@tecsup.edu.pe")).isEmpty());
@@ -32,7 +32,7 @@ class AuthValidationTests {
     }
 
     @Test
-    void userRetainsBirthDate() {
+    void usuarioConservaFechaDeNacimiento() {
         LocalDate birthDate = LocalDate.of(2000, 2, 29);
         var user = new Usuario("Ana", "Perez", "ana@tecsup.edu.pe", "hash", birthDate);
         assertEquals(birthDate, user.getFechaNacimiento());

@@ -1,7 +1,10 @@
 package com.yourpeak.backend.controller;
 
 import com.yourpeak.backend.dto.ClientePendienteResponse;
+import com.yourpeak.backend.dto.AprobarClienteRequest;
+import com.yourpeak.backend.model.Membresia;
 import com.yourpeak.backend.service.AprobacionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -74,6 +78,7 @@ public class AprobacionController {
     @PostMapping("/{idCliente}/aprobar")
     public ResponseEntity<Map<String, String>> aprobarCliente(
             @PathVariable Long idCliente,
+            @Valid @RequestBody AprobarClienteRequest request,
             @RequestHeader(value = "X-Internal-Api-Key", required = false) String apiKey,
             @RequestHeader(value = "X-Admin-User-Id", required = false) Long idUsuarioAdministrador
     ) {
@@ -85,11 +90,19 @@ public class AprobacionController {
             return error;
         }
 
-        aprobacionService.aprobarCliente(idCliente, idUsuarioAdministrador);
+        Membresia periodo = aprobacionService.aprobarCliente(
+                idCliente,
+                request.idPlanMembresia(),
+                request.observacion(),
+                idUsuarioAdministrador
+        );
 
         return ResponseEntity.ok(Map.of(
                 "detail", "El cliente fue aprobado.",
-                "estado", "ACTIVO"
+                "estado", "ACTIVO",
+                "idMembresia", periodo.getIdMembresia().toString(),
+                "fechaInicio", periodo.getFechaInicio().toString(),
+                "fechaVencimiento", periodo.getFechaVencimiento().toString()
         ));
     }
 

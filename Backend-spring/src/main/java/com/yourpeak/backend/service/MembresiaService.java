@@ -1,5 +1,7 @@
 package com.yourpeak.backend.service;
 
+import com.yourpeak.backend.dto.MembresiaResponse;
+import com.yourpeak.backend.dto.ClienteMembresiaResumen;
 import com.yourpeak.backend.model.Administrador;
 import com.yourpeak.backend.model.Cliente;
 import com.yourpeak.backend.model.Membresia;
@@ -15,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 
 @Service
 public class MembresiaService {
@@ -63,6 +66,20 @@ public class MembresiaService {
                         "No se encontró el cliente."
                 ));
 
+        if (!"ACTIVO".equalsIgnoreCase(cliente.getTipoEstado().getNombre())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Solo se puede asignar una membresía a un cliente aprobado."
+            );
+        }
+
+        if (administradorRepository.existsByUsuario_IdUsuario(cliente.getUsuario().getIdUsuario())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Una cuenta administradora no puede recibir una membresía de cliente."
+            );
+        }
+
         PlanMembresia plan = planRepository.findById(idPlan)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -97,5 +114,71 @@ public class MembresiaService {
                 observacion
         );
         return membresiaRepository.save(periodo);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MembresiaResponse> listarPeriodos(Long idCliente, Long idUsuarioAdministrador) {
+        administradorRepository.findByUsuario_IdUsuario(idUsuarioAdministrador)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Solo un administrador puede consultar membresías."
+                ));
+
+        if (!clienteRepository.existsById(idCliente)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No se encontró el cliente.");
+        }
+
+        LocalDate hoy = LocalDate.now(ZONA_GIMNASIO);
+        return membresiaRepository.findAllByCliente_IdClienteOrderByFechaInicioDesc(idCliente)
+                .stream()
+                .map(periodo -> new MembresiaResponse(
+                        periodo.getIdMembresia(),
+                        periodo.getPlanMembresia().getIdPlanMembresia(),
+                        periodo.getPlanMembresia().getNombre(),
+                        periodo.getFechaInicio(),
+                        periodo.getFechaVencimiento(),
+                        estadoPeriodo(periodo, hoy),
+                        periodo.getObservacion()
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClienteMembresiaResumen> listarClientesActivos(Long idUsuarioAdministrador) {
+        administradorRepository.findByUsuario_IdUsuario(idUsuarioAdministrador)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.FORBIDDEN,
+                        "Solo un administrador puede consultar clientes."
+                ));
+
+        LocalDate hoy = LocalDate.now(ZONA_GIMNASIO);
+        return clienteRepository.findAllActivosNoAdministradores("ACTIVO").stream()
+                .map(cliente -> {
+                    var periodo = membresiaRepository
+                            .findFirstByCliente_IdClienteOrderByFechaVencimientoDesc(cliente.getIdCliente())
+                            .orElse(null);
+                    LocalDate vencimiento = periodo == null ? null : periodo.getFechaVencimiento();
+                    String estado = vencimiento == null ? "SIN_MEMBRESIA"
+                            : vencimiento.isBefore(hoy) ? "VENCIDA" : "VIGENTE";
+                    return new ClienteMembresiaResumen(
+                            cliente.getIdCliente(),
+                            cliente.getUsuario().getNombre(),
+                            cliente.getUsuario().getApellido(),
+                            cliente.getUsuario().getCorreo(),
+                            vencimiento,
+                            estado
+                    );
+                })
+                .toList();
+    }
+
+    private String estadoPeriodo(Membresia periodo, LocalDate hoy) {
+        if (hoy.isBefore(periodo.getFechaInicio())) {
+            return "PROGRAMADA";
+        }
+        if (!hoy.isAfter(periodo.getFechaVencimiento())) {
+            return "VIGENTE";
+        }
+        return "VENCIDA";
     }
 }

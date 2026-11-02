@@ -40,10 +40,14 @@ class AdminApiTests(TestCase):
     def test_approval_uses_session_not_supplied_identity(self, spring):
         spring.side_effect = [self.admin, {"estado": "ACTIVO", "detail": "Aprobado"}]
         response = self.client.post("/api/web/admin/clientes/15/aprobar/",
-                                    json.dumps({"idAdministrador": "999"}),
+                                    json.dumps({"idPlanMembresia": 3, "idAdministrador": "999"}),
                                     content_type="application/json", HTTP_X_ADMIN_USER_ID="999")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(spring.call_args.args[0], "/api/admin/clientes/15/aprobar")
+        self.assertEqual(spring.call_args.kwargs["payload"], {
+            "idPlanMembresia": 3,
+            "observacion": None,
+        })
         self.assertEqual(spring.call_args.kwargs["method"], "POST")
         self.assertEqual(spring.call_args.kwargs["headers"]["X-Admin-User-Id"], "7")
 
@@ -51,7 +55,56 @@ class AdminApiTests(TestCase):
     def test_conflict_is_preserved(self, spring):
         spring.side_effect = [self.admin, HTTPError("http://spring/", 409, "Conflict", {},
                                                    io.BytesIO(b'{"detail":"Ya no esta pendiente"}'))]
-        self.assertEqual(self.client.post("/api/web/admin/clientes/15/aprobar/").status_code, 409)
+        self.assertEqual(self.client.post(
+            "/api/web/admin/clientes/15/aprobar/",
+            json.dumps({"idPlanMembresia": 3}),
+            content_type="application/json",
+        ).status_code, 409)
+
+    @patch("cuentas.api._spring_request")
+    def test_approval_requires_a_valid_membership_plan(self, spring):
+        spring.return_value = self.admin
+        response = self.client.post(
+            "/api/web/admin/clientes/15/aprobar/",
+            json.dumps({"idPlanMembresia": 0}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(spring.call_count, 1)
+
+    @patch("cuentas.api._spring_request")
+    def test_admin_can_consult_membership_history(self, spring):
+        spring.side_effect = [self.admin, [{"idMembresia": 4, "estadoPeriodo": "VIGENTE"}]]
+        response = self.client.get("/api/web/admin/clientes/15/membresias/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["estadoPeriodo"], "VIGENTE")
+        self.assertEqual(spring.call_args.args[0], "/api/admin/clientes/15/membresias")
+        self.assertEqual(spring.call_args.kwargs["method"], "GET")
+
+    @patch("cuentas.api._spring_request")
+    def test_admin_can_list_active_clients_for_membership_management(self, spring):
+        spring.side_effect = [self.admin, [{"idCliente": 15, "estadoMembresia": "VIGENTE"}]]
+        response = self.client.get("/api/web/admin/clientes/activos/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["estadoMembresia"], "VIGENTE")
+        self.assertEqual(spring.call_args.args[0], "/api/admin/clientes/activos")
+        self.assertEqual(spring.call_args.kwargs["headers"]["X-Admin-User-Id"], "7")
+
+    @patch("cuentas.api._spring_request")
+    def test_admin_can_renew_membership_through_spring(self, spring):
+        spring.side_effect = [self.admin, {"idMembresia": 5, "estadoPeriodo": "PROGRAMADA"}]
+        response = self.client.post(
+            "/api/web/admin/clientes/15/membresias/",
+            json.dumps({"idPlanMembresia": 3, "observacion": "Renovación"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(spring.call_args.args[0], "/api/admin/clientes/15/membresias")
+        self.assertEqual(spring.call_args.kwargs["payload"], {
+            "idPlanMembresia": 3,
+            "observacion": "Renovación",
+        })
+        self.assertEqual(spring.call_args.kwargs["headers"]["X-Admin-User-Id"], "7")
 
     @patch("cuentas.api._spring_request")
     def test_detail_not_found_is_preserved(self, spring):

@@ -8,10 +8,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Representa un período de membresía comprado por un cliente.
@@ -44,8 +46,7 @@ public class Membresia {
     @Column(name = "fecha_vencimiento", nullable = false)
     private LocalDate fechaVencimiento;
 
-    // La base de datos asigna la fecha de registro al crear cada período.
-    @Column(name = "fecha_registro", nullable = false, updatable = false, insertable = false)
+    @Column(name = "fecha_registro", nullable = false, updatable = false)
     private LocalDateTime fechaRegistro;
 
     @Column(name = "observacion", length = 500)
@@ -69,6 +70,13 @@ public class Membresia {
         this.fechaInicio = fechaInicio;
         this.fechaVencimiento = fechaVencimiento;
         this.observacion = observacion;
+    }
+
+    @PrePersist
+    private void asignarFechaRegistro() {
+        if (fechaRegistro == null) {
+            fechaRegistro = LocalDateTime.now(ZoneOffset.UTC);
+        }
     }
 
     public Long getIdMembresia() {

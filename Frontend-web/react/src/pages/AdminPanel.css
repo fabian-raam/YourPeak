@@ -115,6 +115,11 @@
 .detail-grid dd { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
 .approval-explanation { display: flex; gap: 12px; padding: 14px; border-radius: 8px; background: #a6c3bb09; color: #acbdb9; font-size: 12px; line-height: 1.7; }
 .approval-explanation svg { flex-shrink: 0; margin-top: 2px; }
+.approval-plan-field { margin: 18px 0; }
+.approval-plan-field label { color: #f0f3f5; font-size: 13px; font-weight: 650; }
+.approval-plan-field select { width: 100%; min-height: 48px; padding: 10px 12px; color: #edf3ff; background: #132237; border: 1px solid #3b5272; border-radius: 4px; font: inherit; }
+.approval-plan-field select:focus-visible { outline: 2px solid var(--brand-link); outline-offset: 2px; }
+.approval-plan-field small { color: #a7bbd5; font-size: 12px; line-height: 1.5; }
 .dialog-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 28px; }
 .primary.compact { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; min-height: 43px; padding: 10px 16px; margin: 0; width: auto; border-radius: 8px; }
 .admin-main .alert { font-size: 12px; }

@@ -1,6 +1,7 @@
 package com.yourpeak.backend.service;
 
 import com.yourpeak.backend.model.Cliente;
+import com.yourpeak.backend.model.Membresia;
 import com.yourpeak.backend.model.TipoEstado;
 import com.yourpeak.backend.dto.ClientePendienteResponse;
 import com.yourpeak.backend.repository.AdministradorRepository;
@@ -18,15 +19,18 @@ public class AprobacionService {
     private final AdministradorRepository administradorRepository;
     private final ClienteRepository clienteRepository;
     private final TipoEstadoRepository tipoEstadoRepository;
+    private final MembresiaService membresiaService;
 
     public AprobacionService(
             AdministradorRepository administradorRepository,
             ClienteRepository clienteRepository,
-            TipoEstadoRepository tipoEstadoRepository
+            TipoEstadoRepository tipoEstadoRepository,
+            MembresiaService membresiaService
     ) {
         this.administradorRepository = administradorRepository;
         this.clienteRepository = clienteRepository;
         this.tipoEstadoRepository = tipoEstadoRepository;
+        this.membresiaService = membresiaService;
     }
 
     /**
@@ -77,7 +81,12 @@ public class AprobacionService {
      * @param idUsuarioAdministrador usuario cuya identidad se verificó en Django
      */
     @Transactional
-    public void aprobarCliente(Long idCliente, Long idUsuarioAdministrador) {
+    public Membresia aprobarCliente(
+            Long idCliente,
+            Integer idPlanMembresia,
+            String observacion,
+            Long idUsuarioAdministrador
+    ) {
         verificarAdministrador(idUsuarioAdministrador);
 
         // Se carga el cliente como entidad administrada por JPA.
@@ -105,8 +114,12 @@ public class AprobacionService {
 
         // La entidad valida que la transición permitida sea PENDIENTE -> ACTIVO.
         cliente.activar(estadoActivo);
-
-        // JPA detecta el cambio y lo escribe al confirmar esta transacción.
+        return membresiaService.registrarPeriodo(
+                idCliente,
+                idPlanMembresia,
+                idUsuarioAdministrador,
+                observacion
+        );
     }
 
     /** Una cuenta administrativa no participa en la aprobación de clientes. */

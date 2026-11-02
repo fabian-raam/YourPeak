@@ -6,6 +6,7 @@ public record LoginResponse(
         String apellido,
         String correo,
         String rol,
-        String estado
+        String estado,
+        Boolean membresiaVigente
 ) {
 }

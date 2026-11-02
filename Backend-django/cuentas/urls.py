@@ -12,6 +12,8 @@ urlpatterns = [
     path('api/web/admin/clientes/pendientes/', api.clientes_pendientes),
     path('api/web/admin/clientes/pendientes/<int:id_cliente>/', api.cliente_pendiente),
     path('api/web/admin/clientes/<int:id_cliente>/aprobar/', api.aprobar_cliente),
+    path('api/web/admin/clientes/<int:id_cliente>/membresias/', api.membresias_cliente),
+    path('api/web/admin/clientes/activos/', api.clientes_activos),
     # Gestión administrativa del catálogo de planes de membresía.
     path('api/web/admin/planes-membresia/', api.planes_membresia),
     path('api/web/admin/planes-membresia/<int:id_plan>/', api.plan_membresia),

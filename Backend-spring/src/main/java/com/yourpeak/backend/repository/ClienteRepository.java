@@ -25,6 +25,18 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
             @Param("nombreEstado") String nombreEstado
     );
 
+    @EntityGraph(attributePaths = {"usuario", "tipoEstado"})
+    @Query("""
+            select c from Cliente c
+            where upper(c.tipoEstado.nombre) = upper(:nombreEstado)
+              and not exists (
+                  select a.idAdministrador from Administrador a
+                  where a.usuario.idUsuario = c.usuario.idUsuario
+              )
+            order by c.usuario.apellido asc, c.usuario.nombre asc
+            """)
+    List<Cliente> findAllActivosNoAdministradores(@Param("nombreEstado") String nombreEstado);
+
     // El detalle solo se devuelve mientras el cliente siga pendiente.
     @EntityGraph(attributePaths = {"usuario", "tipoEstado"})
     Optional<Cliente> findByIdClienteAndTipoEstado_NombreIgnoreCase(

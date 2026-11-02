@@ -21,6 +21,7 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
       <nav aria-label="Administración">
         <button disabled><Icon name="grid" /><span>Resumen</span><small>Próximamente</small></button>
         {link('usuarios', 'Usuarios', 'users')}
+        {link('clientes', 'Clientes', 'users')}
         <button disabled><Icon name="activity" /><span>Entrenamientos</span><small>Próximamente</small></button>
         {link('membresias', 'Membresías', 'card')}
       </nav>
@@ -29,7 +30,7 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
       </div>
     </aside>
     <div className="admin-workspace">
-      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>{memberships ? 'Membresías' : 'Usuarios'}</strong></span>
+      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>{memberships ? 'Planes de membresía' : section === 'clientes' ? 'Clientes' : 'Usuarios'}</strong></span>
         <span className="admin-role"><Icon name="shield" /> Acceso de administrador</span></header>
       {children}
     </div>

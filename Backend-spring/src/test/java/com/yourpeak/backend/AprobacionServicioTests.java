@@ -7,6 +7,7 @@ import com.yourpeak.backend.repository.AdministradorRepository;
 import com.yourpeak.backend.repository.ClienteRepository;
 import com.yourpeak.backend.repository.TipoEstadoRepository;
 import com.yourpeak.backend.service.AprobacionService;
+import com.yourpeak.backend.service.MembresiaService;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,15 +21,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class AprobacionServiceTests {
+class AprobacionServicioTests {
 
     private final AdministradorRepository administradores = mock(AdministradorRepository.class);
     private final ClienteRepository clientes = mock(ClienteRepository.class);
     private final TipoEstadoRepository estados = mock(TipoEstadoRepository.class);
+    private final MembresiaService membresias = mock(MembresiaService.class);
     private final AprobacionService servicio = new AprobacionService(
             administradores,
             clientes,
-            estados
+            estados,
+            membresias
     );
 
     @Test
@@ -38,10 +41,12 @@ class AprobacionServiceTests {
         when(administradores.existsByUsuario_IdUsuario(7L)).thenReturn(true);
         when(clientes.findById(12L)).thenReturn(Optional.of(cliente));
         when(estados.findByNombre("ACTIVO")).thenReturn(Optional.of(activo));
+        when(membresias.registrarPeriodo(12L, 3, 7L, null)).thenReturn(null);
 
-        servicio.aprobarCliente(12L, 7L);
+        servicio.aprobarCliente(12L, 3, null, 7L);
 
         assertEquals("ACTIVO", cliente.getTipoEstado().getNombre());
+        verify(membresias).registrarPeriodo(12L, 3, 7L, null);
     }
 
     @Test
@@ -50,7 +55,7 @@ class AprobacionServiceTests {
 
         ResponseStatusException error = assertThrows(
                 ResponseStatusException.class,
-                () -> servicio.aprobarCliente(12L, 8L)
+                () -> servicio.aprobarCliente(12L, 3, null, 8L)
         );
 
         assertEquals(403, error.getStatusCode().value());
@@ -65,7 +70,7 @@ class AprobacionServiceTests {
 
         ResponseStatusException error = assertThrows(
                 ResponseStatusException.class,
-                () -> servicio.aprobarCliente(12L, 7L)
+                () -> servicio.aprobarCliente(12L, 3, null, 7L)
         );
 
         assertEquals(409, error.getStatusCode().value());
@@ -95,7 +100,7 @@ class AprobacionServiceTests {
                 .thenReturn(Optional.of(cliente));
 
         assertEquals(409, assertThrows(ResponseStatusException.class,
-                () -> servicio.aprobarCliente(12L, 7L)).getStatusCode().value());
+                () -> servicio.aprobarCliente(12L, 3, null, 7L)).getStatusCode().value());
         assertEquals(409, assertThrows(ResponseStatusException.class,
                 () -> servicio.obtenerPendiente(12L, 7L)).getStatusCode().value());
         verifyNoInteractions(estados);

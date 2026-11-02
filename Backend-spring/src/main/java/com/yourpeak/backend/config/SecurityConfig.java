@@ -28,6 +28,8 @@ public class SecurityConfig {
                 .matcher(HttpMethod.GET, "/api/admin/clientes/pendientes");
         var obtenerPendiente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/admin/clientes/pendientes/{idCliente}");
+        var listarClientesActivos = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/clientes/activos");
         var listarPlanes = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/admin/planes-membresia");
         var obtenerPlan = PathPatternRequestMatcher.withDefaults()
@@ -38,6 +40,10 @@ public class SecurityConfig {
                 .matcher(HttpMethod.PUT, "/api/admin/planes-membresia/{idPlan}");
         var cambiarEstadoPlan = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.PATCH, "/api/admin/planes-membresia/{idPlan}/estado");
+        var listarMembresiasCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/clientes/{idCliente}/membresias");
+        var renovarMembresiaCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, "/api/admin/clientes/{idCliente}/membresias");
 
         http
                 // Esta API no usa cookies ni sesión para autenticar solicitudes.
@@ -61,11 +67,14 @@ public class SecurityConfig {
                                 usuarioInterno,
                                 listarPendientes,
                                 obtenerPendiente,
+                                listarClientesActivos,
                                 listarPlanes,
                                 obtenerPlan,
                                 crearPlan,
                                 actualizarPlan,
-                                cambiarEstadoPlan
+                                cambiarEstadoPlan,
+                                listarMembresiasCliente,
+                                renovarMembresiaCliente
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admin/clientes/*/aprobar").permitAll()
                         .anyRequest().denyAll()

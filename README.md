@@ -167,10 +167,12 @@ Después de actualizar el backend Java, reinicia Spring Boot para cargar los cam
 ### Flujo y responsabilidades
 
 1. Al registrarse, Spring crea el usuario y su perfil `CLIENTE` con estado `PENDIENTE` en MySQL. Las cuentas normales siempre comienzan como clientes; el rol administrador se asigna por separado en la tabla `administrador`.
-2. El login devuelve `idUsuario`, `nombre`, `apellido`, `correo`, `rol` y `estado`. Los roles usados son `ADMINISTRADOR` y `CLIENTE`; los estados de cliente incluyen `PENDIENTE` y `ACTIVO`. El rol administrador tiene prioridad si una cuenta tambien tiene perfil de cliente.
+2. El login devuelve `idUsuario`, `nombre`, `apellido`, `correo`, `rol`, `estado` y `membresiaVigente`. Los roles usados son `ADMINISTRADOR` y `CLIENTE`; los estados de cliente incluyen `PENDIENTE` y `ACTIVO`. El rol administrador tiene prioridad si una cuenta tambien tiene perfil de cliente. Un cliente puede tener la cuenta aprobada y la membresía vencida: en ese caso `estado` sigue siendo `ACTIVO`, pero `membresiaVigente` es `false`.
 3. Django conserva el `id_usuario` en su sesion SQLite. Para las rutas administrativas, Django consulta el perfil actual a Spring y exige que `rol` sea `ADMINISTRADOR`; no confia en un ID de administrador enviado por React.
 4. Si el rol es valido, Django llama a Spring con `X-Internal-Api-Key` y `X-Admin-User-Id`. Spring vuelve a verificar la clave y confirma que el ID exista en la tabla `administrador` antes de listar, consultar o aprobar clientes.
-5. Spring realiza el cambio de estado en MySQL dentro de una transaccion. Solo permite `PENDIENTE` -> `ACTIVO`; un cliente que ya no esta pendiente no se puede aprobar otra vez.
+5. Spring realiza en una sola transacción el cambio `PENDIENTE` -> `ACTIVO` y el registro del primer período de membresía. El administrador debe seleccionar un plan activo. Si falla el registro del período, también se revierte la aprobación.
+6. La fecha de vencimiento es inclusiva: un plan de N meses cubre desde la fecha de inicio hasta `fechaInicio + N meses - 1 día`. Renovar antes del vencimiento programa el nuevo período para el día siguiente al vencimiento más lejano; si ya venció, empieza hoy. El historial conserva cada período por separado.
+7. El backend calcula `membresiaVigente` al iniciar sesión. La interfaz web restringe el acceso del cliente a las funciones cuando está vencida, aunque su cuenta permanezca aprobada. Los endpoints que implementen funciones del gimnasio también deben validar la vigencia en el servidor.
 
 La clave interna de desarrollo esta definida en `Backend-spring/src/main/resources/application.properties` y `Backend-django/config/settings.py`. React nunca debe recibirla ni enviarla. El navegador solo llama a Django; Django actua como intermediario entre React y Spring.
 
@@ -182,7 +184,10 @@ Estas rutas son llamadas servidor-a-servidor desde Django; no son endpoints para
 |---|---|---|
 | GET | `/api/admin/clientes/pendientes` | Lista clientes pendientes, en orden de registro. |
 | GET | `/api/admin/clientes/pendientes/{idCliente}` | Devuelve el detalle si el cliente aun esta pendiente. |
-| POST | `/api/admin/clientes/{idCliente}/aprobar` | Cambia el estado de `PENDIENTE` a `ACTIVO`. No requiere cuerpo. |
+| POST | `/api/admin/clientes/{idCliente}/aprobar` | Aprueba al cliente y registra el primer período. Requiere `idPlanMembresia` y opcionalmente `observacion`. |
+| GET | `/api/admin/clientes/{idCliente}/membresias` | Lista el historial de períodos del cliente. |
+| POST | `/api/admin/clientes/{idCliente}/membresias` | Registra una renovación con el plan seleccionado. Requiere `idPlanMembresia` y opcionalmente `observacion`. |
+| GET | `/api/admin/clientes/activos` | Lista clientes aprobados con la fecha y el estado de su período más reciente. |
 
 Las tres requieren `X-Internal-Api-Key` y `X-Admin-User-Id`. Spring valida la clave y vuelve a comprobar el rol administrador en MySQL.
 
@@ -194,14 +199,26 @@ Todas las rutas usan la sesion Django existente. Las solicitudes `POST` deben in
 |---|---|---|
 | GET | `/api/web/admin/clientes/pendientes/` | Lista JSON de clientes en estado `PENDIENTE`. |
 | GET | `/api/web/admin/clientes/pendientes/{idCliente}/` | Detalle de un cliente que sigue pendiente. |
-| POST | `/api/web/admin/clientes/{idCliente}/aprobar/` | Aprueba al cliente y devuelve el estado `ACTIVO`. Enviar `{}` como cuerpo JSON para usar el helper actual de React. |
+| POST | `/api/web/admin/clientes/{idCliente}/aprobar/` | Aprueba al cliente y le asigna el plan indicado en el JSON. |
+| GET | `/api/web/admin/clientes/{idCliente}/membresias/` | Consulta el historial de membresías del cliente. |
+| POST | `/api/web/admin/clientes/{idCliente}/membresias/` | Registra una renovación. |
+| GET | `/api/web/admin/clientes/activos/` | Lista los clientes aprobados para administrar sus membresías. |
 
 Ejemplos de uso con `Frontend-web/react/src/services/auth.js`:
 
 ```js
 const clientes = await request('admin/clientes/pendientes/')
 const cliente = await request(`admin/clientes/pendientes/${idCliente}/`)
-const resultado = await request(`admin/clientes/${idCliente}/aprobar/`, {})
+const resultado = await request(`admin/clientes/${idCliente}/aprobar/`, {
+  idPlanMembresia: 1,
+  observacion: null,
+})
+const historial = await request(`admin/clientes/${idCliente}/membresias/`)
+const clientes = await request('admin/clientes/activos/')
+const renovacion = await request(`admin/clientes/${idCliente}/membresias/`, {
+  idPlanMembresia: 2,
+  observacion: 'Renovación solicitada en administración',
+})
 ```
 
 El helper `request` conserva las cookies de sesion y obtiene automaticamente un token CSRF para los `POST`. No se debe llamar desde React directamente a `localhost:8080` ni copiar al frontend los encabezados internos de Spring.
@@ -214,9 +231,14 @@ La aprobacion exitosa responde con este formato:
 
 ```json
 {
+  "detail": "El cliente fue aprobado.",
   "estado": "ACTIVO",
-  "detail": "El cliente fue aprobado."
+  "idMembresia": "1",
+  "fechaInicio": "2026-11-01",
+  "fechaVencimiento": "2026-11-30"
 }
+
+La lista del historial informa cada período como `PROGRAMADA`, `VIGENTE` o `VENCIDA`.
 ```
 
 Maneja estos codigos en la interfaz:
@@ -231,7 +253,7 @@ Maneja estos codigos en la interfaz:
 
 El flujo descrito ya esta implementado en `Frontend-web/react/src`: despues del login, React dirige administradores al panel, clientes pendientes a la pantalla de espera y clientes activos a su cuenta. El panel administrativo lista, busca, ordena y pagina solicitudes; permite abrir el detalle y aprobar. Tambien maneja expiracion de sesion, errores, estados vacios y actualizacion de la lista despues de aprobar.
 
-La opción **Membresías** ya está habilitada en el panel administrativo. La gestión de planes y sus reglas se describen en la sección HU-01.
+La sección **Clientes** muestra las membresías de clientes aprobados y permite consultar el historial y registrar renovaciones. La sección **Membresías** permite gestionar el catálogo de planes.
 
 La interfaz no sustituye la autorizacion del servidor. Cualquier endpoint futuro de funciones del gimnasio debe volver a comprobar en el backend que la sesion corresponda a un cliente `ACTIVO`.
 
@@ -339,6 +361,9 @@ Verificación realizada: compilación y análisis del frontend sin errores, cuat
 | GET | `/api/web/admin/clientes/pendientes/` | Listar clientes pendientes; requiere administrador. |
 | GET | `/api/web/admin/clientes/pendientes/{idCliente}/` | Consultar el detalle de un cliente pendiente; requiere administrador. |
 | POST | `/api/web/admin/clientes/{idCliente}/aprobar/` | Aprobar un cliente pendiente; requiere administrador y CSRF. |
+| GET | `/api/web/admin/clientes/{idCliente}/membresias/` | Consultar sus períodos; requiere administrador. |
+| POST | `/api/web/admin/clientes/{idCliente}/membresias/` | Registrar una renovación; requiere administrador y CSRF. |
+| GET | `/api/web/admin/clientes/activos/` | Listar clientes aprobados y estado de su membresía; requiere administrador. |
 
 Las operaciones de escritura requieren CSRF. Las contraseñas y los identificadores de sesión no se guardan en `localStorage`.
 

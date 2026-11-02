@@ -5,12 +5,15 @@ import com.yourpeak.backend.dto.LoginResponse;
 import com.yourpeak.backend.model.Usuario;
 import com.yourpeak.backend.repository.AdministradorRepository;
 import com.yourpeak.backend.repository.ClienteRepository;
+import com.yourpeak.backend.repository.MembresiaRepository;
 import com.yourpeak.backend.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 @Service
 public class LoginService {
@@ -18,17 +21,20 @@ public class LoginService {
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
     private final AdministradorRepository administradorRepository;
+    private final MembresiaRepository membresiaRepository;
     private final PasswordEncoder passwordEncoder;
 
     public LoginService(
             UsuarioRepository usuarioRepository,
             ClienteRepository clienteRepository,
             AdministradorRepository administradorRepository,
+            MembresiaRepository membresiaRepository,
             PasswordEncoder passwordEncoder
     ) {
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
         this.administradorRepository = administradorRepository;
+        this.membresiaRepository = membresiaRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -64,6 +70,7 @@ public class LoginService {
                     usuario.getApellido(),
                     usuario.getCorreo(),
                     "ADMINISTRADOR",
+                    null,
                     null
             );
         }
@@ -72,6 +79,15 @@ public class LoginService {
         var cliente = clienteRepository.findByUsuario_IdUsuario(usuario.getIdUsuario());
         String estado = cliente.map(item -> item.getTipoEstado().getNombre()).orElse(null);
         String rol = cliente.isPresent() ? "CLIENTE" : null;
+        boolean membresiaVigente = cliente
+                .filter(item -> "ACTIVO".equalsIgnoreCase(item.getTipoEstado().getNombre()))
+                .map(item -> membresiaRepository
+                        .existsByCliente_IdClienteAndFechaInicioLessThanEqualAndFechaVencimientoGreaterThanEqual(
+                                item.getIdCliente(),
+                                LocalDate.now(ZoneId.of("America/Lima")),
+                                LocalDate.now(ZoneId.of("America/Lima"))
+                        ))
+                .orElse(false);
 
         return new LoginResponse(
                 usuario.getIdUsuario(),
@@ -79,7 +95,8 @@ public class LoginService {
                 usuario.getApellido(),
                 usuario.getCorreo(),
                 rol,
-                estado
+                estado,
+                membresiaVigente
         );
     }
 }

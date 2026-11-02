@@ -222,15 +222,35 @@ def cliente_pendiente(request, id_cliente):
 
 @require_POST
 def aprobar_cliente(request, id_cliente):
-    """Pide a Spring que apruebe el cliente usando la sesion admin ya validada."""
+    """Pide a Spring aprobar al cliente y asignarle el plan elegido por el admin."""
     id_usuario, respuesta_error = _validar_administrador(request)
     if respuesta_error:
         return respuesta_error
 
+    data = objeto_json(request)
+    if data is None:
+        return error("Envía un objeto JSON con el plan de membresía.")
+
+    id_plan = data.get("idPlanMembresia")
+    if type(id_plan) is not int or id_plan <= 0:
+        return error(
+            "Selecciona un plan de membresía válido.",
+            campos={"idPlanMembresia": "Debes seleccionar un plan activo."},
+        )
+
+    observacion = data.get("observacion")
+    if observacion is not None and (not isinstance(observacion, str) or len(observacion) > 500):
+        return error(
+            "La observación debe ser texto de hasta 500 caracteres.",
+            campos={"observacion": "Admite hasta 500 caracteres."},
+        )
+
+    solicitud = {"idPlanMembresia": id_plan, "observacion": observacion}
+
     try:
-        # Este POST no requiere cuerpo JSON, por eso se indica el metodo explicitamente.
         resultado = _spring_request(
             f"/api/admin/clientes/{id_cliente}/aprobar",
+            payload=solicitud,
             headers=_headers_administrador(id_usuario),
             method="POST",
         )
@@ -238,6 +258,69 @@ def aprobar_cliente(request, id_cliente):
         return spring_error(exception)
     except (URLError, TimeoutError, ValueError):
         return error("No se pudo aprobar el cliente.", 503)
+
+    return _respuesta_spring_json(resultado)
+
+
+@require_http_methods(["GET", "POST"])
+def membresias_cliente(request, id_cliente):
+    """Consulta el historial o registra una renovación para un cliente aprobado."""
+    id_usuario, respuesta_error = _validar_administrador(request)
+    if respuesta_error:
+        return respuesta_error
+
+    ruta = f"/api/admin/clientes/{id_cliente}/membresias"
+    if request.method == "GET":
+        payload_spring = None
+    else:
+        data = objeto_json(request)
+        if data is None:
+            return error("Envía un objeto JSON con el plan de membresía.")
+        id_plan = data.get("idPlanMembresia")
+        if type(id_plan) is not int or id_plan <= 0:
+            return error(
+                "Selecciona un plan de membresía válido.",
+                campos={"idPlanMembresia": "Debes seleccionar un plan activo."},
+            )
+        observacion = data.get("observacion")
+        if observacion is not None and (not isinstance(observacion, str) or len(observacion) > 500):
+            return error(
+                "La observación debe ser texto de hasta 500 caracteres.",
+                campos={"observacion": "Admite hasta 500 caracteres."},
+            )
+        payload_spring = {"idPlanMembresia": id_plan, "observacion": observacion}
+
+    try:
+        resultado = _spring_request(
+            ruta,
+            payload=payload_spring,
+            headers=_headers_administrador(id_usuario),
+            method=request.method,
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo consultar o renovar la membresía.", 503)
+
+    return _respuesta_spring_json(resultado, 201 if request.method == "POST" else 200)
+
+
+@require_GET
+def clientes_activos(request):
+    """Lista los clientes aprobados para consultar y renovar sus membresías."""
+    id_usuario, respuesta_error = _validar_administrador(request)
+    if respuesta_error:
+        return respuesta_error
+
+    try:
+        resultado = _spring_request(
+            "/api/admin/clientes/activos",
+            headers=_headers_administrador(id_usuario),
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo consultar los clientes activos.", 503)
 
     return _respuesta_spring_json(resultado)
 

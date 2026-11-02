@@ -6,10 +6,12 @@ export default function AccountStatus({ user, onRefresh, onLogout, busy, error }
   const [checking, setChecking] = useState(false)
   const [notice, setNotice] = useState('')
   const pending = user.estado?.toUpperCase() === 'PENDIENTE'
+  const membresiaVencida = user.estado?.toUpperCase() === 'ACTIVO' && user.membresiaVigente === false
   async function refresh() {
     setChecking(true); setNotice('')
     try {
       const current = await onRefresh()
+      if (current?.estado?.toUpperCase() === 'ACTIVO' && current?.membresiaVigente === false) setNotice('Tu cuenta está aprobada, pero no tienes una membresía vigente. Consulta con la administración para renovar.')
       if (current?.estado?.toUpperCase() === 'PENDIENTE') setNotice('Tu solicitud continúa pendiente de revisión.')
     } finally { setChecking(false) }
   }
@@ -17,6 +19,7 @@ export default function AccountStatus({ user, onRefresh, onLogout, busy, error }
     <div className="account-status-icon"><Icon name={pending ? 'clock' : 'shield'} width="30" height="30" /></div>
     <span className="eyebrow">YOUR PEAK · TU CUENTA</span>
     <h1>{pending ? 'Tu próximo paso está cerca.' : 'Tu acceso aún no está disponible.'}</h1>
+    {membresiaVencida && <p className="alert" role="status">Tu cuenta está aprobada, pero tu membresía venció. Consulta con la administración para renovarla.</p>}
     <p className="intro">{pending ? 'Recibimos tu registro. Un administrador revisará tu solicitud para activar tu cuenta.' : 'Consulta con la administración del gimnasio para revisar el estado de tu cuenta.'}</p>
     <div className="profile"><strong>{user.nombre} {user.apellido}</strong><span>{user.correo}</span><span className="status-badge">{pending ? 'Pendiente de aprobación' : 'Acceso no habilitado'}</span></div>
     {error && <p className="alert" role="alert">{error}</p>}

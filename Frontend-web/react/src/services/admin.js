@@ -10,4 +10,4 @@ export async function listPending() {
 }
 
 export const getPending = id => request(`${base}pendientes/${encodeURIComponent(id)}/`)
-export const approvePending = id => request(`${base}${encodeURIComponent(id)}/aprobar/`, {})
+export const approvePending = (id, data) => request(`${base}${encodeURIComponent(id)}/aprobar/`, data)
