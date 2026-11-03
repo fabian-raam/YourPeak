@@ -86,6 +86,11 @@ public class ApiExceptionHandler {
                         || restriccion.endsWith(".uq_plan_membresia_nombre"))) {
                     return conflictoPlanMembresia();
                 }
+                if (restriccion != null
+                        && (restriccion.equals("uq_alimento_nombre")
+                        || restriccion.endsWith(".uq_alimento_nombre"))) {
+                    return conflictoNombreAlimento();
+                }
             }
 
             causa = causa.getCause();
@@ -115,6 +120,14 @@ public class ApiExceptionHandler {
                 HttpStatus.CONFLICT,
                 "Plan no disponible",
                 "Ya existe un plan de membresía con ese nombre."
+        );
+    }
+
+    private ProblemDetail conflictoNombreAlimento() {
+        return problema(
+                HttpStatus.CONFLICT,
+                "Alimento no disponible",
+                "Ya existe un alimento con ese nombre."
         );
     }
 

@@ -7,6 +7,7 @@ import '../pages/AdminPanel.css'
 export default function AdminLayout({ user, section, onNavigate, onLogout, logoutBusy, pendingCount, children }) {
   const memberships = section === 'membresias'
   const exercises = section === 'ejercicios'
+  const foods = section === 'alimentos'
   const link = (target, label, icon) => <a href={`/admin/${target}`}
     className={section === target ? 'active' : undefined}
     aria-current={section === target ? 'page' : undefined}
@@ -26,13 +27,14 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
         <button disabled><Icon name="activity" /><span>Entrenamientos</span><small>Próximamente</small></button>
         {link('membresias', 'Membresías', 'card')}
         {link('ejercicios', 'Ejercicios', 'dumbbell')}
+        {link('alimentos', 'Alimentos', 'food')}
       </nav>
       <div className="sidebar-account"><span className="avatar">{initials(user)}</span><div><strong>{user.nombre}</strong><span>Administrador</span></div>
         <button className="icon-button" aria-label="Cerrar sesión" disabled={logoutBusy} onClick={onLogout}><Icon name="logout" /></button>
       </div>
     </aside>
     <div className="admin-workspace">
-      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>{memberships ? 'Planes de membresía' : exercises ? 'Catálogo de ejercicios' : section === 'clientes' ? 'Clientes' : 'Usuarios'}</strong></span>
+      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>{memberships ? 'Planes de membresía' : exercises ? 'Catálogo de ejercicios' : foods ? 'Catálogo de alimentos' : section === 'clientes' ? 'Clientes' : 'Usuarios'}</strong></span>
         <span className="admin-role"><Icon name="shield" /> Acceso de administrador</span></header>
       {children}
     </div>

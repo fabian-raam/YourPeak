@@ -6,6 +6,7 @@ import AdminPanel from './pages/AdminPanel'
 import MembershipPlans from './pages/MembershipPlans'
 import ClientMemberships from './pages/ClientMemberships'
 import ExercisesCatalog from './pages/ExercisesCatalog'
+import FoodsCatalog from './pages/FoodsCatalog'
 import AdminLayout from './components/AdminLayout'
 import AccountStatus from './pages/AccountStatus'
 import './App.css'
@@ -20,7 +21,7 @@ const localDate = (offset = 0) => {
 
 export default function App() {
   const [pendingCount, setPendingCount] = useState(null)
-  const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios'].find(section => path === `/admin/${section}`) || 'usuarios'
+  const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios', 'alimentos'].find(section => path === `/admin/${section}`) || 'usuarios'
   const [adminSection, setAdminSection] = useState(sectionFromPath(location.pathname))
   const [page, setPage] = useState(location.pathname === '/registro' ? 'registro' : 'login')
   const [values, setValues] = useState(empty)
@@ -69,7 +70,7 @@ export default function App() {
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
-  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Clientes', ejercicios: 'Ejercicios', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
+  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Clientes', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
 
   function navigateAdmin(section) {
     if (section === adminSection) return
@@ -130,7 +131,9 @@ export default function App() {
         ? <ClientMemberships onExpired={sessionExpired} logoutError={error} />
         : adminSection === 'ejercicios'
           ? <ExercisesCatalog onExpired={sessionExpired} logoutError={error} />
-          : <AdminPanel onExpired={sessionExpired} logoutError={error} onPendingCount={setPendingCount} />}
+          : adminSection === 'alimentos'
+            ? <FoodsCatalog onExpired={sessionExpired} logoutError={error} />
+            : <AdminPanel onExpired={sessionExpired} logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>

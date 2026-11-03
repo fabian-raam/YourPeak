@@ -14,6 +14,7 @@ const paths = {
   activity: <path d="M2 12h5l3-8 4 16 3-8h5" />,
   card: <><rect x="2" y="4" width="20" height="16" rx="3" /><path d="M2 9h20M6 15h4" /></>,
   dumbbell: <><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6m18-6v6M6.5 12h11" /><path d="M3 9h3.5M17.5 9H21M3 15h3.5m11 0H21" /></>,
+  food: <><path d="M12 8c.8-2.5 3.1-4 5.7-3.5M12 8C10.6 6.1 7.4 5.7 5.2 7.1c-3 1.9-2.6 7.2-.8 10.7 1.5 3 4.5 3.6 7.6 1.3 3.1 2.3 6.1 1.7 7.6-1.3 1.8-3.5 2.2-8.8-.8-10.7C16.6 5.7 13.4 6.1 12 8Z" /></>,
 }
 
 export default function Icon({ name, ...props }) {

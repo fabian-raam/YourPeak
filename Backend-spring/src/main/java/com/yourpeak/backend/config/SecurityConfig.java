@@ -54,6 +54,14 @@ public class SecurityConfig {
                 .matcher(HttpMethod.PUT, "/api/admin/ejercicios/{idEjercicio}");
         var cambiarEstadoEjercicio = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.PATCH, "/api/admin/ejercicios/{idEjercicio}/estado");
+        var listarAlimentos = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/alimentos");
+        var obtenerAlimento = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/alimentos/{idAlimento}");
+        var crearAlimento = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, "/api/admin/alimentos");
+        var actualizarAlimento = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.PUT, "/api/admin/alimentos/{idAlimento}");
         var listarMembresiasCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/admin/clientes/{idCliente}/membresias");
         var renovarMembresiaCliente = PathPatternRequestMatcher.withDefaults()
@@ -94,6 +102,10 @@ public class SecurityConfig {
                                 crearEjercicio,
                                 actualizarEjercicio,
                                 cambiarEstadoEjercicio,
+                                listarAlimentos,
+                                obtenerAlimento,
+                                crearAlimento,
+                                actualizarAlimento,
                                 listarMembresiasCliente,
                                 renovarMembresiaCliente
                         ).permitAll()
