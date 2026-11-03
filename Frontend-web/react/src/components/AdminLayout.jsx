@@ -8,13 +8,16 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
   const memberships = section === 'membresias'
   const exercises = section === 'ejercicios'
   const foods = section === 'alimentos'
-  const link = (target, label, icon) => <a href={`/admin/${target}`}
-    className={section === target ? 'active' : undefined}
-    aria-current={section === target ? 'page' : undefined}
+  const link = (target, label, icon) => {
+    const active = target === 'usuarios' ? section === 'usuarios' || section === 'clientes' : section === target
+    return <a href={`/admin/${target}`}
+    className={active ? 'active' : undefined}
+    aria-current={active ? 'page' : undefined}
     onClick={event => {
       if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
       event.preventDefault(); onNavigate(target)
     }}><Icon name={icon} /><span>{label}</span>{target === 'usuarios' && pendingCount !== null && <b>{pendingCount}</b>}</a>
+  }
 
   return <div className="admin-layout">
     <aside className="admin-sidebar">
@@ -23,7 +26,6 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
       <nav aria-label="Administración">
         <button disabled><Icon name="grid" /><span>Resumen</span><small>Próximamente</small></button>
         {link('usuarios', 'Usuarios', 'users')}
-        {link('clientes', 'Clientes', 'users')}
         <button disabled><Icon name="activity" /><span>Entrenamientos</span><small>Próximamente</small></button>
         {link('membresias', 'Membresías', 'card')}
         {link('ejercicios', 'Ejercicios', 'dumbbell')}
@@ -34,7 +36,7 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
       </div>
     </aside>
     <div className="admin-workspace">
-      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>{memberships ? 'Planes de membresía' : exercises ? 'Catálogo de ejercicios' : foods ? 'Catálogo de alimentos' : section === 'clientes' ? 'Clientes' : 'Usuarios'}</strong></span>
+      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>{memberships ? 'Planes de membresía' : exercises ? 'Catálogo de ejercicios' : foods ? 'Catálogo de alimentos' : 'Usuarios'}</strong></span>
         <span className="admin-role"><Icon name="shield" /> Acceso de administrador</span></header>
       {children}
     </div>

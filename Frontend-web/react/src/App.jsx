@@ -2,9 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Field from './components/Field'
 import { request } from './services/auth'
 import AuthHero from './components/AuthHero'
-import AdminPanel from './pages/AdminPanel'
+import UserManagement from './pages/UserManagement'
 import MembershipPlans from './pages/MembershipPlans'
-import ClientMemberships from './pages/ClientMemberships'
 import ExercisesCatalog from './pages/ExercisesCatalog'
 import FoodsCatalog from './pages/FoodsCatalog'
 import AdminLayout from './components/AdminLayout'
@@ -70,7 +69,7 @@ export default function App() {
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
-  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Clientes', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
+  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
 
   function navigateAdmin(section) {
     if (section === adminSection) return
@@ -127,13 +126,12 @@ export default function App() {
     onLogout={logout} logoutBusy={busy} pendingCount={pendingCount}>
     {adminSection === 'membresias'
       ? <MembershipPlans onExpired={sessionExpired} logoutError={error} />
-      : adminSection === 'clientes'
-        ? <ClientMemberships onExpired={sessionExpired} logoutError={error} />
-        : adminSection === 'ejercicios'
+      : adminSection === 'ejercicios'
           ? <ExercisesCatalog onExpired={sessionExpired} logoutError={error} />
           : adminSection === 'alimentos'
             ? <FoodsCatalog onExpired={sessionExpired} logoutError={error} />
-            : <AdminPanel onExpired={sessionExpired} logoutError={error} onPendingCount={setPendingCount} />}
+            : <UserManagement section={adminSection} onNavigate={navigateAdmin} onExpired={sessionExpired}
+                logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
