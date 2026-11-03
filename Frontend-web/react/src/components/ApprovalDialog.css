@@ -1,0 +1,60 @@
+.user-approval-dialog {
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100svh - 32px);
+  padding: 24px 28px 0;
+  overflow: hidden;
+  border-color: #526b8b;
+  border-radius: 10px;
+}
+.user-approval-dialog[open] { display: flex; flex-direction: column; }
+.user-approval-dialog .dialog-top { flex-shrink: 0; }
+.user-approval-dialog h2 {
+  flex-shrink: 0;
+  max-width: none;
+  margin: 6px 0 0;
+  padding: 0 0 20px 18px;
+  position: relative;
+  font-size: 32px;
+  border-bottom: 1px solid #35465d;
+}
+.user-approval-dialog h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 5px;
+  height: 28px;
+  border-radius: 2px;
+  background: var(--brand-primary, #2468eb);
+}
+.user-approval-dialog .approval-content { min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
+.user-approval-dialog .dialog-person { gap: 16px; padding: 20px 0 0; border: 0; }
+.user-approval-dialog .avatar-large { flex-shrink: 0; border-radius: 8px; }
+.user-approval-dialog .approval-identity { min-width: 0; }
+.user-approval-dialog .dialog-person h3 { margin: 0 0 4px; font-size: 20px; overflow-wrap: anywhere; }
+.user-approval-dialog .approval-identity p { margin: 0; color: #b5c7de; font-size: 14px; overflow-wrap: anywhere; }
+.user-approval-dialog .dialog-person .status-badge { margin-left: auto; flex-shrink: 0; gap: 7px; }
+.user-approval-dialog .detail-grid { grid-template-columns: 1.2fr 1fr .8fr; gap: 16px; margin: 22px 0 0; padding-bottom: 22px; border-bottom: 1px solid #35465d; }
+.user-approval-dialog .detail-grid > div:first-child { grid-column: auto; }
+.user-approval-dialog .detail-grid dt { margin-bottom: 6px; font-size: 12px; }
+.user-approval-dialog .detail-grid dd { font-size: 14px; line-height: 1.5; }
+.user-approval-dialog .approval-plan-field { margin: 20px 0; gap: 8px; }
+.user-approval-dialog .approval-plan-field label { font-size: 15px; }
+.user-approval-dialog .approval-plan-field select { min-height: 46px; border-radius: 6px; }
+.user-approval-dialog .approval-footer { flex-shrink: 0; padding: 18px 0; border-top: 1px solid #35465d; }
+.user-approval-dialog .approval-explanation { margin: 0 0 16px; padding: 0; gap: 10px; background: none; color: #b5c7de; line-height: 1.5; }
+.user-approval-dialog .dialog-actions { margin: 0; gap: 12px; }
+.user-approval-dialog .dialog-actions button { min-height: 44px; border-radius: 6px; }
+@media (max-width: 600px) {
+  .user-approval-dialog { padding: 18px 18px 0; }
+  .user-approval-dialog h2 { font-size: 28px; padding-bottom: 16px; }
+  .user-approval-dialog .dialog-person { flex-wrap: wrap; gap: 12px; padding-top: 16px; }
+  .user-approval-dialog .approval-identity { flex: 1; }
+  .user-approval-dialog .dialog-person .status-badge { width: 100%; margin: 0; }
+  .user-approval-dialog .detail-grid { grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; padding-bottom: 18px; }
+  .user-approval-dialog .detail-grid > div:last-child { grid-column: 1 / -1; }
+  .user-approval-dialog .dialog-actions { display: grid; grid-template-columns: 1fr; }
+  .user-approval-dialog .dialog-actions .primary { grid-row: 1; width: 100%; }
+  .user-approval-dialog .approval-footer { padding: 14px 0; }
+}

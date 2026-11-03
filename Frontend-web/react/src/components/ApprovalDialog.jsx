@@ -3,6 +3,7 @@ import { approvePending, getPending } from '../services/admin'
 import { listPlans } from '../services/memberships'
 import { birthDate, fullName, initials, registrationDate } from '../utils/format'
 import Icon from './Icon'
+import './ApprovalDialog.css'
 
 export default function ApprovalDialog({ clientId, onClose, onApproved, onExpired, onStale }) {
   const dialog = useRef(null)
@@ -60,16 +61,20 @@ export default function ApprovalDialog({ clientId, onClose, onApproved, onExpire
     } finally { setBusy(false) }
   }
 
-  return <dialog ref={dialog} className="approval-dialog" aria-labelledby={titleId}
+  return <dialog ref={dialog} className="approval-dialog user-approval-dialog" aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); close() }}>
     <div className="dialog-top"><span className="eyebrow">REVISIÓN DE SOLICITUD</span>
       <button className="icon-button" aria-label="Cerrar detalle" disabled={busy} onClick={close}><Icon name="close" /></button>
     </div>
-    <h2 id={titleId}>Un paso más hacia su meta.</h2>
+    <h2 id={titleId}>Aprobar usuario</h2>
+    <div className="approval-content">
     {loading ? <p role="status">Cargando los datos del usuario…</p> : person && <>
-      <div className="dialog-person"><span className="avatar avatar-large">{initials(person)}</span><div><h3>{fullName(person)}</h3><span className="status-badge">Pendiente</span></div></div>
+      <div className="dialog-person">
+        <span className="avatar avatar-large" aria-hidden="true">{initials(person)}</span>
+        <div className="approval-identity"><h3>{fullName(person)}</h3><p>{person.correo}</p></div>
+        <span className="status-badge"><i aria-hidden="true" />Pendiente</span>
+      </div>
       <dl className="detail-grid">
-        <div><dt>Correo institucional</dt><dd>{person.correo}</dd></div>
         <div><dt>Fecha de nacimiento</dt><dd>{birthDate(person.fechaNacimiento)}</dd></div>
         <div><dt>Fecha de registro</dt><dd>{registrationDate(person.fechaAlta)}</dd></div>
         <div><dt>N.º de solicitud</dt><dd>#{person.idCliente}</dd></div>
@@ -83,14 +88,17 @@ export default function ApprovalDialog({ clientId, onClose, onApproved, onExpire
         </select>
         <small>El período empieza hoy o después de la última membresía vigente.</small>
       </div>
-      <p className="approval-explanation"><Icon name="shield" /> Al aprobar, activarás su cuenta y podrá acceder a Your Peak.</p>
     </>}
     {error && <p className="alert" role="alert">{error}</p>}
-    <div className="dialog-actions">
+    </div>
+    <footer className="approval-footer">
+      <p className="approval-explanation"><Icon name="shield" /> Al aprobar, activarás su cuenta y podrá acceder a Your Peak.</p>
+      <div className="dialog-actions">
       <button className="secondary-button" disabled={busy} onClick={close}>{stale ? 'Volver a la lista' : 'Cancelar'}</button>
       {person && !stale && <button className="primary compact" disabled={busy || loading || !plans.length} onClick={approve}>
         <Icon name="check" />{busy ? 'Aprobando…' : 'Aprobar usuario'}
       </button>}
-    </div>
+      </div>
+    </footer>
   </dialog>
 }
