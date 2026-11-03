@@ -3,6 +3,7 @@ package com.ramirez.yourpeak
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,7 +14,15 @@ import com.ramirez.yourpeak.ui.theme.YourPeakTheme
 class MainActivity : ComponentActivity() {
 
     private val permisoRedLocal =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { concedido ->
+            if (!concedido) {
+                Toast.makeText(
+                    this,
+                    "Permite el acceso a la red local para conectarte con el servidor de desarrollo.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

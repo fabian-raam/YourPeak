@@ -1,6 +1,5 @@
 package com.ramirez.yourpeak.data.repository
 
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import com.ramirez.yourpeak.data.model.ApiErrorResponse
@@ -12,6 +11,8 @@ import com.ramirez.yourpeak.data.network.ApiService
 import retrofit2.Response
 import java.io.IOException
 import java.util.Locale
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /** Resultado de una llamada a Spring, con mensajes listos para mostrar en pantalla. */
 sealed interface ApiResult<out T> {
@@ -59,12 +60,12 @@ class AuthRepository(
         val respuesta = try {
             peticion()
         } catch (e: IOException) {
-            Log.e("AuthRepository", "Error de red al comunicarse con la API: ${e.message}", e)
+            logger.log(Level.WARNING, "Error de red al comunicarse con la API: ${e.message}", e)
             return ApiResult.Error(
                 "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
             )
         } catch (e: RuntimeException) {
-            Log.e("AuthRepository", "Error inesperado en respuesta del servidor", e)
+            logger.log(Level.WARNING, "Error inesperado en respuesta del servidor", e)
             return ApiResult.Error("El servidor devolvió una respuesta inválida.")
         }
 
@@ -95,4 +96,8 @@ class AuthRepository(
     }
 
     private fun normalizarCorreo(correo: String) = correo.trim().lowercase(Locale.ROOT)
+
+    private companion object {
+        val logger: Logger = Logger.getLogger(AuthRepository::class.java.name)
+    }
 }

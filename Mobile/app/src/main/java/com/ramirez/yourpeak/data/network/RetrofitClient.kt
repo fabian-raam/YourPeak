@@ -13,7 +13,8 @@ object RetrofitClient {
 
     fun crearApiService(baseUrl: String, mostrarLogs: Boolean = false): ApiService {
         val logging = HttpLoggingInterceptor().apply {
-            level = if (mostrarLogs) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+            // BASIC informa URL y estado HTTP sin registrar cuerpos que contienen contraseñas.
+            level = if (mostrarLogs) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
         }
 
         val cliente = OkHttpClient.Builder()
