@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { listActiveClients, listInactiveClients, listClientMemberships, listPlans, renewClientMembership } from '../services/memberships'
 import { fullName, initials } from '../utils/format'
@@ -8,6 +8,7 @@ import './ClientMemberships.css'
 const dateLabel = value => value ? new Date(`${value}T12:00:00`).toLocaleDateString('es-PE') : 'Sin período registrado'
 
 export default function ClientMemberships({ onExpired, logoutError }) {
+  const membershipDialog = useRef(null)
   const [clients, setClients] = useState([])
   const [inactiveClients, setInactiveClients] = useState([])
   const [scope, setScope] = useState('ACTIVO')
@@ -42,6 +43,10 @@ export default function ClientMemberships({ onExpired, logoutError }) {
   // El efecto sincroniza la pantalla con la respuesta externa del backend.
   // oxlint-disable-next-line react/set-state-in-effect
   useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    if (selected && !membershipDialog.current.open) membershipDialog.current.showModal()
+  }, [selected])
 
   const visible = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase('es')
@@ -94,8 +99,9 @@ export default function ClientMemberships({ onExpired, logoutError }) {
             </tr>)}
           </tbody></table></div>}
     </section>
-    {selected && <dialog open className="approval-dialog plan-dialog client-membership-dialog" aria-labelledby="client-membership-title">
-      <div className="dialog-top"><span className="eyebrow">HISTORIAL DE MEMBRESÍA</span><button className="icon-button" aria-label="Cerrar" onClick={() => setSelected(null)}>×</button></div>
+    {selected && <dialog ref={membershipDialog} className="approval-dialog plan-dialog client-membership-dialog" aria-labelledby="client-membership-title"
+      onCancel={event => { event.preventDefault(); if (!busy) setSelected(null) }}>
+      <div className="dialog-top"><span className="eyebrow">HISTORIAL DE MEMBRESÍA</span><button className="icon-button" aria-label="Cerrar" disabled={busy} onClick={() => setSelected(null)}>×</button></div>
       <h2 id="client-membership-title">{fullName(selected)}</h2><p className="client-membership-email">{selected.correo}</p>
       {error && <p className="alert" role="alert">{error}</p>}{notice && <p className="alert success" role="status">{notice}</p>}
       <div className="membership-history">{history.length ? history.map(period => <article key={period.idMembresia}>
@@ -108,7 +114,7 @@ export default function ClientMemberships({ onExpired, logoutError }) {
         </select>
         {!plans.length && <p className="plan-info">No hay planes activos disponibles para renovar.</p>}
         <p className="plan-info">La renovación anticipada comenzará al día siguiente del vencimiento actual.</p>
-        <div className="dialog-actions"><button type="button" className="secondary-button" onClick={() => setSelected(null)}>Cerrar</button><button className="primary compact" disabled={busy || !plans.length}>{busy ? 'Guardando…' : 'Registrar renovación'}</button></div>
+        <div className="dialog-actions"><button type="button" className="secondary-button" disabled={busy} onClick={() => setSelected(null)}>Cerrar</button><button className="primary compact" disabled={busy || !plans.length}>{busy ? 'Guardando…' : 'Registrar renovación'}</button></div>
       </form>
     </dialog>}
   </main>
