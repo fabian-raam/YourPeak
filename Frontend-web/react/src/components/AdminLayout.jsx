@@ -5,9 +5,6 @@ import '../pages/AdminPanel.css'
 
 // Usuarios y planes comparten navegación, identidad y cierre de sesión.
 export default function AdminLayout({ user, section, onNavigate, onLogout, logoutBusy, pendingCount, children }) {
-  const memberships = section === 'membresias'
-  const exercises = section === 'ejercicios'
-  const foods = section === 'alimentos'
   const link = (target, label, icon) => {
     const active = target === 'usuarios' ? section === 'usuarios' || section === 'clientes' : section === target
     return <a href={`/admin/${target}`}
@@ -35,9 +32,7 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
         <button className="icon-button" aria-label="Cerrar sesión" disabled={logoutBusy} onClick={onLogout}><Icon name="logout" /></button>
       </div>
     </aside>
-    <div className="admin-workspace">
-      <header className="admin-topbar"><span>Administración <span aria-hidden="true">/</span> <strong>{memberships ? 'Planes de membresía' : exercises ? 'Catálogo de ejercicios' : foods ? 'Catálogo de alimentos' : 'Usuarios'}</strong></span>
-        <span className="admin-role"><Icon name="shield" /> Acceso de administrador</span></header>
+    <div className={`admin-workspace light-workspace ${section === 'clientes' ? 'clients-workspace' : section === 'usuarios' ? 'requests-workspace' : ''}`}>
       {children}
     </div>
   </div>

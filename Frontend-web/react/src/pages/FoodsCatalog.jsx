@@ -15,6 +15,7 @@ export default function FoodsCatalog({ onExpired, logoutError }) {
   const [notice, setNotice] = useState('')
   const [forbidden, setForbidden] = useState(false)
   const [query, setQuery] = useState('')
+  const [calorieRange, setCalorieRange] = useState('all')
   const [page, setPage] = useState(1)
   const [revision, setRevision] = useState(0)
   const [selected, setSelected] = useState(null)
@@ -40,9 +41,16 @@ export default function FoodsCatalog({ onExpired, logoutError }) {
 
   const filtered = useMemo(() => {
     const search = normalize(query.trim())
-    return foods.filter(food => normalize(food.nombre).includes(search))
+    return foods.filter(food => {
+      const calories = Number(food.kcal)
+      const matchesRange = calorieRange === 'all'
+        || (calorieRange === 'low' && calories <= 100)
+        || (calorieRange === 'medium' && calories > 100 && calories <= 200)
+        || (calorieRange === 'high' && calories > 200)
+      return normalize(food.nombre).includes(search) && matchesRange
+    })
       .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
-  }, [foods, query])
+  }, [foods, query, calorieRange])
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
   const visible = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
@@ -71,31 +79,41 @@ export default function FoodsCatalog({ onExpired, logoutError }) {
   const format = value => numberFormat.format(Number(value))
 
   return <main className="admin-main foods-main">
-    <div className="admin-heading"><div><span className="eyebrow">04 / NUTRICIÓN</span>
+    <div className="admin-heading"><div>
       <h1>Catálogo de alimentos</h1>
       <p>Registra porciones base y consulta sus valores nutricionales.</p></div>
-      <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Agregar alimento</button>
+      <div className="admin-heading-actions">
+        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
+        <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Agregar alimento</button>
+      </div>
     </div>
-    <section className="admin-stats foods-stats" aria-label="Resumen del catálogo de alimentos">
+    <section className="admin-stats foods-stats catalog-stats" aria-label="Resumen del catálogo de alimentos">
       <article><span className="stat-icon accent"><Icon name="food" /></span><div><span>Total de alimentos</span><strong>{count}</strong><small>Valores nutricionales por porción base</small></div></article>
     </section>
     {notice && <p className="alert success" role="status">{notice}</p>}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
-    <section className="users-panel" aria-labelledby="foods-heading" aria-busy={loading}>
-      <div className="users-panel-heading"><div><h2 id="foods-heading" tabIndex="-1">Alimentos registrados <span>{count}</span></h2>
-        <p>Los nutrientes corresponden a la porción base configurada para cada alimento.</p></div>
-        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button></div>
+    <section className="users-panel" aria-label="Catálogo de alimentos" aria-busy={loading}>
+      <div className="users-panel-heading"><h2 className="sr-only" id="foods-heading" tabIndex="-1">Catálogo de alimentos</h2>
+      </div>
       <div className="users-toolbar foods-toolbar">
         <label className="search-input"><Icon name="search" /><input type="search" aria-label="Buscar alimentos"
           placeholder="Buscar por nombre…" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} /></label>
+        <label className="sort-control">Calorías por porción
+          <select value={calorieRange} onChange={event => { setCalorieRange(event.target.value); setPage(1) }}>
+            <option value="all">Todos los rangos</option>
+            <option value="low">Hasta 100 kcal</option>
+            <option value="medium">101–200 kcal</option>
+            <option value="high">Más de 200 kcal</option>
+          </select>
+        </label>
       </div>
       {loading ? <div className="table-state" role="status"><span className="loading-dot" /> Consultando alimentos…</div>
         : error ? <div className="table-state"><Icon name={forbidden ? 'shield' : 'refresh'} /><h3>{forbidden ? 'Acceso no disponible' : 'No pudimos cargar los alimentos'}</h3>
           <p>{forbidden ? 'Esta sección requiere una cuenta administradora.' : 'Comprueba la conexión y vuelve a consultar el catálogo.'}</p>
           {!forbidden && <button className="secondary-button" onClick={reload}>Volver a intentar</button>}</div>
           : !visible.length ? <div className="table-state"><Icon name={foods.length ? 'search' : 'food'} /><h3>{foods.length ? 'No encontramos coincidencias' : 'El catálogo está vacío'}</h3>
-            <p>{foods.length ? 'Prueba con otro nombre.' : 'Agrega el primer alimento para organizar sus valores nutricionales.'}</p>
-            {foods.length > 0 && <button className="secondary-button" onClick={() => { setQuery(''); setPage(1) }}>Limpiar búsqueda</button>}</div>
+            <p>{foods.length ? 'Prueba con otro nombre o cambia el rango de calorías.' : 'Agrega el primer alimento para organizar sus valores nutricionales.'}</p>
+            {foods.length > 0 && <button className="secondary-button" onClick={() => { setQuery(''); setCalorieRange('all'); setPage(1) }}>Limpiar filtros</button>}</div>
             : <div className="users-table-scroll"><table className="users-table foods-table"><caption className="sr-only">Catálogo de alimentos</caption>
               <thead><tr><th scope="col">Alimento</th><th scope="col">Porción base</th><th scope="col">Energía</th><th scope="col">Proteína</th><th scope="col">Carbohidratos</th><th scope="col">Grasa</th><th scope="col">Acciones</th></tr></thead>
               <tbody>{visible.map(food => <tr key={food.idAlimento}>

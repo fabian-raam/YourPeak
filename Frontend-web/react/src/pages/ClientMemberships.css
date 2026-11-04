@@ -18,4 +18,138 @@
 .client-membership-dialog form > label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; }
 .client-membership-dialog form > select { width: 100%; min-height: 46px; margin-bottom: 12px; padding: 10px; color: #edf3ff; background: #132237; border: 1px solid #3b5272; border-radius: 4px; font: inherit; }
 .client-membership-dialog .plan-info { margin: 10px 0; }
+.client-list-panel > .user-management-tabs button { color: #526176; }
+.client-list-panel > .user-management-tabs button.active { color: #172033; border-bottom-color: #2671f5; }
+.client-list-panel .user-tab-count { color: #fff; background: #1f5597; }
+.client-list-panel .client-filter-row { padding: 18px 24px; background: #fff; }
+.client-list-panel .client-filter-row .search-input { background: #f3f6fa; border-color: #dce4ef; }
+.client-list-panel .client-state-tabs { gap: 0; padding: 4px; border-radius: 10px; background: #edf2f8; }
+.client-list-panel .client-state-tabs button { min-width: 96px; color: #526176; background: transparent; border-color: transparent; }
+.client-list-panel .client-state-tabs button[aria-pressed="true"] { color: #174ea6; background: #fff; border-color: #2671f5; box-shadow: 0 0 0 2px #2671f522; }
+.clients-workspace { background: #eaf1fb; }
+.clients-workspace .client-list-panel { background: #fff; border-color: #d4deeb; border-radius: 16px; box-shadow: 0 10px 30px #18355c12; }
+.clients-workspace .client-list-panel .user-management-tabs { background: #fff; border-radius: 16px 16px 0 0; }
+.clients-workspace .client-list-panel { border-color: #a9c3e8; }
+.clients-workspace .client-list-panel > .user-management-tabs { border-bottom-color: #b7cbed; }
+.clients-workspace .client-list-panel .client-filter-row { background: #fff; border-color: #b7cbed; }
+.clients-workspace .client-list-panel .client-filter-row .search-input { background: #fff; border-color: #a9c3e8; }
+.clients-workspace .client-list-panel .client-state-tabs { background: #fff; }
+.light-workspace .client-list-panel .client-state-tabs button:first-child { color: #167044; border: 1px solid #198754; }
+.light-workspace .client-list-panel .client-state-tabs button:last-child { color: #b42318; border: 1px solid #d92d20; }
+.light-workspace .client-list-panel .client-state-tabs button:first-child[aria-pressed="true"] { color: #fff; background: #198754; border-color: #198754; box-shadow: none; }
+.light-workspace .client-list-panel .client-state-tabs button:last-child[aria-pressed="true"] { color: #fff; background: #d92d20; border-color: #d92d20; box-shadow: none; }
+.client-list-table { display: block; white-space: normal; }
+.client-list-table thead { display: block; }
+.client-membership-main .client-list-table thead tr { display: grid; grid-template-columns: minmax(240px, 1.2fr) minmax(190px, .85fr) minmax(110px, .5fr) minmax(150px, .55fr); padding: 0; }
+.client-membership-main .client-list-table th { padding: 13px 18px; color: #526176; background: #f3f6fa; border-color: #8eadd8; font-size: 13px; text-transform: none; letter-spacing: 0; }
+.clients-workspace .client-membership-main .client-list-table th { color: #fff; background: #1f5597; border-color: #1f5597; }
+.client-pagination { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 24px; border-top: 1px solid #b7cbed; color: #64748b; font-size: 13px; }
+.client-pagination > div { display: flex; align-items: center; gap: 6px; }
+.client-pagination button,
+.client-pagination strong { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #a9c3e8; border-radius: 9px; background: #fff; color: #1f5597; font: inherit; font-size: 16px; }
+.client-pagination strong { border-color: #1f5597; background: #1f5597; color: #fff; font-size: 14px; }
+.client-pagination button:disabled { color: #aebbd0; cursor: default; }
+.client-list-table tbody { display: block; }
+.client-membership-main .client-list-table tbody tr { display: grid; grid-template-columns: minmax(240px, 1.2fr) minmax(190px, .85fr) minmax(110px, .5fr) minmax(150px, .55fr); align-items: center; column-gap: 0; padding: 0; border-bottom: 1px solid #b7cbed; }
+.light-workspace .client-list-table tbody tr,
+.light-workspace .client-list-table tbody tr:hover { background: #fff; }
+.light-workspace .client-list-table td,
+.light-workspace .client-list-table tbody tr:hover td { background: transparent; }
+.light-workspace .client-list-table tbody tr:hover { background: #f4f7fb; }
+.client-membership-main .client-list-table tbody tr:last-child { border-bottom: 0; }
+.client-membership-main .client-list-table td { min-width: 0; padding: 18px; border: 0; vertical-align: middle; }
+.light-workspace .client-membership-main .client-list-table tbody tr td,
+.light-workspace .client-membership-main .client-list-table tbody tr:hover td { background: transparent; }
+.client-membership-main .client-list-table .avatar { width: 48px; height: 48px; border-radius: 50%; background: #14213d; border-color: #14213d; color: #fff; }
+.client-expiry-cell { display: grid; gap: 4px; }
+.client-expiry-cell > strong { color: #172033; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.client-expiry-cell > span { color: #667085; font-size: 13px; }
+.client-expiry-track { width: min(100%, 265px); height: 5px; overflow: hidden; border-radius: 999px; background: #e9eef5; }
+.client-expiry-track i { display: block; height: 100%; border-radius: inherit; background: #198754; transition: width .2s ease; }
+.client-expiry-track.is-expired i { background: #d05a56; }
+.light-workspace .client-list-table .membership-current { padding: 7px 14px; color: #08794e; background: #e3f4ec; border: 1px solid #c4e6d5; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.light-workspace .client-list-table .membership-expired { padding: 7px 14px; color: #a33f3a; background: #fff0ee; border: 1px solid #f1d0cb; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.light-workspace .client-list-table .review-button { min-height: 42px; padding: 9px 15px; color: #f6f9ff; background: #1f5597; border-color: #427fce; border-radius: 10px; white-space: nowrap; }
+.light-workspace .client-list-table .review-button:hover { background: #305e9f; border-color: #8bb0e9; }
 @media (max-width: 700px) { .client-membership-dialog { width: calc(100vw - 24px); padding: 22px; } .membership-history article { align-items: flex-start; } }
+
+@media (max-width: 900px) {
+  .client-membership-main .client-list-table tbody tr { grid-template-columns: minmax(200px, 1fr) minmax(175px, .9fr) auto auto; column-gap: 0; padding: 0; }
+  .client-membership-main .client-list-table thead tr { grid-template-columns: minmax(200px, 1fr) minmax(175px, .9fr) auto auto; }
+}
+
+@media (max-width: 700px) {
+  .client-list-panel > .user-management-tabs { padding-inline: 12px; }
+  .client-list-panel .client-filter-row { padding: 14px 16px; }
+  .client-list-panel .client-state-tabs button { min-width: 0; }
+  .client-membership-main .client-list-table tbody tr { grid-template-columns: minmax(0, 1fr) auto; gap: 10px 0; padding: 10px 0; }
+  .client-membership-main .client-list-table thead { display: none; }
+  .client-pagination { padding: 12px 16px; }
+  .client-pagination button, .client-pagination strong { width: 36px; height: 36px; }
+  .client-membership-main .client-list-table td:first-child,
+  .client-membership-main .client-list-table td:nth-child(2) { grid-column: 1 / -1; }
+  .client-membership-main .client-list-table td:nth-child(3) { grid-column: 1; justify-self: start; }
+  .client-membership-main .client-list-table td:last-child { grid-column: 2; justify-self: end; }
+  .client-membership-main .client-list-table td { padding: 6px 16px; }
+  .client-expiry-track { width: 100%; }
+}
+
+/* Diálogo claro para consultar la línea de tiempo y renovar una membresía. */
+.client-membership-dialog { width: min(560px, calc(100vw - 28px)); padding: 30px 32px; color: #14213d; background: #fff; border: 1px solid #c7d8f1; border-radius: 22px; box-shadow: 0 30px 90px #10213e55; }
+.clients-workspace .client-membership-dialog { border-radius: 22px; }
+.client-membership-dialog::backdrop { background: #0c1c36aa; backdrop-filter: blur(5px); }
+.client-dialog-header { display: grid; grid-template-columns: 60px minmax(0, 1fr) 36px; align-items: center; gap: 16px; margin-bottom: 28px; }
+.client-dialog-header .avatar { width: 60px; height: 60px; border-radius: 50%; color: #1f5597; background: #e8f0fc; border: 0; }
+.client-dialog-header h2 { margin: 0; color: #14213d; font: 700 28px/1.1 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; overflow-wrap: anywhere; }
+.client-membership-dialog .client-membership-email { margin: 4px 0 0; color: #64748b; font-size: 13px; }
+.client-dialog-header .icon-button { color: #526176; border-radius: 9px; }
+.membership-timeline { margin-bottom: 26px; }
+.membership-timeline h3,
+.renewal-plan-picker legend { margin: 0 0 12px; padding: 0; color: #1f5597; font-size: 14px; font-weight: 700; }
+.membership-timeline-list { position: relative; display: grid; gap: 12px; }
+.membership-timeline-list::before { content: ''; position: absolute; top: 16px; bottom: 16px; left: 11px; width: 2px; background: #c7d8f1; }
+.timeline-item { position: relative; display: grid; grid-template-columns: 26px minmax(0, 1fr); align-items: center; gap: 8px; }
+.timeline-marker { z-index: 1; width: 24px; height: 24px; border: 3px solid #aec5e7; border-radius: 50%; background: #fff; }
+.timeline-item.vigente .timeline-marker { border-color: #1f5597; box-shadow: inset 0 0 0 3px #fff; background: #1f5597; }
+.timeline-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; min-height: 76px; padding: 14px 16px; border: 1px solid #d7e4f6; border-radius: 16px; background: #fff; }
+.timeline-card > div:first-child { display: grid; gap: 5px; min-width: 0; }
+.timeline-card strong { color: #14213d; font-size: 14px; }
+.timeline-card > div:first-child span { color: #64748b; font-size: 13px; font-variant-numeric: tabular-nums; }
+.timeline-status { padding: 6px 12px; border-radius: 999px; color: #1f5597; background: #e8f0fc; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.timeline-status.vigente { color: #08794e; background: #e3f4ec; }
+.timeline-status.vencida { color: #a33f3a; background: #fff0ee; }
+.timeline-item.vigente .timeline-card { background: #f1f6ff; border-color: #bfd2f2; }
+.timeline-progress { flex: 0 0 100%; height: 5px; overflow: hidden; border-radius: 999px; background: #e5edf7; }
+.timeline-progress i { display: block; height: 100%; border-radius: inherit; background: #198754; }
+.timeline-empty { margin: 0; color: #64748b; font-size: 13px; }
+.renewal-plan-picker { min-width: 0; margin: 0; padding: 0; border: 0; }
+.renewal-plan-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.renewal-plan-card { position: relative; display: flex; min-width: 0; min-height: 92px; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 12px 14px; border: 1px solid #cbdaf0; border-radius: 16px; color: #14213d; background: #fff; text-align: left; cursor: pointer; }
+.renewal-plan-card:hover:not(:disabled) { border-color: #1f5597; }
+.renewal-plan-card.selected { border-color: #1f5597; background: #f1f6ff; box-shadow: 0 0 0 2px #1f559722; }
+.renewal-plan-card > strong { font: 700 34px/1 'Barlow Condensed', 'Arial Narrow', sans-serif; }
+.renewal-plan-card > span:not(.renewal-plan-check) { color: #64748b; font-size: 11px; line-height: 1.35; overflow-wrap: anywhere; }
+.renewal-plan-check { position: absolute; top: 9px; right: 9px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: #1f5597; font-size: 12px; }
+.renewal-note { margin: 16px 0 0; color: #64748b; font-size: 12px; line-height: 1.6; }
+.renewal-dialog-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 26px; }
+.renewal-dialog-actions button { min-height: 50px; border: 1px solid #cbdaf0; border-radius: 13px; font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; }
+.renewal-dialog-actions button:disabled { opacity: .55; cursor: default; }
+.renewal-close { color: #14213d; background: #fff; }
+.renewal-submit { color: #fff; background: #1f5597; border-color: #1f5597 !important; }
+.renewal-submit:hover:not(:disabled) { background: #305e9f; }
+.client-membership-dialog .alert { margin: 0 0 16px; }
+.light-workspace .alert.success.dismissible-alert { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-color: #8bc6a1; border-radius: 10px; color: #155b36; background: #eaf7ef; font-size: 14px; font-weight: 600; line-height: 1.5; }
+.dismissible-alert > span { min-width: 0; }
+.dismissible-alert > button { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 30px; padding: 0; border: 0; border-radius: 7px; color: #155b36; background: transparent; font: inherit; font-size: 22px; line-height: 1; cursor: pointer; }
+.dismissible-alert > button:hover { background: #d5efdf; }
+.dismissible-alert > button:focus-visible { outline: 2px solid #198754; outline-offset: 2px; }
+
+@media (max-width: 560px) {
+  .client-membership-dialog { padding: 22px 18px; border-radius: 18px; }
+  .client-dialog-header { grid-template-columns: 48px minmax(0, 1fr) 32px; gap: 12px; margin-bottom: 22px; }
+  .client-dialog-header .avatar { width: 48px; height: 48px; }
+  .client-dialog-header h2 { font-size: 23px; }
+  .renewal-plan-grid { grid-template-columns: 1fr; }
+  .renewal-plan-card { min-height: 72px; }
+  .renewal-dialog-actions { grid-template-columns: 1fr; }
+}

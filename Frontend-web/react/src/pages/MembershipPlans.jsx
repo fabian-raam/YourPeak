@@ -72,22 +72,24 @@ export default function MembershipPlans({ onExpired, logoutError }) {
   }
 
   return <main className="admin-main membership-main">
-    <div className="admin-heading"><div><span className="eyebrow">02 / MEMBRESÍAS</span>
+    <div className="admin-heading"><div>
       <h1>Planes de membresía</h1>
       <p>Organiza el catálogo de planes de membresía de Your Peak.</p></div>
-      <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Crear plan</button>
+      <div className="admin-heading-actions">
+        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
+        <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Crear plan</button>
+      </div>
     </div>
-    <section className="admin-stats" aria-label="Resumen de planes">
+    <section className="admin-stats catalog-stats" aria-label="Resumen de planes">
       <article><span className="stat-icon accent"><Icon name="card" /></span><div><span>Total de planes</span><strong>{count(plans.length)}</strong><small>Catálogo de membresías</small></div></article>
       <article><span className="stat-icon green"><Icon name="check" /></span><div><span>Planes activos</span><strong>{count(activeCount)}</strong><small>Habilitados en el catálogo</small></div></article>
       <article><span className="stat-icon neutral"><Icon name="pause" /></span><div><span>Planes inactivos</span><strong>{count(plans.length - activeCount)}</strong><small>Conservan su historial</small></div></article>
     </section>
     {notice && <p className="alert success" role="status">{notice}</p>}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
-    <section className="users-panel" aria-labelledby="plans-heading" aria-busy={loading}>
-      <div className="users-panel-heading"><div><h2 id="plans-heading" tabIndex="-1">Catálogo de planes <span>{count(plans.length)}</span></h2>
-        <p>Consulta, edita y administra la disponibilidad de tus planes.</p></div>
-        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button></div>
+    <section className="users-panel" aria-label="Catálogo de planes" aria-busy={loading}>
+      <div className="users-panel-heading"><h2 className="sr-only" id="plans-heading" tabIndex="-1">Catálogo de planes</h2>
+      </div>
       <div className="users-toolbar"><label className="search-input"><Icon name="search" /><input type="search" aria-label="Buscar planes"
         placeholder="Buscar por nombre o número…" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} /></label>
         <label className="sort-control">Estado <select value={status} onChange={event => { setStatus(event.target.value); setPage(1) }}>

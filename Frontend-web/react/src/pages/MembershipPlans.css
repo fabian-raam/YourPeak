@@ -17,6 +17,89 @@
 .plan-dialog .detail-grid { grid-template-columns: 1fr 1fr; }
 .plan-dialog .detail-grid > div:first-child { grid-column: auto; }
 .plan-dialog .input-wrap:has(input:disabled) { opacity: .65; }
+
+/* Catálogo con la misma tarjeta clara y encabezado azul de Usuarios. */
+.light-workspace .membership-main .users-panel-heading { display: none; }
+.light-workspace .membership-main .users-panel {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #a9c3e8;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px #18355c12;
+}
+.light-workspace .membership-main .users-panel-heading {
+  padding: 22px 24px 16px;
+  background: #fff;
+}
+.light-workspace .membership-main .users-panel-heading h2 { color: #172033; }
+.light-workspace .membership-main .users-panel-heading h2 span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: 6px;
+  border: 1px solid #a9c3e8;
+  border-radius: 5px;
+  color: #1f5597;
+  font: 600 12px/1 'IBM Plex Sans', Arial, sans-serif;
+}
+.light-workspace .membership-main .users-panel-heading p { color: #64748b; }
+.light-workspace .membership-main .users-toolbar {
+  padding: 14px 22px 18px;
+  background: #fff;
+  border-bottom: 1px solid #b7cbed;
+}
+.light-workspace .membership-main .search-input { border-color: #a9c3e8; }
+.light-workspace .membership-main .sort-control select { border-color: #a9c3e8; }
+.light-workspace .membership-main .plans-table th {
+  color: #fff;
+  background: #1f5597;
+  border-color: #1f5597;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.light-workspace .membership-main .plans-table td {
+  color: #172033;
+  background: #fff;
+  border-color: #b7cbed;
+}
+.light-workspace .membership-main .plans-table tbody tr { background: #fff; }
+.light-workspace .membership-main .plans-table tbody tr:hover { background: #f4f7fb; }
+.light-workspace .membership-main .plans-table tbody tr:hover td { background: transparent; }
+.light-workspace .membership-main .plan-row-icon {
+  color: #1f5597;
+  background: #e8f0fc;
+  border-color: #bfd2f2;
+}
+.light-workspace .membership-main .plan-actions .review-button,
+.light-workspace .membership-main .plan-actions .secondary-button {
+  min-height: 42px;
+  padding: 9px 15px;
+  color: #fff;
+  background: #1f5597;
+  border: 1px solid #427fce;
+  border-radius: 10px;
+}
+.light-workspace .membership-main .plan-actions button:hover:not(:disabled) {
+  background: #305e9f;
+  border-color: #8bb0e9;
+}
+.light-workspace .membership-main .users-pagination {
+  color: #64748b;
+  border-color: #b7cbed;
+  background: #fff;
+}
+.light-workspace .membership-main .users-pagination button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #a9c3e8;
+  border-radius: 9px;
+  color: #1f5597;
+  background: #fff;
+}
+.light-workspace .membership-main .users-pagination button:disabled { color: #aebbd0; }
+.light-workspace .membership-main .membership-note { color: #64748b; }
 /* La navegación sigue disponible en ventanas estrechas del navegador. */
 @media (max-width: 700px) {
   .admin-sidebar { flex-wrap: wrap; }

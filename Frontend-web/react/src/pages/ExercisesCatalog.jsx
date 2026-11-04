@@ -76,22 +76,24 @@ export default function ExercisesCatalog({ onExpired, logoutError }) {
   function editSelected() { setSelected(previous => ({ ...previous, mode: 'edit' })) }
 
   return <main className="admin-main exercise-main">
-    <div className="admin-heading"><div><span className="eyebrow">03 / ENTRENAMIENTO</span>
+    <div className="admin-heading"><div>
       <h1>Catálogo de ejercicios</h1>
       <p>Administra los ejercicios, sus grupos musculares y niveles recomendados.</p></div>
-      <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Agregar ejercicio</button>
+      <div className="admin-heading-actions">
+        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
+        <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Agregar ejercicio</button>
+      </div>
     </div>
-    <section className="admin-stats" aria-label="Resumen del catálogo de ejercicios">
+    <section className="admin-stats catalog-stats" aria-label="Resumen del catálogo de ejercicios">
       <article><span className="stat-icon accent"><Icon name="dumbbell" /></span><div><span>Total de ejercicios</span><strong>{count(exercises.length)}</strong><small>En el catálogo</small></div></article>
       <article><span className="stat-icon green"><Icon name="check" /></span><div><span>Disponibles</span><strong>{count(activeCount)}</strong><small>Activos para asignar</small></div></article>
       <article><span className="stat-icon neutral"><Icon name="pause" /></span><div><span>Inactivos</span><strong>{count(exercises.length - activeCount)}</strong><small>Conservados en el catálogo</small></div></article>
     </section>
     {notice && <p className="alert success" role="status">{notice}</p>}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
-    <section className="users-panel" aria-labelledby="exercises-heading" aria-busy={loading}>
-      <div className="users-panel-heading"><div><h2 id="exercises-heading" tabIndex="-1">Ejercicios registrados <span>{count(exercises.length)}</span></h2>
-        <p>Consulta, edita o cambia la disponibilidad sin borrar el registro.</p></div>
-        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button></div>
+    <section className="users-panel" aria-label="Catálogo de ejercicios" aria-busy={loading}>
+      <div className="users-panel-heading"><h2 className="sr-only" id="exercises-heading" tabIndex="-1">Catálogo de ejercicios</h2>
+      </div>
       <div className="users-toolbar exercise-toolbar">
         <label className="search-input"><Icon name="search" /><input type="search" aria-label="Buscar ejercicios"
           placeholder="Buscar por nombre, grupo o equipamiento…" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} /></label>

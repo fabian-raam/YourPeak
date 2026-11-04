@@ -1,15 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import ApprovalDialog from '../components/ApprovalDialog'
+import UserManagementTabs from './UserManagementTabs'
+import UserStats from './UserStats'
 import { listPending } from '../services/admin'
+import { listActiveClients, listInactiveClients } from '../services/memberships'
 import { fullName, initials, registrationDate } from '../utils/format'
 import './AdminPanel.css'
 
 const PAGE_SIZE = 8
 const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
-export default function AdminPanel({ onExpired, logoutError, onPendingCount }) {
+export default function AdminPanel({ section, onNavigate, pendingCount, onExpired, logoutError, onPendingCount }) {
   const [clients, setClients] = useState([])
+  const [activeCount, setActiveCount] = useState(0)
+  const [inactiveCount, setInactiveCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -17,7 +22,6 @@ export default function AdminPanel({ onExpired, logoutError, onPendingCount }) {
   const [sort, setSort] = useState('oldest')
   const [page, setPage] = useState(1)
   const [selected, setSelected] = useState(null)
-  const [lastUpdated, setLastUpdated] = useState(null)
   const [forbidden, setForbidden] = useState(false)
   const [revision, setRevision] = useState(0)
   const sequence = useRef(0)
@@ -31,9 +35,10 @@ export default function AdminPanel({ onExpired, logoutError, onPendingCount }) {
   // Descarta respuestas antiguas para que una recarga no reponga filas ya aprobadas.
   useEffect(() => {
     const current = ++sequence.current
-    listPending().then(data => {
+    Promise.all([listPending(), listActiveClients(), listInactiveClients()]).then(([data, active, inactive]) => {
       if (sequence.current !== current) return
-      setClients(data); onPendingCount(data.length); setLastUpdated(new Date()); setForbidden(false)
+      setClients(data); setActiveCount(active.length); setInactiveCount(inactive.length)
+      onPendingCount(data.length); setForbidden(false)
     }).catch(err => {
       if (sequence.current !== current) return
       if (err.status === 401) { onExpired(); return }
@@ -72,17 +77,14 @@ export default function AdminPanel({ onExpired, logoutError, onPendingCount }) {
 
   return <>
       <main className="admin-main users-main">
-        <div className="admin-heading"><div><span className="eyebrow">01 / COMUNIDAD</span><h1>Gestión de usuarios</h1><p>Revisa los registros y autoriza el acceso a Your Peak.</p></div>
+        <div className="admin-heading"><div><h1>Gestión de usuarios</h1><p>Revisa los registros y autoriza el acceso a Your Peak.</p></div>
           <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
-        <section className="queue-summary" aria-label="Resumen de solicitudes">
-          <div className="queue-total"><strong>{loading || error ? '—' : clients.length}</strong><span>{clients.length === 1 ? 'solicitud pendiente' : 'solicitudes pendientes'}</span></div>
-          <div className="queue-oldest"><span>Primera solicitud:</span><strong>{loading || error ? '—' : clients.length ? registrationDate([...clients].sort((a, b) => String(a.fechaAlta).localeCompare(String(b.fechaAlta)))[0].fechaAlta) : 'Sin pendientes'}</strong></div>
-        </section>
+        <UserStats active={activeCount} pending={clients.length} inactive={inactiveCount} loading={loading} />
         {notice && <p className="alert success" role="status">{notice}</p>}
         {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}{!forbidden && <button className="text-button" onClick={reload} disabled={loading}>Volver a intentar</button>}</p>}
-        <section className="users-panel" aria-labelledby="users-heading" aria-busy={loading}>
-          <div className="users-panel-heading"><div><h2 id="users-heading" tabIndex="-1">Solicitudes de registro</h2></div><span className="live-label"><i /> Pendientes</span></div>
+        <section className="users-panel requests-list-panel" aria-label="Solicitudes de registro" aria-busy={loading}>
+          <UserManagementTabs section={section} onNavigate={onNavigate} pendingCount={pendingCount} />
           <div className="users-toolbar"><label className="search-input"><Icon name="search" /><input type="search" aria-label="Buscar solicitudes" placeholder="Buscar por nombre, correo o número…" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} /></label>
             <label className="sort-control">Ordenar por <select value={sort} onChange={event => { setSort(event.target.value); setPage(1) }}><option value="oldest">Más antiguos</option><option value="newest">Más recientes</option><option value="name">Nombre A–Z</option></select></label>
           </div>
@@ -92,9 +94,8 @@ export default function AdminPanel({ onExpired, logoutError, onPendingCount }) {
                 : <div className="users-table-scroll"><table className="users-table"><caption className="sr-only">Usuarios pendientes de aprobación</caption><thead><tr><th scope="col">Usuario</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead><tbody>
                   {visible.map(person => <tr key={person.idCliente}><td><div className="user-cell"><span className="avatar">{initials(person)}</span><div><strong>{fullName(person)}</strong><span>{person.correo}</span></div></div></td><td><span>{registrationDate(person.fechaAlta)}</span><small>Solicitud #{person.idCliente}</small></td><td><span className="status-badge"><i /> Pendiente</span></td><td><button className="review-button" aria-label={`Revisar a ${fullName(person)}`} onClick={event => { lastTrigger.current = event.currentTarget; setSelected(person.idCliente) }}>Revisar <Icon name="arrow" /></button></td></tr>)}
                 </tbody></table></div>}
-          <div className="users-pagination"><span>{loading ? 'Actualizando lista' : `${filtered.length} ${filtered.length === 1 ? 'solicitud' : 'solicitudes'}${query ? ' encontradas' : ' pendientes'}`}</span><div><button aria-label="Página anterior" disabled={currentPage <= 1 || loading} onClick={() => setPage(currentPage - 1)}>←</button><span>{currentPage} / {totalPages}</span><button aria-label="Página siguiente" disabled={currentPage >= totalPages || loading} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
+          <div className="users-pagination"><span>{loading ? 'Actualizando lista' : `Mostrando ${filtered.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} de ${filtered.length}`}</span><div><button aria-label="Página anterior" disabled={currentPage <= 1 || loading} onClick={() => setPage(currentPage - 1)}>←</button><strong aria-current="page">{currentPage}</strong><button aria-label="Página siguiente" disabled={currentPage >= totalPages || loading} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
         </section>
-        <footer className="admin-footer"><span>YOUR PEAK <b>/</b> Administración de usuarios</span><span>{lastUpdated ? `Última consulta · ${lastUpdated.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}` : 'Esperando actualización'}</span></footer>
       </main>
     {selected !== null && <ApprovalDialog key={selected} clientId={selected} onClose={closeDetail} onApproved={approved} onExpired={onExpired} onStale={reload} />}
   </>

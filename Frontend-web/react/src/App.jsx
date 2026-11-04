@@ -131,6 +131,7 @@ export default function App() {
           : adminSection === 'alimentos'
             ? <FoodsCatalog onExpired={sessionExpired} logoutError={error} />
             : <UserManagement section={adminSection} onNavigate={navigateAdmin} onExpired={sessionExpired}
+                pendingCount={pendingCount}
                 logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
