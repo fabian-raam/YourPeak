@@ -3,7 +3,7 @@ import Brand from './Brand'
 /** Solo el atleta es una fotografía: la composición se adapta con CSS. */
 export default function AuthHero({ registering, onNavigate }) {
   return <section className="brand-side" aria-label="Entrena con Your Peak">
-    <Brand onNavigate={onNavigate} />
+    <Brand href="/" onNavigate={onNavigate} />
     <div className="hero-copy">
       <p className="hero-kicker">CADA DÍA, UN PASO MÁS</p>
       <h2>{registering ? 'ENCUENTRA' : 'BUSCA TU'}<br /><span>MEJOR</span><br />VERSIÓN<span className="hero-dot">.</span></h2>
