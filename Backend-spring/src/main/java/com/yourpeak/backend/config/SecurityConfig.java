@@ -70,6 +70,12 @@ public class SecurityConfig {
                 .matcher(HttpMethod.GET, "/api/cliente/disponibilidad");
         var actualizarDisponibilidadCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.PUT, "/api/cliente/disponibilidad");
+        var consultarRutinaCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/cliente/rutina");
+        var actualizarRutinaCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.PUT, "/api/cliente/rutina");
+        var listarEjerciciosRutinaCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/cliente/rutina/ejercicios");
 
         http
                 // Esta API no usa cookies ni sesión para autenticar solicitudes.
@@ -113,7 +119,10 @@ public class SecurityConfig {
                                 listarMembresiasCliente,
                                 renovarMembresiaCliente,
                                 consultarDisponibilidadCliente,
-                                actualizarDisponibilidadCliente
+                                actualizarDisponibilidadCliente,
+                                consultarRutinaCliente,
+                                actualizarRutinaCliente,
+                                listarEjerciciosRutinaCliente
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admin/clientes/*/aprobar").permitAll()
                         .anyRequest().denyAll()

@@ -59,6 +59,10 @@ public class Cliente {
         return tipoEstado;
     }
 
+    public Integer getIdNivelExperiencia() {
+        return idNivelExperiencia;
+    }
+
     /**
      * Activa al cliente después de que un administrador aprueba su registro.
      *
