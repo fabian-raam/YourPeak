@@ -82,11 +82,77 @@ def _headers_administrador(id_usuario):
     }
 
 
+def _validar_cliente_activo(request):
+    """Obtiene el cliente de la sesión y confirma en Spring su rol y estado actuales."""
+    id_usuario = request.session.get("id_usuario")
+    if not id_usuario:
+        return None, error("Inicia sesión como cliente para continuar.", 401)
+
+    if not settings.SPRING_INTERNAL_API_KEY:
+        return None, error("El servicio interno no está configurado.", 503)
+
+    try:
+        usuario = _spring_request(
+            f"/api/auth/usuarios/{id_usuario}",
+            headers={"X-Internal-Api-Key": settings.SPRING_INTERNAL_API_KEY},
+        )
+    except HTTPError as exception:
+        if exception.code == 404:
+            request.session.flush()
+            return None, error("Tu sesión ya no está disponible.", 401)
+        return None, error("No se pudo validar el acceso del cliente.", 502)
+    except (URLError, TimeoutError, ValueError):
+        return None, error("El servicio de usuarios no está disponible.", 503)
+
+    if usuario.get("rol") != "CLIENTE":
+        return None, error("Esta función es exclusiva para cuentas de cliente.", 403)
+    if usuario.get("estado") != "ACTIVO":
+        return None, error("Tu cuenta no está activa y no puede usar esta función.", 403)
+
+    return id_usuario, None
+
+
+def _headers_cliente(id_usuario):
+    """Envía a Spring la identidad obtenida de la sesión, nunca del navegador."""
+    return {
+        "X-Internal-Api-Key": settings.SPRING_INTERNAL_API_KEY,
+        "X-Client-User-Id": str(id_usuario),
+    }
+
+
 def _respuesta_spring_json(data, status=200):
     """Devuelve JSON sin permitir que el navegador almacene la respuesta administrativa."""
     response = JsonResponse(data, safe=isinstance(data, dict), status=status)
     response["Cache-Control"] = "no-store"
     return response
+
+
+@require_http_methods(["GET", "PUT"])
+def disponibilidad_cliente(request):
+    """Consulta o reemplaza los horarios del cliente activo asociado a la sesión."""
+    datos = None
+    if request.method == "PUT":
+        datos = objeto_json(request)
+        if datos is None:
+            return error("Envía un objeto JSON válido con la disponibilidad semanal.")
+
+    id_usuario, respuesta_error = _validar_cliente_activo(request)
+    if respuesta_error:
+        return respuesta_error
+
+    try:
+        resultado = _spring_request(
+            "/api/cliente/disponibilidad",
+            payload=datos,
+            headers=_headers_cliente(id_usuario),
+            method=request.method,
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo consultar o guardar la disponibilidad.", 503)
+
+    return _respuesta_spring_json(resultado)
 
 
 @require_GET

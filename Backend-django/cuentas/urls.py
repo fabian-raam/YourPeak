@@ -8,6 +8,8 @@ urlpatterns = [
     path('api/web/login/', api.login),
     path('api/web/perfil/', api.perfil),
     path('api/web/logout/', api.logout),
+    # Disponibilidad personal: requiere una sesión de cliente activa.
+    path('api/web/cliente/disponibilidad/', api.disponibilidad_cliente),
     # Lista/detalle usan GET; aprobar cambia el estado y por eso usa POST.
     path('api/web/admin/clientes/pendientes/', api.clientes_pendientes),
     path('api/web/admin/clientes/pendientes/<int:id_cliente>/', api.cliente_pendiente),
