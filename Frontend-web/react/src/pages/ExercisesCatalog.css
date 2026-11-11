@@ -20,7 +20,7 @@
 .exercise-textarea-wrap { padding: 10px 12px; }
 .exercise-textarea-wrap textarea { display: block; width: 100%; resize: vertical; border: 0; color: #eef3fb; background: transparent; font: inherit; line-height: 1.5; outline: 0; }
 .exercise-summary { display: flex; align-items: center; gap: 14px; padding-block: 18px; border-block: 1px solid #35414a; }
-.exercise-summary h3 { margin: 0 0 8px; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
+.exercise-summary h3 { margin: 0 0 8px; color: inherit; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; }
 .exercise-summary > .stat-icon { flex-shrink: 0; }
 .exercise-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .exercise-details .exercise-description { grid-column: 1 / -1; }

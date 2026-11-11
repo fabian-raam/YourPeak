@@ -8,7 +8,9 @@ import ExercisesCatalog from './pages/ExercisesCatalog'
 import FoodsCatalog from './pages/FoodsCatalog'
 import AdminLayout from './components/AdminLayout'
 import AccountStatus from './pages/AccountStatus'
+import ClientArea from './pages/ClientArea'
 import HomePage from './pages/HomePage'
+import { clientSectionFromPath, clientSections } from './utils/clientSections'
 import './App.css'
 
 const empty = { nombre: '', apellido: '', fechaNacimiento: '', correo: '', contrasena: '', confirmar_contrasena: '' }
@@ -24,6 +26,7 @@ export default function App() {
   const [pendingCount, setPendingCount] = useState(null)
   const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios', 'alimentos'].find(section => path === `/admin/${section}`) || 'usuarios'
   const [adminSection, setAdminSection] = useState(sectionFromPath(location.pathname))
+  const [clientSection, setClientSection] = useState(() => clientSectionFromPath(location.pathname) || 'inicio')
   const [page, setPage] = useState(publicPageFromPath(location.pathname))
   const [values, setValues] = useState(empty)
   const [fields, setFields] = useState({})
@@ -59,24 +62,46 @@ export default function App() {
 
   // La URL refleja el acceso que informa el servidor, no un rol guardado en el navegador.
   useEffect(() => {
-    if (user) history.replaceState({}, '', isAdmin ? `/admin/${adminSection}` : isActive ? '/' : '/pendiente')
-  }, [user, isAdmin, isActive, adminSection])
+    if (loading) return
+    const path = user
+      ? isAdmin ? `/admin/${adminSection}` : isActive ? clientSections[clientSection].path : '/pendiente'
+      : clientSectionFromPath(location.pathname) && location.pathname !== '/' ? '/login' : location.pathname
+    if (location.pathname !== path) history.replaceState({}, '', path)
+  }, [user, isAdmin, isActive, adminSection, clientSection, loading, page])
 
   useEffect(() => {
     let active = true
     request('perfil/').then(data => { if (active) setUser(data.usuario) })
       .catch(err => { if (active && err.status !== 401) setError(err.message) })
       .finally(() => { if (active) setLoading(false) })
-    const onPop = () => { setAdminSection(sectionFromPath(location.pathname)); setPage(publicPageFromPath(location.pathname)); setError(''); setFields({}); setValues(empty); setNotice('') }
+    const onPop = () => {
+      setAdminSection(sectionFromPath(location.pathname))
+      setClientSection(clientSectionFromPath(location.pathname) || 'inicio')
+      setPage(publicPageFromPath(location.pathname))
+      setError(''); setFields({}); setValues(empty); setNotice('')
+    }
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
-  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection, page])
+  useEffect(() => {
+    const adminTitles = { membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }
+    const title = isAdmin ? `${adminTitles[adminSection]} · Administración`
+      : isActive ? clientSections[clientSection].label
+        : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : registering ? 'Crear cuenta' : 'Iniciar sesión'
+    document.title = `${title} | YourPeak`
+  }, [user, registering, isAdmin, isActive, adminSection, clientSection, page])
 
   function navigateAdmin(section) {
     if (section === adminSection) return
     history.pushState({}, '', `/admin/${section}`)
     setAdminSection(section)
+  }
+
+  function navigateClient(section) {
+    if (section === clientSection) return
+    history.pushState({}, '', clientSections[section].path)
+    setClientSection(section)
+    window.scrollTo(0, 0)
   }
 
   function navigate(next) {
@@ -112,7 +137,10 @@ export default function App() {
       if (registering) {
         const correo = values.correo
         navigate('login'); setValues({ ...empty, correo }); setNotice(data.detail)
-      } else { setUser(data.usuario); setValues(empty); history.replaceState({}, '', '/') }
+      } else {
+        setClientSection('inicio')
+        setUser(data.usuario); setValues(empty); history.replaceState({}, '', '/')
+      }
     } catch (err) { setError(err.message); setFields(err.fields || {}) }
     finally { setBusy(false) }
   }
@@ -138,6 +166,9 @@ export default function App() {
                 logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
+  if (isActive) return <ClientArea user={user} section={clientSection} onNavigate={navigateClient}
+    onLogout={logout} logoutBusy={busy} error={error} />
+
   if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />
 
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
@@ -145,15 +176,8 @@ export default function App() {
     <section className="form-side" aria-label="Acceso a YourPeak">
       {!user && <a className="auth-home-link" href="/" onClick={event => { if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); if (!busy) navigate('inicio') } }}>← Volver al inicio</a>}
       <div className="auth-card" key={loading ? 'loading' : user ? 'profile' : page}>
-        {loading ? <p role="status">Comprobando tu sesión…</p> : user && !isActive ?
-          <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : user ? <>
-          <span className="eyebrow">YOUR PEAK · MI CUENTA</span>
-          <h1>Hola, {user.nombre}</h1>
-          <p className="intro">Tu próxima meta empieza aquí.</p>
-          <div className="profile"><span>Correo institucional</span><strong>{user.correo}</strong></div>
-          {error && <p className="alert" role="alert">{error}</p>}
-          <button className="primary" disabled={busy} onClick={logout}>{busy ? 'Cerrando sesión…' : 'Cerrar sesión'}</button>
-        </> : <>
+        {loading ? <p role="status">Comprobando tu sesión…</p> : user ?
+          <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : <>
           <span className="eyebrow">COMUNIDAD TECSUP</span>
           <h1>{registering ? 'Crea tu cuenta' : 'Iniciar sesión'}</h1>
           <p className="intro">{registering ? 'Comienza tu camino con Your Peak.' : 'Bienvenido de nuevo a Your Peak.'}</p>

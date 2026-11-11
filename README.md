@@ -12,7 +12,7 @@ La aplicación web utiliza React como interfaz y Django como backend web, ademá
 |---|---|---|
 | Servicio de cuentas | Spring Boot, Java 21 y MySQL | Tiene registro y login por endpoints. Usa `yourpeak_db`; la conexión se configura en `Backend-spring/src/main/resources/application.properties`. |
 | Web/backend | Django y SQLite | Expone la API web para React, llama a los endpoints de Spring Boot y conserva solo el ID del usuario en su sesión SQLite. Mantiene los formularios provisionales. |
-| Web/interfaz final | React | Registro, login, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios y planes de membresía. Acceso basado en Figma y panel administrativo azul marino con tipografía propia, adaptable a escritorio y móvil. |
+| Web/interfaz final | React | Registro, inicio de sesión, estado de aprobación, área del cliente activo y panel administrativo de usuarios, membresías, ejercicios y alimentos. |
 | Aplicación móvil | Android, Kotlin y Jetpack Compose | Registro, login, perfil básico y cierre de sesión conectados directamente a Spring Boot con Retrofit. Diseño basado en el front web, en tonos azules. |
 | Base de datos | MySQL/MariaDB | El esquema completo y sus catálogos iniciales están en `Backend-spring/database/yourpeak_schema.sql`. No contiene cuentas reales. |
 
@@ -122,6 +122,28 @@ Usuarios y Membresías comparten una interfaz azul marino con navegación latera
 ![Panel administrativo de YourPeak con datos de ejemplo](docs/images/panel-administrativo.png)
 
 El rediseño conserva los flujos de aprobación y gestión de planes. Se verificaron compilación, análisis estático, las cuatro pruebas del helper HTTP y los flujos en navegador con datos simulados. También se comprobó la carga local de las fuentes y la distribución de Usuarios entre 320 y 1920 píxeles.
+
+### Catálogos de ejercicios y alimentos
+
+- **Ejercicios:** el administrador puede listar, consultar, crear, editar, desactivar y reactivar ejercicios. La desactivación conserva el registro con estado inactivo.
+- **Alimentos:** el administrador puede listar, consultar, crear y editar alimentos. El modelo actual carece de un campo de estado y la API solo admite esas operaciones. Si se requiere ocultar alimentos conservando los registros de ingesta, queda pendiente definir esa regla y añadir soporte en el modelo y la API.
+
+Para probar los catálogos, ejecuta [`yourpeak_datos_iniciales.sql`](Backend-spring/database/yourpeak_datos_iniciales.sql) en tu base local `yourpeak_db`, una vez que las tablas estén creadas. El script agrega 16 ejercicios y 32 alimentos de demostración y omite los nombres que ya existen. Después, pulsa **Actualizar** en cada catálogo del panel.
+
+### Área web del cliente
+
+Los clientes activos con membresía vigente pueden abrir **Inicio** (`/`), **Mi perfil** (`/mi-perfil`) y **Mi membresía** (`/mi-membresia`). El área usa los datos de la sesión de Django para mostrar la identidad, el correo institucional y la vigencia de la membresía. Desde el menú de cuenta se puede abrir el perfil o cerrar sesión.
+
+En administración, **Desactivar** se distingue con texto y borde rojos en las tablas de ejercicios y planes de membresía, y con fondo rojo en la confirmación. Se mejoró el contraste del nombre del ejercicio y del plan en sus diálogos.
+
+| Apartado pendiente | Soporte de backend requerido |
+| --- | --- |
+| Disponibilidad semanal | Exponer en Django la consulta y el guardado para el cliente autenticado mediante el servicio interno de Spring Boot. |
+| Catálogo y detalle de ejercicios | Habilitar la consulta de ejercicios disponibles para el rol cliente. |
+| Mi rutina | Exponer la planificación y los ejercicios asignados al cliente. |
+| Nutrición | Habilitar la consulta del catálogo de alimentos y la consulta y el guardado del diario del cliente. |
+| Mi progreso | Habilitar la consulta y el guardado de las mediciones del cliente. |
+| Detalle de membresía | Exponer el plan, las fechas y el historial de la membresía del cliente. |
 
 ### Requisitos adicionales
 
@@ -461,7 +483,7 @@ Todos utilizan el mismo login: **http://127.0.0.1:5173/login**.
 |---|---|
 | Administrador | Panel de usuarios en `/admin/usuarios`. |
 | Cliente PENDIENTE | Pantalla de espera en `/pendiente`, con opción de consultar su estado y cerrar sesión. |
-| Cliente ACTIVO | Pantalla básica de su cuenta en `/`. |
+| Cliente ACTIVO con membresía vigente | Inicio del cliente en `/`, con acceso a Mi perfil y Mi membresía. |
 | Cliente INACTIVO o sin acceso habilitado | Mensaje para consultar con la administración. |
 
 El registro público siempre crea una cuenta cliente PENDIENTE. El login permite comprobar las credenciales y consultar ese estado, pero no activa la cuenta. El cliente deja de ver la pantalla de espera después de que un administrador lo aprueba y vuelve a consultar su estado o inicia sesión de nuevo.
