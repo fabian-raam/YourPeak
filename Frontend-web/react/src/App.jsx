@@ -8,10 +8,12 @@ import ExercisesCatalog from './pages/ExercisesCatalog'
 import FoodsCatalog from './pages/FoodsCatalog'
 import AdminLayout from './components/AdminLayout'
 import AccountStatus from './pages/AccountStatus'
+import HomePage from './pages/HomePage'
 import './App.css'
 
 const empty = { nombre: '', apellido: '', fechaNacimiento: '', correo: '', contrasena: '', confirmar_contrasena: '' }
 const emailValid = value => /^[^@\s]+@tecsup\.edu\.pe$/.test(value.trim().toLowerCase())
+const publicPageFromPath = path => path === '/' ? 'inicio' : path === '/registro' ? 'registro' : 'login'
 const localDate = (offset = 0) => {
   const date = new Date()
   date.setDate(date.getDate() + offset)
@@ -22,7 +24,7 @@ export default function App() {
   const [pendingCount, setPendingCount] = useState(null)
   const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios', 'alimentos'].find(section => path === `/admin/${section}`) || 'usuarios'
   const [adminSection, setAdminSection] = useState(sectionFromPath(location.pathname))
-  const [page, setPage] = useState(location.pathname === '/registro' ? 'registro' : 'login')
+  const [page, setPage] = useState(publicPageFromPath(location.pathname))
   const [values, setValues] = useState(empty)
   const [fields, setFields] = useState({})
   const [error, setError] = useState('')
@@ -65,11 +67,11 @@ export default function App() {
     request('perfil/').then(data => { if (active) setUser(data.usuario) })
       .catch(err => { if (active && err.status !== 401) setError(err.message) })
       .finally(() => { if (active) setLoading(false) })
-    const onPop = () => { setAdminSection(sectionFromPath(location.pathname)); setPage(location.pathname === '/registro' ? 'registro' : 'login'); setError(''); setFields({}); setValues(empty); setNotice('') }
+    const onPop = () => { setAdminSection(sectionFromPath(location.pathname)); setPage(publicPageFromPath(location.pathname)); setError(''); setFields({}); setValues(empty); setNotice('') }
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
-  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection])
+  useEffect(() => { document.title = `${isAdmin ? `${({ membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }[adminSection])} · Administración` : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : registering ? 'Crear cuenta' : 'Iniciar sesión'} | YourPeak` }, [user, registering, isAdmin, adminSection, page])
 
   function navigateAdmin(section) {
     if (section === adminSection) return
@@ -78,8 +80,9 @@ export default function App() {
   }
 
   function navigate(next) {
-    history.pushState({}, '', next === 'registro' ? '/registro' : '/login')
+    history.pushState({}, '', next === 'inicio' ? '/' : next === 'registro' ? '/registro' : '/login')
     setPage(next); setValues(empty); setFields({}); setError(''); setNotice('')
+    window.scrollTo(0, 0)
   }
   function update(event) {
     const { name, value } = event.target
@@ -135,9 +138,12 @@ export default function App() {
                 logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
+  if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />
+
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
-    <AuthHero registering={registering} onNavigate={event => { event.preventDefault(); if (!busy) navigate('login') }} />
+    <AuthHero registering={registering} onNavigate={event => { event.preventDefault(); if (!busy) navigate('inicio') }} />
     <section className="form-side" aria-label="Acceso a YourPeak">
+      {!user && <a className="auth-home-link" href="/" onClick={event => { if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); if (!busy) navigate('inicio') } }}>← Volver al inicio</a>}
       <div className="auth-card" key={loading ? 'loading' : user ? 'profile' : page}>
         {loading ? <p role="status">Comprobando tu sesión…</p> : user && !isActive ?
           <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : user ? <>
