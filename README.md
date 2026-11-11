@@ -107,6 +107,14 @@ Si el login acepta las credenciales pero Django muestra que no puede cargar el p
 
 El frontend web incluye registro, inicio de sesión, estado de aprobación, perfil básico, cierre de sesión y panel administrativo de usuarios. Está desarrollado con React y Vite. El acceso conserva el estilo de Figma del equipo y el panel administrativo utiliza el diseño descrito a continuación. El atleta y el logo son recursos separados; los textos, el fondo y la figura azul se construyen con HTML y CSS para ajustar correctamente la distribución. Conserva animaciones suaves y respeta la preferencia de movimiento reducido. Esta etapa corresponde a la web; no modifica la aplicación Android de `Mobile`.
 
+### Página de inicio pública
+
+Your Peak cuenta con una pantalla de bienvenida con acceso al inicio de sesión y registro. Incluye una portada con imagen de fondo, una sección del gimnasio y diseño adaptable a celular, con animaciones suaves que respetan la preferencia de movimiento reducido.
+
+Los formularios existentes mantienen su conexión con el backend.
+
+![Página de inicio pública de Your Peak](docs/images/inicio-publico.jpg)
+
 ### Diseño del panel administrativo
 
 Usuarios y Membresías comparten una interfaz azul marino con navegación lateral, resúmenes compactos y tablas de texto más legible. Los títulos utilizan **Barlow Condensed Bold** y los textos **IBM Plex Sans**; los diálogos mantienen la misma tipografía. Las fuentes se sirven desde `Frontend-web/react/public/fonts`, junto con sus licencias OFL, sin consultar servicios externos durante el uso del panel.
@@ -136,7 +144,7 @@ Inicia el servidor de desarrollo:
 npm run dev
 ```
 
-Abre **http://127.0.0.1:5173/login**.
+Abre **http://127.0.0.1:5173/** para ver la bienvenida. Desde la barra superior puedes acceder a **Iniciar sesión** (`/login`) y **Registrarse** (`/registro`). Si ya tienes una sesión iniciada, se muestra tu cuenta o el panel administrativo según tu rol.
 
 | Servicio | Dirección local |
 |---|---|
