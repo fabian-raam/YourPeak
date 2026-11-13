@@ -27,6 +27,7 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
         {link('membresias', 'Membresías', 'card')}
         {link('ejercicios', 'Ejercicios', 'dumbbell')}
         {link('alimentos', 'Alimentos', 'food')}
+        {link('practica', 'Práctica React', 'activity')}
       </nav>
       <div className="sidebar-account"><span className="avatar">{initials(user)}</span><div><strong>{user.nombre}</strong><span>Administrador</span></div>
         <button className="icon-button" aria-label="Cerrar sesión" disabled={logoutBusy} onClick={onLogout}><Icon name="logout" /></button>

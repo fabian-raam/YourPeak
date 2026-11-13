@@ -1,0 +1,160 @@
+.client-routine { width: min(1240px, 100%); margin: 0 auto; padding: 30px 32px 42px; color: #17233b; }
+.routine-page-heading { margin-bottom: 22px; }
+.routine-week { margin-bottom: 17px; }
+.routine-week-toolbar, .routine-week-navigation { display: flex; align-items: center; }
+.routine-week-toolbar { justify-content: space-between; gap: 14px; margin-bottom: 12px; color: #6a7890; font-size: 12px; }
+.routine-week-navigation { gap: 8px; }
+.routine-week-navigation > button { width: 31px; height: 31px; display: grid; place-items: center; padding: 0 0 3px; border: 1px solid #d9e2ee; border-radius: 7px; color: #52627c; background: #fff; font: 24px/1 'IBM Plex Sans', Arial, sans-serif; }
+.routine-week-navigation > button:hover { border-color: #8db5ef; color: #2166d1; background: #f6f9ff; }
+.routine-week-navigation strong { margin-left: 3px; color: #263650; font-size: 13px; font-weight: 600; }
+.routine-week-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.routine-day-card { min-width: 0; min-height: 91px; display: grid; align-content: start; gap: 7px; padding: 10px 10px 9px; border: 1px solid #d9e2ee; border-radius: 9px; color: #33435d; background: #fff; text-align: left; transition: border-color .15s ease, background .15s ease, color .15s ease; }
+.routine-day-card:hover { border-color: #8db5ef; }
+.routine-day-card.rest { background: #edf1f7; }
+.routine-day-card.selected { border-color: #2166e8; color: #fff; background: #2166e8; box-shadow: 0 3px 9px #2166e82b; }
+.routine-day-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; color: #56657d; font-size: 10px; }
+.routine-day-top small { font-size: 8px; font-weight: 700; }
+.routine-day-card.selected .routine-day-top { color: #fff; }
+.routine-day-title { overflow: hidden; color: #273751; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.routine-day-status { display: flex; align-items: center; gap: 3px; overflow: hidden; color: #718099; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.routine-day-status svg { width: 12px; height: 12px; color: #3277d9; }
+.routine-day-status.completed { color: #3277d9; }
+.routine-day-card.selected .routine-day-title, .routine-day-card.selected .routine-day-status { color: #fff; }
+.routine-day-card.selected .routine-day-status svg { color: #fff; }
+.routine-workout-banner { min-height: 105px; display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 19px 24px; margin-bottom: 12px; border: 1px solid #101c34; border-radius: 9px; color: #fff; background: #081326; }
+.routine-workout-banner > div:first-child > span, .routine-rest-kicker { color: #91b6f4; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.routine-workout-banner h2, .routine-rest-panel h2 { margin: 5px 0 0; color: #fff; font: 700 clamp(30px, 4vw, 44px)/1 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; }
+.routine-workout-meta { display: grid; gap: 8px; flex: 0 0 auto; color: #c7d2e4; font-size: 12px; }
+.routine-workout-meta span { display: flex; align-items: center; gap: 8px; }
+.routine-workout-meta svg { width: 15px; height: 15px; color: #83aef3; }
+.routine-exercise-panel { overflow: hidden; border: 1px solid #d5dfed; border-radius: 10px; background: #fff; box-shadow: 0 4px 12px #1b3c6410; }
+.routine-table-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 16px 19px 7px; }
+.routine-table-heading h3 { margin: 0; color: #263650; font-size: 13px; font-weight: 600; }
+.routine-table-heading > span { color: #7a89a1; font-size: 10px; }
+.routine-table-scroll { overflow-x: auto; padding: 0 19px 7px; }
+.routine-exercise-panel table { width: 100%; border-collapse: collapse; text-align: left; }
+.routine-exercise-panel th { padding: 9px 10px; border-bottom: 1px solid #e0e7f0; color: #7a89a1; font-size: 10px; font-weight: 600; white-space: nowrap; }
+.routine-exercise-panel td { padding: 9px 10px; border-bottom: 1px solid #e8edf4; color: #40516d; font-size: 11px; }
+.routine-exercise-panel tbody tr:last-child td { border-bottom: 0; }
+.routine-exercise-panel td:first-child { width: 38px; color: #8390a4; }
+.routine-exercise-panel td:nth-child(2) { color: #283852; font-weight: 600; }
+.routine-rest-panel { min-height: 158px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 25px 30px; border: 1px solid #d5dfed; border-left: 4px solid #c5d2e4; border-radius: 10px; background: #fff; }
+.routine-rest-panel .routine-rest-kicker { color: #7587a3; }
+.routine-rest-panel h2 { color: #101d36; font-size: clamp(32px, 4vw, 44px); }
+.routine-rest-panel p { max-width: 570px; margin: 8px 0 0; color: #687995; font-size: 12px; line-height: 1.5; }
+.routine-next-workout { min-height: 73px; display: flex; align-items: center; gap: 12px; padding: 13px 17px; margin-top: 12px; border: 1px solid #d5dfed; border-radius: 9px; background: #fff; }
+.routine-next-icon { width: 34px; height: 34px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 8px; color: #3478dc; background: #eaf1fd; }
+.routine-next-icon svg { width: 17px; height: 17px; }
+.routine-next-workout > div { display: grid; gap: 2px; min-width: 0; flex: 1; }
+.routine-next-workout small, .routine-next-workout > div > span { color: #7a89a1; font-size: 10px; }
+.routine-next-workout strong { overflow: hidden; color: #34445f; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.routine-next-workout button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 0 7px 8px; border: 0; color: #2166d1; background: transparent; font: 600 11px 'IBM Plex Sans', Arial, sans-serif; white-space: nowrap; }
+.routine-next-workout button:hover { color: #12479b; }
+.routine-next-workout button svg { width: 14px; height: 14px; }
+.routine-error { padding: 12px 14px; margin: 0 0 14px; border: 1px solid #efb3b3; border-radius: 9px; color: #a33c3c; background: #fff7f7; font-size: 13px; line-height: 1.5; }
+.routine-notice { display: flex; align-items: center; gap: 10px; padding: 11px 13px; margin-bottom: 14px; border: 1px solid #a5d7be; border-radius: 9px; color: #16764e; background: #f1fbf6; font-size: 12px; }
+.routine-notice > svg { width: 17px; height: 17px; }
+.routine-notice > span { flex: 1; }
+.routine-notice button { width: 27px; height: 27px; display: grid; place-items: center; border: 0; border-radius: 6px; color: #317d5c; background: transparent; }
+.routine-notice button:hover { background: #e0f4e9; }
+.routine-notice button svg { width: 15px; height: 15px; }
+.routine-week-days { position: relative; }
+.routine-loading { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 9px; color: #697995; background: #ffffffdc; font-size: 13px; }
+.routine-workout-banner h2 { text-transform: uppercase; }
+.routine-exercise-panel td small { display: block; margin-top: 3px; color: #7a89a1; font-size: 10px; font-weight: 400; }
+.routine-remove-exercise { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 6px; color: #8a96a8; background: transparent; }
+.routine-remove-exercise:hover:not(:disabled) { border-color: #f1c6c6; color: #b34040; background: #fff5f5; }
+.routine-remove-exercise:disabled { opacity: .45; cursor: not-allowed; }
+.routine-remove-exercise svg { width: 15px; height: 15px; }
+.routine-empty-day { min-height: 126px; display: grid; justify-items: center; align-content: center; padding: 18px; text-align: center; }
+.routine-empty-day > span { width: 35px; height: 35px; display: grid; place-items: center; border-radius: 8px; color: #3478dc; background: #eaf1fd; }
+.routine-empty-day > span svg { width: 18px; height: 18px; }
+.routine-empty-day strong { margin-top: 9px; color: #34445f; font-size: 12px; }
+.routine-empty-day p { margin: 4px 0 0; color: #7a89a1; font-size: 11px; }
+.routine-add-form { padding: 16px 19px 18px; border-top: 1px solid #e4eaf2; background: #fbfcfe; }
+.routine-add-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; }
+.routine-add-heading h4 { margin: 0; color: #283852; font-size: 12px; font-weight: 600; }
+.routine-add-heading p { margin: 4px 0 0; color: #8491a5; font-size: 10px; }
+.routine-add-search { width: min(250px, 48%); min-height: 34px; display: flex; align-items: center; gap: 8px; padding: 0 9px; border: 1px solid #d5dfed; border-radius: 7px; color: #718099; background: #fff; }
+.routine-add-search svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.routine-add-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: #34445f; background: transparent; font: 11px 'IBM Plex Sans', Arial, sans-serif; }
+.routine-add-fields { display: grid; grid-template-columns: minmax(190px, 2fr) repeat(3, minmax(80px, .65fr)) auto; align-items: end; gap: 9px; }
+.routine-add-fields label { min-width: 0; display: grid; gap: 5px; color: #687995; font-size: 10px; }
+.routine-add-fields input, .routine-add-fields select { width: 100%; min-width: 0; height: 36px; padding: 0 9px; border: 1px solid #d5dfed; border-radius: 7px; color: #34445f; background: #fff; font: 11px 'IBM Plex Sans', Arial, sans-serif; }
+.routine-add-fields input:focus, .routine-add-fields select:focus { outline: 2px solid #2166e82a; border-color: #5590eb; }
+.routine-add-fields input:disabled, .routine-add-fields select:disabled { color: #9aa6b7; background: #f2f5f9; }
+.routine-add-button, .routine-reset, .routine-save { min-height: 37px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 12px; border: 1px solid #d3deec; border-radius: 7px; font: 600 11px 'IBM Plex Sans', Arial, sans-serif; white-space: nowrap; }
+.routine-add-button { border-color: #2166e8; color: #fff; background: #2166e8; }
+.routine-add-button:hover:not(:disabled) { border-color: #1854c7; background: #1854c7; }
+.routine-add-button:disabled { opacity: .5; cursor: not-allowed; }
+.routine-add-button svg, .routine-save svg { width: 15px; height: 15px; }
+.routine-catalog-empty { margin: 10px 0 0; color: #8794a8; font-size: 10px; }
+.routine-add-entry { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px 19px; border-top: 1px solid #e4eaf2; background: #fbfcfe; }
+.routine-add-entry h4 { margin: 0; color: #283852; font-size: 13px; }
+.routine-add-entry p { margin: 4px 0 0; color: #7a89a1; font-size: 11px; }
+.routine-exercise-screen { min-height: 330px; padding: 22px; border: 1px solid #d5dfed; border-radius: 10px; background: #fff; box-shadow: 0 4px 12px #1b3c6410; }
+.routine-exercise-screen-heading { padding-bottom: 17px; border-bottom: 1px solid #e4eaf2; }
+.routine-back-button { display: inline-flex; align-items: center; gap: 7px; padding: 0; margin-bottom: 20px; border: 0; color: #2166d1; background: transparent; font: 600 12px 'IBM Plex Sans', Arial, sans-serif; }
+.routine-back-button:hover { color: #12479b; }
+.routine-back-button svg { width: 15px; height: 15px; transform: rotate(180deg); }
+.routine-exercise-screen-heading > span { display: block; color: #718099; font-size: 11px; text-transform: capitalize; }
+.routine-exercise-screen-heading h2 { margin: 5px 0 3px; color: #17233b; font: 700 30px/1.1 'Barlow Condensed', 'Arial Narrow', sans-serif; }
+.routine-exercise-screen-heading p { margin: 0; color: #718099; font-size: 12px; }
+.routine-add-screen-form { display: grid; gap: 16px; padding: 18px 0 0; border: 0; background: transparent; }
+.routine-add-screen-form .routine-add-search { width: min(360px, 100%); min-height: 40px; }
+.routine-add-screen-form .routine-add-fields { grid-template-columns: minmax(230px, 2fr) repeat(3, minmax(100px, .7fr)); gap: 12px; }
+.routine-add-screen-form .routine-add-fields input, .routine-add-screen-form .routine-add-fields select { height: 42px; padding: 0 11px; font-size: 12px; }
+.routine-selected-exercise { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 1px solid #dbe5f3; border-radius: 8px; background: #f7f9fd; }
+.routine-selected-exercise > span { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 8px; color: #3478dc; background: #eaf1fd; }
+.routine-selected-exercise svg { width: 17px; height: 17px; }
+.routine-selected-exercise div { display: grid; gap: 2px; }
+.routine-selected-exercise strong { color: #34445f; font-size: 12px; }
+.routine-selected-exercise small { color: #7a89a1; font-size: 10px; }
+.routine-editor-actions { display: flex; justify-content: flex-end; gap: 9px; padding-top: 15px; border-top: 1px solid #e4eaf2; }
+.routine-rest-panel button { display: inline-flex; align-items: center; gap: 7px; margin-top: 13px; padding: 8px 0; border: 0; color: #2166d1; background: transparent; font: 600 11px 'IBM Plex Sans', Arial, sans-serif; }
+.routine-rest-panel button:hover { color: #12479b; }
+.routine-rest-panel button svg { width: 14px; height: 14px; }
+.routine-actions { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 0; margin-top: 14px; border-top: 1px solid #d6e0ed; }
+.routine-actions > span { color: #8290a5; font-size: 10px; }
+.routine-actions > div { display: flex; gap: 8px; }
+.routine-reset { color: #566780; background: #fff; }
+.routine-reset:hover:not(:disabled) { border-color: #9db2ce; background: #f4f7fb; }
+.routine-save { border-color: #2166e8; color: #fff; background: #2166e8; }
+.routine-save:hover:not(:disabled) { border-color: #1854c7; background: #1854c7; }
+.routine-actions button:disabled { opacity: .5; cursor: not-allowed; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+
+@media (max-width: 900px) {
+  .routine-week-days { grid-template-columns: repeat(7, minmax(112px, 1fr)); overflow-x: auto; padding: 1px 1px 8px; }
+}
+@media (max-width: 760px) {
+  .client-routine { padding: 24px 17px 32px; }
+}
+@media (max-width: 560px) {
+  .routine-week-toolbar { align-items: flex-start; flex-direction: column; }
+  .routine-week-navigation { flex-wrap: wrap; }
+  .routine-week-navigation strong { font-size: 11px; }
+  .routine-workout-banner { align-items: flex-start; flex-direction: column; gap: 13px; padding: 17px; }
+  .routine-workout-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 10px; }
+  .routine-table-heading { align-items: flex-start; flex-direction: column; gap: 5px; padding-inline: 14px; }
+  .routine-table-scroll { padding-inline: 9px; }
+  .routine-exercise-panel table { min-width: 480px; }
+  .routine-add-form { padding: 14px; }
+  .routine-exercise-screen { padding: 16px; }
+  .routine-add-screen-form { padding: 15px 0 0; }
+  .routine-add-heading { align-items: flex-start; flex-direction: column; }
+  .routine-add-search { width: 100%; }
+  .routine-add-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .routine-exercise-select { grid-column: 1 / -1; }
+  .routine-add-button { grid-column: 1 / -1; }
+  .routine-add-entry { align-items: flex-start; flex-direction: column; }
+  .routine-add-screen-form .routine-add-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .routine-add-screen-form .routine-exercise-select { grid-column: 1 / -1; }
+  .routine-editor-actions { flex-direction: column-reverse; }
+  .routine-editor-actions button { width: 100%; }
+  .routine-rest-panel { min-height: 145px; padding: 21px; }
+  .routine-next-workout { flex-wrap: wrap; }
+  .routine-next-workout button { margin-left: 46px; padding-top: 0; }
+  .routine-actions { align-items: flex-start; flex-direction: column; }
+  .routine-actions > div { width: 100%; justify-content: flex-end; }
+}

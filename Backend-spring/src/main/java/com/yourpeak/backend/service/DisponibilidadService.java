@@ -63,6 +63,9 @@ public class DisponibilidadService {
         validarDias(request.dias());
 
         disponibilidadRepository.deleteAllByCliente_IdCliente(cliente.getIdCliente());
+        // Fuerza el borrado antes de insertar los nuevos rangos del mismo cliente/día.
+        // La tabla tiene una restricción única por cliente y día de la semana.
+        disponibilidadRepository.flush();
         List<DisponibilidadCliente> nuevosHorarios = request.dias().stream()
                 .filter(DiaDisponibilidadRequest::disponible)
                 .map(dia -> new DisponibilidadCliente(

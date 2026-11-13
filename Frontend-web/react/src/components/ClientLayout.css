@@ -1,0 +1,96 @@
+.training-client-layout {
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  color: #17233b;
+  background: #f1f4f9;
+  font-family: 'IBM Plex Sans', Arial, sans-serif;
+}
+
+.training-client-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100svh;
+  min-height: 620px;
+  padding: 24px 14px 20px;
+  color: #a9b7ce;
+  background: #081326;
+}
+
+.training-client-sidebar .brand {
+  position: static;
+  visibility: visible;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 8px 28px;
+  color: #fff;
+  background: transparent;
+  box-shadow: none;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.training-client-sidebar .brand img { width: 20px; height: 35px; }
+.training-client-navigation { display: grid; align-content: start; gap: 6px; }
+.training-client-nav-group { display: grid; gap: 4px; }
+.training-client-nav-heading,
+.training-client-nav-item {
+  width: 100%;
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 7px;
+  color: #a9b7ce;
+  background: transparent;
+  font: 500 13px/1.3 'IBM Plex Sans', Arial, sans-serif;
+  text-align: left;
+  text-decoration: none;
+}
+
+.training-client-nav-heading { color: #c3cde0; font-weight: 600; }
+.training-client-nav-item svg, .training-client-nav-heading svg { width: 17px; height: 17px; flex: 0 0 17px; }
+.training-client-nav-item:disabled { opacity: .88; cursor: default; }
+.training-client-nav-submenu { display: grid; gap: 3px; margin-left: 18px; }
+.training-client-nav-submenu .training-client-nav-item { min-height: 36px; padding-left: 11px; font-size: 12px; }
+.training-client-nav-submenu .training-client-nav-item svg { display: none; }
+.training-client-nav-item.is-active { color: #fff; background: #2166e8; font-weight: 600; }
+.training-client-sidebar-membership { display: flex; align-items: flex-start; gap: 10px; padding: 15px 8px 0; margin-top: auto; border-top: 1px solid #1d2a40; }
+.training-client-membership-dot { width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: #34b77b; box-shadow: 0 0 0 4px #34b77b19; }
+.training-client-sidebar-membership div { display: grid; gap: 3px; }
+.training-client-sidebar-membership strong { color: #e6ecf6; font-size: 12px; font-weight: 600; }
+.training-client-sidebar-membership span:not(.training-client-membership-dot) { color: #9baac1; font-size: 11px; }
+
+.training-client-workspace { min-width: 0; }
+.training-client-user-avatar { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; color: #1c5bb5; background: #e5eefc; font-size: 11px; font-weight: 700; }
+.training-client-user-name { color: #26354f; font-size: 13px; font-weight: 500; }
+.training-client-logout { margin-left: 8px; padding: 7px 10px; border: 0; color: #50627e; background: transparent; font: inherit; font-size: 12px; }
+.training-client-logout:hover:not(:disabled) { color: #1d559b; }
+
+@media (max-width: 760px) {
+  .training-client-layout { display: block; }
+  .training-client-sidebar { position: static; height: auto; min-height: 0; padding: 13px 16px 10px; }
+  .training-client-sidebar .brand { margin: 0 4px 12px; font-size: 20px; }
+  .training-client-sidebar .brand img { width: 17px; height: 29px; }
+  .training-client-navigation { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .training-client-nav-group { display: contents; }
+  .training-client-nav-heading { display: none; }
+  .training-client-nav-submenu { display: contents; margin: 0; }
+  .training-client-nav-item, .training-client-nav-submenu .training-client-nav-item { width: auto; min-height: 36px; flex: 0 0 auto; padding: 0 10px; font-size: 12px; }
+  .training-client-nav-item svg { width: 15px; height: 15px; flex-basis: 15px; }
+  .training-client-nav-submenu .training-client-nav-item svg { display: block; }
+  .training-client-sidebar-membership { display: none; }
+}
+
+@media (max-width: 420px) {
+  .training-client-user-name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}

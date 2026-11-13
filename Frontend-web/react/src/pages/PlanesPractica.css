@@ -1,0 +1,53 @@
+.practice-plans-page { color: #17233b; }
+.practice-kicker { color: #2868c7; font-size: 10px; font-weight: 700; letter-spacing: .13em; }
+.practice-plans-page .admin-heading { margin-bottom: 18px; }
+.practice-plans-page .admin-heading p { margin-top: 5px; }
+.practice-plan-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 18px; border: 1px solid #b7cbed; border-radius: 12px; background: #fff; }
+.practice-plan-summary article { display: grid; gap: 7px; padding: 18px 20px; }
+.practice-plan-summary article + article { border-left: 1px solid #d6e1f0; }
+.practice-plan-summary span { color: #718099; font-size: 12px; }
+.practice-plan-summary strong { color: #17233b; font-size: 25px; }
+.practice-plan-panel { overflow: hidden; border: 1px solid #a9c3e8; border-radius: 13px; background: #fff; box-shadow: 0 8px 24px #18355c0d; }
+.practice-plan-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px 20px; border-bottom: 1px solid #d6e1f0; }
+.practice-plan-toolbar > span { color: #718099; font-size: 12px; white-space: nowrap; }
+.practice-plan-search { width: min(380px, 100%); min-height: 40px; display: flex; align-items: center; gap: 9px; padding: 0 11px; border: 1px solid #bfd0e6; border-radius: 8px; color: #70819b; background: #fff; }
+.practice-plan-search svg { width: 17px; height: 17px; }
+.practice-plan-search input { width: 100%; border: 0; outline: 0; color: #263650; background: transparent; font: 13px 'IBM Plex Sans', Arial, sans-serif; }
+.practice-plan-search:focus-within { border-color: #4d89df; box-shadow: 0 0 0 3px #4d89df20; }
+.practice-plan-table-scroll { overflow-x: auto; }
+.practice-plan-table { width: 100%; border-collapse: collapse; text-align: left; }
+.practice-plan-table th { padding: 12px 20px; color: #fff; background: #1f5597; font-size: 12px; }
+.practice-plan-table td { padding: 13px 20px; border-bottom: 1px solid #dbe5f1; color: #3c4d67; font-size: 13px; }
+.practice-plan-table tbody tr:last-child td { border-bottom: 0; }
+.practice-plan-table td:first-child strong, .practice-plan-table td:first-child small { display: block; }
+.practice-plan-table td:first-child strong { color: #1c2a42; }
+.practice-plan-table td:first-child small { margin-top: 3px; color: #7c8ba2; font-size: 11px; }
+.practice-plan-status { display: inline-block; padding: 5px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.practice-plan-status.active { color: #08754c; background: #e2f5ed; }
+.practice-plan-status.inactive { color: #627089; background: #edf1f6; }
+.practice-plan-row-actions { display: flex; align-items: center; gap: 8px; }
+.practice-plan-row-actions button, .practice-plan-form-fields button { min-height: 34px; padding: 7px 11px; border: 1px solid #b7cbed; border-radius: 7px; color: #1f5597; background: #fff; font: 600 11px 'IBM Plex Sans', Arial, sans-serif; }
+.practice-plan-row-actions button:hover { background: #f1f6fd; }
+.practice-plan-row-actions button.delete { display: grid; place-items: center; width: 34px; padding: 0; color: #a84545; border-color: #eccaca; }
+.practice-plan-row-actions svg { width: 15px; height: 15px; }
+.practice-plan-empty { padding: 25px; color: #718099; text-align: center; font-size: 13px; }
+.practice-plan-form { padding: 18px 20px 20px; border-top: 1px solid #d6e1f0; background: #f7f9fd; }
+.practice-plan-form h2 { margin: 0 0 13px; color: #263650; font-size: 15px; }
+.practice-plan-form-fields { display: grid; grid-template-columns: minmax(200px, 1fr) minmax(150px, .5fr) auto; align-items: end; gap: 12px; }
+.practice-plan-form-fields label { display: grid; gap: 6px; color: #5d6e87; font-size: 11px; }
+.practice-plan-form-fields input { height: 39px; padding: 0 10px; border: 1px solid #c5d4e8; border-radius: 7px; background: #fff; color: #263650; font: 13px 'IBM Plex Sans', Arial, sans-serif; }
+.practice-plan-form-fields button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding-inline: 14px; color: #fff; border-color: #1f5597; background: #1f5597; }
+.practice-plan-form-fields button:hover { background: #18477f; }
+.practice-plan-form-fields button svg { width: 15px; height: 15px; }
+.practice-plan-form > p { margin: 9px 0 0; color: #a63f3f; font-size: 12px; }
+.practice-plan-notice { padding: 10px 13px; margin: 0 0 14px; border: 1px solid #a5d7be; border-radius: 8px; color: #16764e; background: #f1fbf6; font-size: 12px; }
+.practice-plan-explanation { max-width: 950px; margin: 16px 2px; color: #687995; font-size: 12px; line-height: 1.6; }
+.practice-plan-explanation strong { color: #34445f; }
+@media (max-width: 650px) {
+  .practice-plan-summary article { padding: 13px 10px; }
+  .practice-plan-summary span { font-size: 10px; }
+  .practice-plan-toolbar { align-items: flex-start; flex-direction: column; }
+  .practice-plan-form-fields { grid-template-columns: 1fr; }
+  .practice-plan-form-fields button { min-height: 40px; }
+  .practice-plan-table { min-width: 560px; }
+}

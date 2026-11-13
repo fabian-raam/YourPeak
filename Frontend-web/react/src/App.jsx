@@ -6,11 +6,16 @@ import UserManagement from './pages/UserManagement'
 import MembershipPlans from './pages/MembershipPlans'
 import ExercisesCatalog from './pages/ExercisesCatalog'
 import FoodsCatalog from './pages/FoodsCatalog'
+import PlanesPractica from './pages/PlanesPractica'
 import AdminLayout from './components/AdminLayout'
 import AccountStatus from './pages/AccountStatus'
 import ClientArea from './pages/ClientArea'
 import HomePage from './pages/HomePage'
 import { clientSectionFromPath, clientSections } from './utils/clientSections'
+import ClientLayout from './components/ClientLayout'
+import ClientExercises from './pages/ClientExercises'
+import ClientAvailability from './pages/ClientAvailability'
+import ClientRoutine from './pages/ClientRoutine'
 import './App.css'
 
 const empty = { nombre: '', apellido: '', fechaNacimiento: '', correo: '', contrasena: '', confirmar_contrasena: '' }
@@ -24,7 +29,7 @@ const localDate = (offset = 0) => {
 
 export default function App() {
   const [pendingCount, setPendingCount] = useState(null)
-  const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios', 'alimentos'].find(section => path === `/admin/${section}`) || 'usuarios'
+  const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios', 'alimentos', 'practica'].find(section => path === `/admin/${section}`) || 'usuarios'
   const [adminSection, setAdminSection] = useState(sectionFromPath(location.pathname))
   const [clientSection, setClientSection] = useState(() => clientSectionFromPath(location.pathname) || 'inicio')
   const [page, setPage] = useState(publicPageFromPath(location.pathname))
@@ -84,7 +89,7 @@ export default function App() {
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
   useEffect(() => {
-    const adminTitles = { membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', usuarios: 'Usuarios' }
+    const adminTitles = { membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', practica: 'Práctica React', usuarios: 'Usuarios' }
     const title = isAdmin ? `${adminTitles[adminSection]} · Administración`
       : isActive ? clientSections[clientSection].label
         : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : registering ? 'Crear cuenta' : 'Iniciar sesión'
@@ -161,16 +166,25 @@ export default function App() {
           ? <ExercisesCatalog onExpired={sessionExpired} logoutError={error} />
           : adminSection === 'alimentos'
             ? <FoodsCatalog onExpired={sessionExpired} logoutError={error} />
+            : adminSection === 'practica'
+              ? <PlanesPractica />
             : <UserManagement section={adminSection} onNavigate={navigateAdmin} onExpired={sessionExpired}
                 pendingCount={pendingCount}
                 logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
+  if (isActive && ['ejercicios', 'disponibilidad', 'mi-rutina'].includes(clientSection)) {
+    return <ClientLayout section={clientSection} onNavigate={navigateClient}>
+      {clientSection === 'disponibilidad'
+        ? <ClientAvailability onExpired={sessionExpired} />
+        : clientSection === 'mi-rutina' ? <ClientRoutine onExpired={sessionExpired} onNavigate={navigateClient} /> : <ClientExercises />}
+    </ClientLayout>
+  }
+
   if (isActive) return <ClientArea user={user} section={clientSection} onNavigate={navigateClient}
     onLogout={logout} logoutBusy={busy} error={error} />
 
   if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />
-
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
     <AuthHero registering={registering} onNavigate={event => { event.preventDefault(); if (!busy) navigate('inicio') }} />
     <section className="form-side" aria-label="Acceso a YourPeak">

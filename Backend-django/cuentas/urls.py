@@ -10,6 +10,13 @@ urlpatterns = [
     path('api/web/logout/', api.logout),
     # Disponibilidad personal: requiere una sesión de cliente activa.
     path('api/web/cliente/disponibilidad/', api.disponibilidad_cliente),
+    # Rutina personal: solo permite asignar ejercicios a los días disponibles del cliente.
+    path('api/web/cliente/rutina/', api.rutina_cliente, name='rutina-cliente'),
+    path(
+        'api/web/cliente/rutina/ejercicios/',
+        api.ejercicios_disponibles_rutina,
+        name='ejercicios-disponibles-rutina',
+    ),
     # Lista/detalle usan GET; aprobar cambia el estado y por eso usa POST.
     path('api/web/admin/clientes/pendientes/', api.clientes_pendientes),
     path('api/web/admin/clientes/pendientes/<int:id_cliente>/', api.cliente_pendiente),
