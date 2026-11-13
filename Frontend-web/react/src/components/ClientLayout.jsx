@@ -1,55 +1,80 @@
+import { useRef } from 'react'
 import Brand from './Brand'
 import Icon from './Icon'
+import { clientSections } from '../utils/clientSections'
+import { fullName, initials } from '../utils/format'
 import './ClientLayout.css'
 
-const menuButton = (label, icon, active = false) => (
-  <button className={`training-client-nav-item${active ? ' is-active' : ''}`} type="button" disabled={!active}>
-    <Icon name={icon} /><span>{label}</span>
-  </button>
-)
+export default function ClientLayout({ user, section, onNavigate, onLogout, logoutBusy, error, children }) {
+  const accountMenu = useRef(null)
+  const membershipStatus = user?.membresiaVigente ? 'vigente' : 'no vigente'
+  const accountName = fullName(user || {}) || 'Mi cuenta'
+  const avatar = initials(user || {}) || 'YP'
 
-export default function ClientLayout({ section, onNavigate, children }) {
-  const openSection = (target, event) => {
+  function handleNavigation(event, target) {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
     event.preventDefault()
+    accountMenu.current?.removeAttribute('open')
     onNavigate(target)
   }
 
-  return <div className="training-client-layout">
-    <aside className="training-client-sidebar">
-      <Brand onNavigate={event => openSection('ejercicios', event)} />
+  function link(target, content, className = 'client-nav-link') {
+    return <a key={target} href={clientSections[target].path} className={className}
+      aria-current={section === target ? 'page' : undefined}
+      onClick={event => handleNavigation(event, target)}>{content}</a>
+  }
 
-      <nav className="training-client-navigation" aria-label="Menú del cliente">
-        {menuButton('Inicio', 'home')}
-        <div className="training-client-nav-group">
-          <div className="training-client-nav-heading"><Icon name="dumbbell" /><span>Entrenamiento</span></div>
-          <div className="training-client-nav-submenu">
-            <a className={`training-client-nav-item${section === 'mi-rutina' ? ' is-active' : ''}`} href="/cliente/mi-rutina"
-              aria-current={section === 'mi-rutina' ? 'page' : undefined} onClick={event => openSection('mi-rutina', event)}>
-              <span>Mi rutina</span>
-            </a>
-            <a className={`training-client-nav-item${section === 'ejercicios' ? ' is-active' : ''}`} href="/cliente/ejercicios"
-              aria-current={section === 'ejercicios' ? 'page' : undefined} onClick={event => openSection('ejercicios', event)}>
-              <span>Ejercicios</span>
-            </a>
-            <a className={`training-client-nav-item${section === 'disponibilidad' ? ' is-active' : ''}`} href="/cliente/disponibilidad"
-              aria-current={section === 'disponibilidad' ? 'page' : undefined} onClick={event => openSection('disponibilidad', event)}>
-              <Icon name="clock" /><span>Disponibilidad</span>
-            </a>
+  return <div className="client-layout">
+    <aside className="client-sidebar">
+      <Brand href="/" onNavigate={event => handleNavigation(event, 'inicio')} />
+      <nav aria-label="Área del cliente">
+        {link('inicio', <><Icon name="home" /> Inicio</>)}
+        <div className="client-nav-group">
+          <div className="client-nav-heading"><Icon name="dumbbell" /><span>Entrenamiento</span></div>
+          <div className="client-nav-submenu">
+            {link('mi-rutina', 'Mi rutina')}
+            {link('ejercicios', 'Ejercicios')}
+            {link('disponibilidad', <><Icon name="clock" /> Disponibilidad</>)}
           </div>
         </div>
-        {menuButton('Nutrición', 'food')}
-        {menuButton('Mi progreso', 'activity')}
-        {menuButton('Mi membresía', 'card')}
+        <button className="client-nav-link client-nav-disabled" type="button" disabled>
+          <Icon name="food" /> Nutrición
+        </button>
+        <button className="client-nav-link client-nav-disabled" type="button" disabled>
+          <Icon name="activity" /> Mi progreso
+        </button>
+        {link('membresia', <><Icon name="card" /> Mi membresía</>)}
       </nav>
-
-      <div className="training-client-sidebar-membership">
-        <span className="training-client-membership-dot" />
-        <div><strong>Membresía activa</strong><span>Acceso vigente</span></div>
+      <div className="client-sidebar-status">
+        <strong>Membresía {membershipStatus}</strong>
+        {user?.fechaVencimiento && <span>Vence el {user.fechaVencimiento}</span>}
       </div>
     </aside>
 
-    <div className="training-client-workspace">
+    <main className="client-workspace">
+      <header className="client-shell-header">
+        <details className="client-account" ref={accountMenu}
+          onBlur={event => {
+            if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false
+          }}
+          onKeyDown={event => {
+            if (event.key !== 'Escape' || !event.currentTarget.open) return
+            event.currentTarget.open = false
+            event.currentTarget.querySelector('summary')?.focus()
+          }}>
+          <summary><span className="client-avatar" aria-hidden="true">{avatar}</span>
+            <span className="client-account-name">{user?.nombre || accountName}</span>
+            <Icon name="chevron" width="16" height="16" /></summary>
+          <div className="client-account-links">
+            {link('perfil', 'Mi perfil', 'client-account-link')}
+            <button type="button" onClick={onLogout} disabled={logoutBusy}>
+              <Icon name="logout" /> {logoutBusy ? 'Cerrando sesión…' : 'Cerrar sesión'}
+            </button>
+          </div>
+        </details>
+      </header>
+      {error && <p className="client-error" role="alert">{error}</p>}
       {children}
-    </div>
+    </main>
   </div>
 }

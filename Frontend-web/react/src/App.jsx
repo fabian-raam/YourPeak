@@ -9,7 +9,7 @@ import FoodsCatalog from './pages/FoodsCatalog'
 import PlanesPractica from './pages/PlanesPractica'
 import AdminLayout from './components/AdminLayout'
 import AccountStatus from './pages/AccountStatus'
-import ClientArea from './pages/ClientArea'
+import ClientAccountSection from './pages/ClientAccountSection'
 import HomePage from './pages/HomePage'
 import { clientSectionFromPath, clientSections } from './utils/clientSections'
 import ClientLayout from './components/ClientLayout'
@@ -173,16 +173,16 @@ export default function App() {
                 logoutError={error} onPendingCount={setPendingCount} />}
   </AdminLayout>
 
-  if (isActive && ['ejercicios', 'disponibilidad', 'mi-rutina'].includes(clientSection)) {
-    return <ClientLayout section={clientSection} onNavigate={navigateClient}>
-      {clientSection === 'disponibilidad'
+  if (isActive) return <ClientLayout user={user} section={clientSection} onNavigate={navigateClient}
+    onLogout={logout} logoutBusy={busy} error={error}>
+    {['inicio', 'perfil', 'membresia'].includes(clientSection)
+      ? <ClientAccountSection user={user} section={clientSection} onNavigate={navigateClient} />
+      : clientSection === 'disponibilidad'
         ? <ClientAvailability onExpired={sessionExpired} />
-        : clientSection === 'mi-rutina' ? <ClientRoutine onExpired={sessionExpired} onNavigate={navigateClient} /> : <ClientExercises />}
-    </ClientLayout>
-  }
-
-  if (isActive) return <ClientArea user={user} section={clientSection} onNavigate={navigateClient}
-    onLogout={logout} logoutBusy={busy} error={error} />
+        : clientSection === 'mi-rutina'
+          ? <ClientRoutine onExpired={sessionExpired} onNavigate={navigateClient} />
+          : <ClientExercises />}
+  </ClientLayout>
 
   if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />
   return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
