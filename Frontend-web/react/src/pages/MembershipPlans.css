@@ -6,13 +6,23 @@
 .plans-table td:first-child { width: 36%; }
 .plan-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .plan-actions .secondary-button { font-size: 13px; padding: 9px 12px; }
+.status-badge.plan-status {
+  gap: 7px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 .plan-status.is-active { color: #9ae0c1; border-color: #5ab99144; background: #5ab99112; }
 .plan-status.is-inactive { color: #b9c5d5; border-color: #91a4bd44; background: #91a4bd10; }
+.light-workspace .users-table .plan-status.is-active { color: #167044; background: #eaf6ef; border-color: #b7dfc5; }
+.light-workspace .users-table .plan-status.is-inactive { color: #526176; background: #eef1f5; border-color: #d5dbe3; }
 .membership-note { display: flex; gap: 10px; align-items: flex-start; color: #9ba8b5; font-size: 12px; line-height: 1.7; margin-top: 22px; }
 .membership-note svg { flex-shrink: 0; }
 .plan-info { padding: 14px; margin: 0; background: var(--brand-soft); border: 1px solid var(--brand-border-soft); border-radius: 9px; color: #bac8dc; font-size: 12px; line-height: 1.8; }
 .plan-summary { display: flex; align-items: center; gap: 14px; padding-block: 18px; border-block: 1px solid #35414a; }
-.plan-summary h3 { margin: 0 0 10px; font-size: 20px; line-height: 1.5; overflow-wrap: anywhere; }
+.plan-summary h3 { margin: 0 0 10px; color: inherit; font-size: 20px; line-height: 1.5; overflow-wrap: anywhere; }
 .plan-summary > .stat-icon { flex-shrink: 0; }
 .plan-dialog .detail-grid { grid-template-columns: 1fr 1fr; }
 .plan-dialog .detail-grid > div:first-child { grid-column: auto; }
@@ -84,6 +94,23 @@
 .light-workspace .membership-main .plan-actions button:hover:not(:disabled) {
   background: #305e9f;
   border-color: #8bb0e9;
+}
+.light-workspace .users-table .plan-actions .secondary-button.catalog-deactivate {
+  color: #a62735;
+  background-color: #fff;
+  border-color: #e7adb4;
+}
+.light-workspace .users-table .plan-actions .secondary-button.catalog-deactivate:hover:not(:disabled) {
+  background-color: #fff1f2;
+  border-color: #c95d69;
+}
+.approval-dialog .primary.catalog-deactivate {
+  background-color: #b42335;
+  border-color: #d05262;
+}
+.approval-dialog .primary.catalog-deactivate:hover:not(:disabled) {
+  background-color: #941d2c;
+  border-color: #d05262;
 }
 .light-workspace .membership-main .users-pagination {
   color: #64748b;

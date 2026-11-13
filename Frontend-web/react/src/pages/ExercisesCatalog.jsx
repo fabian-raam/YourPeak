@@ -118,7 +118,8 @@ export default function ExercisesCatalog({ onExpired, logoutError }) {
                 <td><div className="plan-actions">
                   <button className="review-button" onClick={event => openDialog('detail', item.idEjercicio, event)}>Ver</button>
                   <button className="review-button" onClick={event => openDialog('edit', item.idEjercicio, event)}>Editar</button>
-                  <button className="secondary-button" onClick={event => openDialog('status', item.idEjercicio, event)}>{item.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'}</button>
+                  <button className={item.estado === 'ACTIVO' ? 'secondary-button catalog-deactivate' : 'secondary-button'}
+                    onClick={event => openDialog('status', item.idEjercicio, event)}>{item.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'}</button>
                 </div></td>
               </tr>)}</tbody></table></div>}
       <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `${filtered.length} ${filtered.length === 1 ? 'ejercicio' : 'ejercicios'}`}</span>
