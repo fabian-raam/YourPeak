@@ -173,7 +173,7 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
       {error && <p className="alert" role="alert">{error}</p>}
       <div className="dialog-actions">
         <button type="button" className="secondary-button" disabled={busy} onClick={close}>{stale ? 'Volver al catálogo' : formMode || changingStatus ? 'Cancelar' : 'Cerrar'}</button>
-        {!stale && (formMode || changingStatus) && <button className="primary compact" type="submit" disabled={busy}>
+        {!stale && (formMode || changingStatus) && <button className={changingStatus && active ? 'primary compact catalog-deactivate' : 'primary compact'} type="submit" disabled={busy}>
           {busy ? 'Guardando…' : creating ? 'Crear ejercicio' : editing ? 'Guardar cambios' : active ? 'Desactivar' : 'Reactivar'}</button>}
         {!stale && mode === 'detail' && exercise && <button className="primary compact" type="button" onClick={onEdit}>Editar ejercicio</button>}
       </div>

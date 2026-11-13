@@ -111,7 +111,7 @@ export default function PlanDialog({ planId, initialMode, onClose, onSaved, onEx
       {error && <p className="alert" role="alert">{error}</p>}
       <div className="dialog-actions">
         <button type="button" className="secondary-button" disabled={busy} onClick={close}>{stale ? 'Volver a la lista' : formMode || changingStatus ? 'Cancelar' : 'Cerrar'}</button>
-        {!stale && (formMode || changingStatus) && <button className="primary compact" type="submit" disabled={busy}>
+        {!stale && (formMode || changingStatus) && <button className={changingStatus && isActive ? 'primary compact catalog-deactivate' : 'primary compact'} type="submit" disabled={busy}>
           {busy ? 'Guardando…' : creating ? 'Crear plan' : editing ? 'Guardar cambios' : statusAction}</button>}
         {!stale && mode === 'detail' && plan && <button className="primary compact" type="button" onClick={() => setMode('edit')}>Editar nombre</button>}
       </div>

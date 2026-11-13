@@ -110,7 +110,7 @@ export default function MembershipPlans({ onExpired, logoutError }) {
                 <td><div className="plan-actions">
                   <button className="review-button" aria-label={`Ver ${plan.nombre}`} onClick={event => openDialog('detail', plan.idPlanMembresia, event)}>Ver</button>
                   <button className="review-button" aria-label={`Editar ${plan.nombre}`} onClick={event => openDialog('edit', plan.idPlanMembresia, event)}>Editar</button>
-                  <button className="secondary-button" aria-label={`${plan.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'} ${plan.nombre}`}
+                  <button className={plan.estado === 'ACTIVO' ? 'secondary-button catalog-deactivate' : 'secondary-button'} aria-label={`${plan.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'} ${plan.nombre}`}
                     onClick={event => openDialog('status', plan.idPlanMembresia, event)}>{plan.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'}</button>
                 </div></td>
               </tr>)}</tbody></table></div>}
