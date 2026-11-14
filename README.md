@@ -121,6 +121,8 @@ El panel administrativo tiene un menú lateral azul marino y un área de trabajo
 
 Los títulos utilizan **Barlow Condensed Bold** y los textos y controles usan **IBM Plex Sans**. Las fuentes y sus licencias OFL están en `Frontend-web/react/public/fonts`.
 
+![Panel administrativo de YourPeak en la vista Solicitudes, con cuentas de prueba](docs/images/panel-administrativo.png)
+
 ### Catálogos de ejercicios y alimentos
 
 - **Ejercicios:** el administrador puede listar, consultar, crear, editar, desactivar y reactivar ejercicios. La desactivación conserva el registro con estado inactivo.
