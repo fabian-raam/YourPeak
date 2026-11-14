@@ -156,6 +156,34 @@ def disponibilidad_cliente(request):
 
 
 @require_http_methods(["GET", "PUT"])
+def perfil_cliente(request):
+    """Consulta o guarda el perfil inicial del cliente activo de la sesión."""
+    datos = None
+    if request.method == "PUT":
+        datos = objeto_json(request)
+        if datos is None:
+            return error("Envía un objeto JSON válido con los datos de tu perfil.")
+
+    id_usuario, respuesta_error = _validar_cliente_activo(request)
+    if respuesta_error:
+        return respuesta_error
+
+    try:
+        resultado = _spring_request(
+            "/api/cliente/perfil",
+            payload=datos,
+            headers=_headers_cliente(id_usuario),
+            method=request.method,
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo consultar o guardar el perfil.", 503)
+
+    return _respuesta_spring_json(resultado)
+
+
+@require_http_methods(["GET", "PUT"])
 def rutina_cliente(request):
     """Consulta o reemplaza la rutina semanal del cliente autenticado."""
     datos = None

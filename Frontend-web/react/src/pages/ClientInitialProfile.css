@@ -1,0 +1,25 @@
+.client-initial-profile { width: min(960px, 100%); margin: 0 auto; color: #17233b; }
+.initial-profile-card { max-width: 820px; }
+.initial-profile-intro { display: flex; align-items: center; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid #e4eaf4; }
+.initial-profile-intro h2 { margin: 0; color: #101d36; font: 700 25px/1.1 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; }
+.initial-profile-intro p { margin: 5px 0 0; color: #687995; font-size: 13px; overflow-wrap: anywhere; }
+.initial-profile-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 22px; }
+.initial-profile-fields label { display: grid; gap: 7px; min-width: 0; color: #33435d; font-size: 13px; font-weight: 600; }
+.initial-profile-fields select, .initial-profile-fields input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #d3dced; border-radius: 8px; color: #17233b; background: #fff; font: 14px 'IBM Plex Sans', Arial, sans-serif; }
+.initial-profile-fields select:focus, .initial-profile-fields input:focus { outline: 2px solid #2166e833; border-color: #5590eb; }
+.initial-profile-fields select:disabled, .initial-profile-fields input:disabled { color: #8794a8; background: #f2f5f9; }
+.initial-profile-help { margin: 16px 0 0; color: #75839a; font-size: 12px; line-height: 1.5; }
+.initial-profile-actions { display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 17px; border-top: 1px solid #e4eaf4; }
+.initial-profile-actions button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 15px; border: 1px solid #2166e8; border-radius: 8px; color: #fff; background: #2166e8; font: 600 13px 'IBM Plex Sans', Arial, sans-serif; }
+.initial-profile-actions button:hover:not(:disabled) { border-color: #1854c7; background: #1854c7; }
+.initial-profile-actions button:disabled { cursor: wait; opacity: .65; }
+.initial-profile-actions svg { width: 16px; height: 16px; }
+.initial-profile-alert, .initial-profile-notice { margin-top: 18px; padding: 11px 13px; border: 1px solid; border-radius: 8px; font-size: 13px; line-height: 1.5; }
+.initial-profile-alert { border-color: #efb3b3; color: #a33c3c; background: #fff7f7; }
+.initial-profile-notice { border-color: #a5d7be; color: #16764e; background: #f1fbf6; }
+.initial-profile-loading { margin: 22px 0 0; color: #687995; font-size: 14px; }
+@media (max-width: 600px) {
+  .initial-profile-card { padding: 20px; }
+  .initial-profile-fields { grid-template-columns: 1fr; gap: 14px; }
+  .initial-profile-actions button { width: 100%; }
+}

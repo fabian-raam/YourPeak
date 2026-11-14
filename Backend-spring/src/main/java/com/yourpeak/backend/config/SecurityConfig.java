@@ -70,6 +70,10 @@ public class SecurityConfig {
                 .matcher(HttpMethod.GET, "/api/cliente/disponibilidad");
         var actualizarDisponibilidadCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.PUT, "/api/cliente/disponibilidad");
+        var consultarPerfilCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/cliente/perfil");
+        var actualizarPerfilCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.PUT, "/api/cliente/perfil");
         var consultarRutinaCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/cliente/rutina");
         var actualizarRutinaCliente = PathPatternRequestMatcher.withDefaults()
@@ -120,6 +124,8 @@ public class SecurityConfig {
                                 renovarMembresiaCliente,
                                 consultarDisponibilidadCliente,
                                 actualizarDisponibilidadCliente,
+                                consultarPerfilCliente,
+                                actualizarPerfilCliente,
                                 consultarRutinaCliente,
                                 actualizarRutinaCliente,
                                 listarEjerciciosRutinaCliente

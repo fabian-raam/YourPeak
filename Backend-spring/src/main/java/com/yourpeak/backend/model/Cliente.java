@@ -63,6 +63,22 @@ public class Cliente {
         return idNivelExperiencia;
     }
 
+    public Integer getIdTipoObjetivo() {
+        return idTipoObjetivo;
+    }
+
+    public Integer getIdNivelActividad() {
+        return idNivelActividad;
+    }
+
+    /** Guarda las opciones elegidas por el cliente en su perfil inicial. */
+    public void actualizarPerfil(Integer idTipoObjetivo, Integer idNivelExperiencia,
+                                 Integer idNivelActividad) {
+        this.idTipoObjetivo = idTipoObjetivo;
+        this.idNivelExperiencia = idNivelExperiencia;
+        this.idNivelActividad = idNivelActividad;
+    }
+
     /**
      * Activa al cliente después de que un administrador aprueba su registro.
      *

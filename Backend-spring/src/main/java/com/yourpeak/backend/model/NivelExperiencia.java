@@ -18,8 +18,12 @@ public class NivelExperiencia {
     @Column(name = "nombre", nullable = false, length = 30, unique = true)
     private String nombre;
 
+    @Column(name = "descripcion", length = 150)
+    private String descripcion;
+
     protected NivelExperiencia() { }
 
     public Integer getIdNivelExperiencia() { return idNivelExperiencia; }
     public String getNombre() { return nombre; }
+    public String getDescripcion() { return descripcion; }
 }

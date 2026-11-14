@@ -16,6 +16,7 @@ import ClientLayout from './components/ClientLayout'
 import ClientExercises from './pages/ClientExercises'
 import ClientAvailability from './pages/ClientAvailability'
 import ClientRoutine from './pages/ClientRoutine'
+import ClientInitialProfile from './pages/ClientInitialProfile'
 import './App.css'
 
 const empty = { nombre: '', apellido: '', fechaNacimiento: '', correo: '', contrasena: '', confirmar_contrasena: '' }
@@ -175,7 +176,9 @@ export default function App() {
 
   if (isActive) return <ClientLayout user={user} section={clientSection} onNavigate={navigateClient}
     onLogout={logout} logoutBusy={busy} error={error}>
-    {['inicio', 'perfil', 'membresia'].includes(clientSection)
+    {clientSection === 'perfil'
+      ? <ClientInitialProfile user={user} onExpired={sessionExpired} />
+      : ['inicio', 'membresia'].includes(clientSection)
       ? <ClientAccountSection user={user} section={clientSection} onNavigate={navigateClient} />
       : clientSection === 'disponibilidad'
         ? <ClientAvailability onExpired={sessionExpired} />

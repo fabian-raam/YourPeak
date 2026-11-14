@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/web/logout/', api.logout),
     # Disponibilidad personal: requiere una sesión de cliente activa.
     path('api/web/cliente/disponibilidad/', api.disponibilidad_cliente),
+    path('api/web/cliente/perfil/', api.perfil_cliente, name='perfil-cliente'),
     # Rutina personal: solo permite asignar ejercicios a los días disponibles del cliente.
     path('api/web/cliente/rutina/', api.rutina_cliente, name='rutina-cliente'),
     path(
