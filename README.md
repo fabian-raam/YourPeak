@@ -117,11 +117,11 @@ Los formularios existentes mantienen su conexión con el backend.
 
 ### Diseño del panel administrativo
 
-Usuarios y Membresías comparten una interfaz azul marino con navegación lateral, resúmenes compactos y tablas de texto más legible. Los títulos utilizan **Barlow Condensed Bold** y los textos **IBM Plex Sans**; los diálogos mantienen la misma tipografía. Las fuentes se sirven desde `Frontend-web/react/public/fonts`, junto con sus licencias OFL, sin consultar servicios externos durante el uso del panel.
+El panel administrativo tiene un menú lateral azul marino y un área de trabajo clara. **Usuarios**, **Membresías**, **Ejercicios** y **Alimentos** comparten tarjetas blancas, tablas con encabezados azules y botones de acción. En **Usuarios** se pueden revisar solicitudes y consultar clientes activos e inactivos.
 
-![Panel administrativo de YourPeak con datos de ejemplo](docs/images/panel-administrativo.png)
+Los títulos utilizan **Barlow Condensed Bold** y los textos y controles usan **IBM Plex Sans**. Las fuentes y sus licencias OFL están en `Frontend-web/react/public/fonts`.
 
-El rediseño conserva los flujos de aprobación y gestión de planes. Se verificaron compilación, análisis estático, las cuatro pruebas del helper HTTP y los flujos en navegador con datos simulados. También se comprobó la carga local de las fuentes y la distribución de Usuarios entre 320 y 1920 píxeles.
+![Panel administrativo de YourPeak en la vista Solicitudes, con cuentas de prueba](docs/images/panel-administrativo.png)
 
 ### Catálogos de ejercicios y alimentos
 
@@ -136,11 +136,12 @@ Los clientes activos con membresía vigente pueden abrir **Inicio** (`/`), **Mi 
 
 En administración, **Desactivar** se distingue con texto y borde rojos en las tablas de ejercicios y planes de membresía, y con fondo rojo en la confirmación. Se mejoró el contraste del nombre del ejercicio y del plan en sus diálogos.
 
+El cliente puede consultar y guardar sus horarios en **Disponibilidad** y su planificación semanal en **Mi rutina**. La pantalla **Ejercicios** y el selector de **Mi rutina** consultan el mismo catálogo de ejercicios activos mediante `GET /api/web/cliente/rutina/ejercicios/`. El catálogo permite buscar, filtrar por grupo muscular y nivel, y consultar el detalle de cada ejercicio.
+
+El área cliente utiliza **Barlow Condensed** para los títulos e **IBM Plex Sans** para los textos y controles. Se aumentó el tamaño de los textos de tablas, filtros y formularios y se alinearon los encabezados con el menú de cuenta en escritorio.
+
 | Apartado pendiente | Soporte de backend requerido |
 | --- | --- |
-| Disponibilidad semanal | Exponer en Django la consulta y el guardado para el cliente autenticado mediante el servicio interno de Spring Boot. |
-| Catálogo y detalle de ejercicios | Habilitar la consulta de ejercicios disponibles para el rol cliente. |
-| Mi rutina | Exponer la planificación y los ejercicios asignados al cliente. |
 | Nutrición | Habilitar la consulta del catálogo de alimentos y la consulta y el guardado del diario del cliente. |
 | Mi progreso | Habilitar la consulta y el guardado de las mediciones del cliente. |
 | Detalle de membresía | Exponer el plan, las fechas y el historial de la membresía del cliente. |

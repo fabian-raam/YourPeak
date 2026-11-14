@@ -127,9 +127,9 @@ export default function ClientAvailability({ onExpired }) {
     }
   }
 
-  return <main className="client-availability">
-    <header className="availability-page-heading">
-      <h1>Disponibilidad</h1>
+  return <section className="client-availability" aria-labelledby="client-availability-title">
+    <header className="client-header">
+      <h1 id="client-availability-title">Disponibilidad</h1>
       <p>Indica en qué horarios puedes entrenar.</p>
     </header>
 
@@ -192,5 +192,5 @@ export default function ClientAvailability({ onExpired }) {
           </button></div>
       </footer>
     </form>
-  </main>
+  </section>
 }

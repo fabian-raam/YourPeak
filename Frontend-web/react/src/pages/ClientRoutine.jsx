@@ -209,9 +209,9 @@ export default function ClientRoutine({ onExpired, onNavigate }) {
     return { day, date, index }
   })
 
-  return <main className="client-routine">
-    <header className="client-page-heading routine-page-heading">
-      <div><h1>Mi rutina</h1><p>Tu planificación semanal de entrenamiento</p></div>
+  return <section className="client-routine" aria-labelledby="client-routine-title">
+    <header className="client-header">
+      <div><h1 id="client-routine-title">Mi rutina</h1><p>Tu planificación semanal de entrenamiento</p></div>
     </header>
 
     {error && <p className="routine-error" role="alert">{error}</p>}
@@ -232,13 +232,13 @@ export default function ClientRoutine({ onExpired, onNavigate }) {
           const selected = date.toDateString() === selectedDate.toDateString()
           const isCurrentDay = date.getTime() === today.getTime()
           const hasRoutine = day.disponible && day.ejercicios.length > 0
-          const label = !day.disponible ? 'Descanso' : hasRoutine ? `${day.ejercicios.length} ejercicios` : 'Sin ejercicios'
+          const label = hasRoutine ? `${day.ejercicios.length} ejercicios` : 'Sin ejercicios'
           return <button key={day.diaSemana} type="button"
             className={`routine-day-card${selected ? ' selected' : ''}${!day.disponible ? ' rest' : ''}`}
             aria-pressed={selected} disabled={loading} onClick={() => setSelectedDate(date)}>
             <span className="routine-day-top"><strong>{shortWeekdays[index]} {date.getDate()}</strong>{isCurrentDay && <small>HOY</small>}</span>
             <span className="routine-day-title">{day.disponible ? (hasRoutine ? day.ejercicios[0].nombre : 'Disponible') : 'Descanso'}</span>
-            <span className="routine-day-status">{label}</span>
+            {day.disponible && <span className="routine-day-status">{label}</span>}
           </button>
         })}
         {loading && <div className="routine-loading" role="status">Cargando tu rutina…</div>}
@@ -333,5 +333,5 @@ export default function ClientRoutine({ onExpired, onNavigate }) {
           <Icon name={saving ? 'clock' : 'check'} />{saving ? 'Guardando…' : 'Guardar rutina'}
         </button></div>
     </footer>
-  </main>
+  </section>
 }
