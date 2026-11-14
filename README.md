@@ -117,11 +117,9 @@ Los formularios existentes mantienen su conexión con el backend.
 
 ### Diseño del panel administrativo
 
-Usuarios y Membresías comparten una interfaz azul marino con navegación lateral, resúmenes compactos y tablas de texto más legible. Los títulos utilizan **Barlow Condensed Bold** y los textos **IBM Plex Sans**; los diálogos mantienen la misma tipografía. Las fuentes se sirven desde `Frontend-web/react/public/fonts`, junto con sus licencias OFL, sin consultar servicios externos durante el uso del panel.
+El panel administrativo tiene un menú lateral azul marino y un área de trabajo clara. **Usuarios**, **Membresías**, **Ejercicios** y **Alimentos** comparten tarjetas blancas, tablas con encabezados azules y botones de acción. En **Usuarios** se pueden revisar solicitudes y consultar clientes activos e inactivos.
 
-![Panel administrativo de YourPeak con datos de ejemplo](docs/images/panel-administrativo.png)
-
-El rediseño conserva los flujos de aprobación y gestión de planes. Se verificaron compilación, análisis estático, las cuatro pruebas del helper HTTP y los flujos en navegador con datos simulados. También se comprobó la carga local de las fuentes y la distribución de Usuarios entre 320 y 1920 píxeles.
+Los títulos utilizan **Barlow Condensed Bold** y los textos y controles usan **IBM Plex Sans**. Las fuentes y sus licencias OFL están en `Frontend-web/react/public/fonts`.
 
 ### Catálogos de ejercicios y alimentos
 
