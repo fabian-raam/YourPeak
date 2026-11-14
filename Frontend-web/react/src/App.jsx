@@ -181,7 +181,7 @@ export default function App() {
         ? <ClientAvailability onExpired={sessionExpired} />
         : clientSection === 'mi-rutina'
           ? <ClientRoutine onExpired={sessionExpired} onNavigate={navigateClient} />
-          : <ClientExercises />}
+          : <ClientExercises onExpired={sessionExpired} />}
   </ClientLayout>
 
   if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />

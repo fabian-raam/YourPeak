@@ -136,11 +136,12 @@ Los clientes activos con membresía vigente pueden abrir **Inicio** (`/`), **Mi 
 
 En administración, **Desactivar** se distingue con texto y borde rojos en las tablas de ejercicios y planes de membresía, y con fondo rojo en la confirmación. Se mejoró el contraste del nombre del ejercicio y del plan en sus diálogos.
 
+El cliente puede consultar y guardar sus horarios en **Disponibilidad** y su planificación semanal en **Mi rutina**. La pantalla **Ejercicios** y el selector de **Mi rutina** consultan el mismo catálogo de ejercicios activos mediante `GET /api/web/cliente/rutina/ejercicios/`. El catálogo permite buscar, filtrar por grupo muscular y nivel, y consultar el detalle de cada ejercicio.
+
+El área cliente utiliza **Barlow Condensed** para los títulos e **IBM Plex Sans** para los textos y controles. Se aumentó el tamaño de los textos de tablas, filtros y formularios y se alinearon los encabezados con el menú de cuenta en escritorio.
+
 | Apartado pendiente | Soporte de backend requerido |
 | --- | --- |
-| Disponibilidad semanal | Exponer en Django la consulta y el guardado para el cliente autenticado mediante el servicio interno de Spring Boot. |
-| Catálogo y detalle de ejercicios | Habilitar la consulta de ejercicios disponibles para el rol cliente. |
-| Mi rutina | Exponer la planificación y los ejercicios asignados al cliente. |
 | Nutrición | Habilitar la consulta del catálogo de alimentos y la consulta y el guardado del diario del cliente. |
 | Mi progreso | Habilitar la consulta y el guardado de las mediciones del cliente. |
 | Detalle de membresía | Exponer el plan, las fechas y el historial de la membresía del cliente. |
