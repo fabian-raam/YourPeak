@@ -54,7 +54,7 @@ public class RegistroFisico {
     }
 
     public Long getIdRegistroFisico() { return idRegistroFisico; }
+    public LocalDateTime getFechaRegistro() { return fechaRegistro; }
     public BigDecimal getPesoKg() { return pesoKg; }
     public BigDecimal getTallaCm() { return tallaCm; }
-    public LocalDateTime getFechaRegistro() { return fechaRegistro; }
 }

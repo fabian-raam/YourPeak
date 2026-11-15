@@ -30,6 +30,9 @@ public class Cliente {
     @Column(name = "id_nivel_actividad")
     private Integer idNivelActividad;
 
+    @Column(name = "sexo", length = 10)
+    private String sexo;
+
     @Column(name = "fecha_alta", nullable = false, updatable = false)
     private LocalDateTime fechaAlta;
 
@@ -71,12 +74,15 @@ public class Cliente {
         return idNivelActividad;
     }
 
+    public String getSexo() { return sexo; }
+
     /** Guarda las opciones elegidas por el cliente en su perfil inicial. */
     public void actualizarPerfil(Integer idTipoObjetivo, Integer idNivelExperiencia,
-                                 Integer idNivelActividad) {
+                                 Integer idNivelActividad, String sexo) {
         this.idTipoObjetivo = idTipoObjetivo;
         this.idNivelExperiencia = idNivelExperiencia;
         this.idNivelActividad = idNivelActividad;
+        if (sexo != null) this.sexo = sexo;
     }
 
     /**

@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'cuentas',
     'ejercicios',
     'alimentos',
+    'nutricion',
+    'progreso',
 ]
 
 MIDDLEWARE = [

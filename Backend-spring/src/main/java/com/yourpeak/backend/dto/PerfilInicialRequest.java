@@ -3,6 +3,7 @@ package com.yourpeak.backend.dto;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 
 import java.math.BigDecimal;
 
@@ -16,6 +17,9 @@ public record PerfilInicialRequest(
 
         @NotNull(message = "Selecciona tu nivel de actividad.")
         Integer idNivelActividad,
+
+        @Pattern(regexp = "HOMBRE|MUJER", message = "El sexo debe ser HOMBRE o MUJER.")
+        String sexo,
 
         @NotNull(message = "Ingresa tu peso.")
         @DecimalMin(value = "0.01", message = "El peso debe ser mayor que cero.")

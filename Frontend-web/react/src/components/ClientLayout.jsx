@@ -37,12 +37,8 @@ export default function ClientLayout({ user, section, onNavigate, onLogout, logo
             {link('disponibilidad', <><Icon name="clock" /> Disponibilidad</>)}
           </div>
         </div>
-        <button className="client-nav-link client-nav-disabled" type="button" disabled>
-          <Icon name="food" /> Nutrición
-        </button>
-        <button className="client-nav-link client-nav-disabled" type="button" disabled>
-          <Icon name="activity" /> Mi progreso
-        </button>
+        {link('nutricion', <><Icon name="food" /> Nutrición</>)}
+        {link('progreso', <><Icon name="activity" /> Mi progreso</>)}
         {link('membresia', <><Icon name="card" /> Mi membresía</>)}
       </nav>
       <div className="client-sidebar-status">

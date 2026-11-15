@@ -16,6 +16,8 @@ import ClientLayout from './components/ClientLayout'
 import ClientExercises from './pages/ClientExercises'
 import ClientAvailability from './pages/ClientAvailability'
 import ClientRoutine from './pages/ClientRoutine'
+import ClientNutrition from './pages/ClientNutrition'
+import ClientProgress from './pages/ClientProgress'
 import ClientInitialProfile from './pages/ClientInitialProfile'
 import './App.css'
 
@@ -184,7 +186,11 @@ export default function App() {
         ? <ClientAvailability onExpired={sessionExpired} />
         : clientSection === 'mi-rutina'
           ? <ClientRoutine onExpired={sessionExpired} onNavigate={navigateClient} />
-          : <ClientExercises onExpired={sessionExpired} />}
+          : clientSection === 'nutricion'
+            ? <ClientNutrition onExpired={sessionExpired} />
+            : clientSection === 'progreso'
+              ? <ClientProgress onExpired={sessionExpired} onNavigate={navigateClient} />
+              : <ClientExercises onExpired={sessionExpired} />}
   </ClientLayout>
 
   if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />

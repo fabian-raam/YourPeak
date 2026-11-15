@@ -65,6 +65,7 @@ public class PerfilClienteService {
                 cliente.getIdTipoObjetivo(), objetivo == null ? null : objetivo.getNombre(),
                 cliente.getIdNivelExperiencia(), experiencia == null ? null : experiencia.getNombre(),
                 cliente.getIdNivelActividad(), actividad == null ? null : actividad.getNombre(),
+                cliente.getSexo(),
                 registro.map(RegistroFisico::getPesoKg).orElse(null),
                 registro.map(RegistroFisico::getTallaCm).orElse(null),
                 registro.map(RegistroFisico::getFechaRegistro).orElse(null),
@@ -85,7 +86,8 @@ public class PerfilClienteService {
         cliente.actualizarPerfil(
                 objetivo.getIdTipoObjetivo(),
                 experiencia.getIdNivelExperiencia(),
-                actividad.getIdNivelActividad()
+                actividad.getIdNivelActividad(),
+                request.sexo()
         );
 
         var ultimaMedicion = registroFisicoRepository

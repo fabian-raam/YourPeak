@@ -80,6 +80,20 @@ public class SecurityConfig {
                 .matcher(HttpMethod.PUT, "/api/cliente/rutina");
         var listarEjerciciosRutinaCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/cliente/rutina/ejercicios");
+        var consultarNutricionCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/cliente/nutricion");
+        var listarAlimentosCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/cliente/nutricion/alimentos");
+        var registrarIngestaCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, "/api/cliente/nutricion/ingestas");
+        var actualizarIngestaCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.PUT, "/api/cliente/nutricion/ingestas/{idIngesta}");
+        var eliminarIngestaCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.DELETE, "/api/cliente/nutricion/ingestas/{idIngesta}");
+        var consultarProgresoCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/cliente/progreso");
+        var registrarProgresoCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, "/api/cliente/progreso/peso");
 
         http
                 // Esta API no usa cookies ni sesión para autenticar solicitudes.
@@ -128,7 +142,14 @@ public class SecurityConfig {
                                 actualizarPerfilCliente,
                                 consultarRutinaCliente,
                                 actualizarRutinaCliente,
-                                listarEjerciciosRutinaCliente
+                                listarEjerciciosRutinaCliente,
+                                consultarNutricionCliente,
+                                listarAlimentosCliente,
+                                registrarIngestaCliente,
+                                actualizarIngestaCliente,
+                                eliminarIngestaCliente,
+                                consultarProgresoCliente,
+                                registrarProgresoCliente
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admin/clientes/*/aprobar").permitAll()
                         .anyRequest().denyAll()

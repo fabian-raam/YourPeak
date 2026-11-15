@@ -11,6 +11,7 @@ public record PerfilInicialResponse(
         String nivelExperiencia,
         Integer idNivelActividad,
         String nivelActividad,
+        String sexo,
         BigDecimal pesoKg,
         BigDecimal tallaCm,
         LocalDateTime fechaRegistroFisico,

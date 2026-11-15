@@ -5,6 +5,7 @@ import com.yourpeak.backend.dto.AlimentoResponse;
 import com.yourpeak.backend.model.Alimento;
 import com.yourpeak.backend.repository.AdministradorRepository;
 import com.yourpeak.backend.repository.AlimentoRepository;
+import com.yourpeak.backend.repository.RegistroIngestaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,11 +17,14 @@ import java.util.List;
 public class AlimentoService {
     private final AdministradorRepository administradorRepository;
     private final AlimentoRepository alimentoRepository;
+    private final RegistroIngestaRepository ingestaRepository;
 
     public AlimentoService(AdministradorRepository administradorRepository,
-                           AlimentoRepository alimentoRepository) {
+                           AlimentoRepository alimentoRepository,
+                           RegistroIngestaRepository ingestaRepository) {
         this.administradorRepository = administradorRepository;
         this.alimentoRepository = alimentoRepository;
+        this.ingestaRepository = ingestaRepository;
     }
 
     @Transactional(readOnly = true)
@@ -53,6 +57,11 @@ public class AlimentoService {
         Alimento alimento = buscar(idAlimento);
         String nombre = normalizarNombre(request.nombre());
         verificarNombreDisponible(nombre, idAlimento);
+        if (ingestaRepository.existsByAlimento_IdAlimento(idAlimento)
+                && cambioDatosNutricionales(alimento, request)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No se pueden modificar los valores nutricionales de un alimento que ya tiene consumos registrados.");
+        }
         alimento.actualizar(nombre, request.porcionBaseG(), request.kcal(), request.proteinaG(),
                 request.carbohidratoG(), request.grasaG());
         return respuesta(alimento);
@@ -80,6 +89,15 @@ public class AlimentoService {
     }
 
     private String normalizarNombre(String nombre) { return nombre.strip(); }
+
+    /** Conserva el significado nutricional de consumos históricos ya guardados. */
+    private boolean cambioDatosNutricionales(Alimento alimento, AlimentoRequest request) {
+        return alimento.getPorcionBaseG().compareTo(request.porcionBaseG()) != 0
+                || alimento.getKcal().compareTo(request.kcal()) != 0
+                || alimento.getProteinaG().compareTo(request.proteinaG()) != 0
+                || alimento.getCarbohidratoG().compareTo(request.carbohidratoG()) != 0
+                || alimento.getGrasaG().compareTo(request.grasaG()) != 0;
+    }
 
     private AlimentoResponse respuesta(Alimento alimento) {
         return new AlimentoResponse(alimento.getIdAlimento(), alimento.getNombre(), alimento.getPorcionBaseG(),

@@ -25,7 +25,9 @@ def _spring_request(path, payload=None, headers=None, method=None):
         method=method or ("POST" if body is not None else "GET"),
     )
     with urlopen(request, timeout=5) as response:
-        return json.loads(response.read().decode("utf-8"))
+        contenido = response.read().decode("utf-8")
+        # Algunas operaciones REST contestan 204 y, por contrato, no envían JSON.
+        return json.loads(contenido) if contenido else None
 
 
 def _mensaje_error_spring(error):

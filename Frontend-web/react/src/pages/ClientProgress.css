@@ -1,0 +1,59 @@
+.client-progress { display: grid; gap: 20px; width: 100%; color: #16233b; }
+.progress-error, .progress-notice { margin: 0; padding: 12px 15px; border: 1px solid #efb3b3; border-radius: 10px; color: #a33c3c; background: #fff7f7; font-size: 14px; line-height: 1.5; }
+.progress-notice { display: flex; align-items: center; gap: 9px; border-color: #b1dfc8; color: #16764e; background: #f3fbf6; }
+.progress-notice > svg { width: 18px; height: 18px; }
+.progress-notice span { flex: 1; }
+.progress-notice button { display: grid; place-items: center; width: 29px; height: 29px; margin-left: auto; border: 0; border-radius: 6px; color: inherit; background: transparent; cursor: pointer; }
+.progress-notice button:hover { background: #e0f4e9; }
+.progress-notice button svg { width: 16px; height: 16px; }
+.progress-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+.progress-stats article { min-height: 100px; display: flex; align-items: center; gap: 15px; padding: 17px 19px; border: 1px solid #cfdbeb; border-top: 3px solid #20579c; border-radius: 14px; background: #fff; box-shadow: 0 6px 18px #17345d0c; }
+.progress-stat-icon { width: 44px; height: 44px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 12px; color: #20579c; background: #eaf1fc; }
+.progress-stat-icon svg { width: 20px; height: 20px; }
+.progress-stats article > div { display: grid; gap: 3px; min-width: 0; }
+.progress-stats article > div > span { color: #61718c; font-size: 13px; }
+.progress-stats strong { color: #14213b; font-size: 25px; line-height: 1.15; }
+.progress-stats small { color: #63728a; font-size: 13px; font-weight: 500; }
+.progress-panel { overflow: hidden; border: 1px solid #bfd0e8; border-radius: 14px; background: #fff; box-shadow: 0 7px 20px #17345d10; }
+.progress-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 21px 23px 16px; }
+.progress-panel-heading h2 { margin: 0; color: #1a2942; font: 700 26px/1.1 'Barlow Condensed', 'Arial Narrow', sans-serif; }
+.progress-panel-heading p { margin: 5px 0 0; color: #77859a; font-size: 14px; }
+.progress-chart-wrap { display: grid; grid-template-columns: auto minmax(0, 1fr); padding: 8px 22px 18px; }
+.progress-chart-labels { display: flex; flex-direction: column; justify-content: space-between; padding: 28px 12px 42px 0; color: #6c7c95; font-size: 12px; }
+.progress-chart { width: 100%; min-width: 0; overflow: visible; }
+.progress-chart-grid { fill: none; stroke: #e5ecf5; stroke-width: 1; stroke-dasharray: 4 5; }
+.progress-chart-line { fill: none; stroke: #20579c; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.progress-chart-point { fill: #fff; stroke: #20579c; stroke-width: 3; }
+.progress-chart-dates { grid-column: 2; display: flex; justify-content: space-between; gap: 12px; color: #74839a; font-size: 12px; }
+.progress-empty { display: grid; justify-items: center; gap: 10px; margin: 0; padding: 30px 22px 36px; color: #718097; text-align: center; font-size: 14px; }
+.progress-empty strong { color: #263a59; font-size: 16px; }
+.progress-empty-icon { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 14px; color: #20579c; background: #eaf1fc; }
+.progress-profile-link { min-height: 38px; margin-top: 3px; padding: 0 13px; border: 1px solid #20579c; border-radius: 8px; color: #20579c; background: #fff; font: 600 13px 'IBM Plex Sans', Arial, sans-serif; cursor: pointer; }
+.progress-profile-link:hover { background: #f2f7ff; }
+.progress-register { padding-bottom: 21px; }
+.progress-register form { display: grid; gap: 8px; padding: 0 23px; }
+.progress-register label { color: #53627b; font-size: 13px; font-weight: 600; }
+.progress-form-hint { margin: 0; color: #718097; font-size: 13px; line-height: 1.5; }
+.progress-register-controls { display: flex; gap: 10px; max-width: 560px; }
+.progress-register-controls input { width: min(100%, 330px); height: 44px; padding: 0 12px; border: 1px solid #cad7e9; border-radius: 9px; color: #233754; background: #fff; font: 15px 'IBM Plex Sans', Arial, sans-serif; }
+.progress-register-controls input:focus { outline: 2px solid #2166e82a; border-color: #5590eb; }
+.progress-register-controls button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 1px solid #20579c; border-radius: 9px; color: #fff; background: #20579c; font: 600 14px 'IBM Plex Sans', Arial, sans-serif; cursor: pointer; }
+.progress-register-controls button:hover:not(:disabled) { background: #16477f; }
+.progress-register-controls button:disabled { opacity: .55; cursor: not-allowed; }
+.progress-register-controls button svg { width: 17px; height: 17px; }
+.progress-history ol { display: grid; margin: 0; padding: 0 23px; list-style: none; }
+.progress-history li { display: flex; align-items: center; justify-content: space-between; gap: 15px; min-height: 58px; border-top: 1px solid #e1e9f3; }
+.progress-history-date { color: #61718c; font-size: 14px; }
+.progress-history li strong { color: #1a2942; font-size: 16px; }
+.progress-history li small { color: #61718c; font-size: 12px; font-weight: 500; }
+.progress-history-empty { margin: 0; padding: 0 23px 20px; color: #77859a; font-size: 14px; }
+@media (max-width: 760px) {
+  .progress-stats { grid-template-columns: 1fr; gap: 10px; }
+  .progress-stats article { min-height: 82px; }
+  .progress-chart-wrap { padding-inline: 12px; }
+  .progress-panel-heading { padding-inline: 17px; }
+  .progress-register form { padding-inline: 17px; }
+  .progress-register-controls { flex-wrap: wrap; }
+  .progress-register-controls input, .progress-register-controls button { width: 100%; }
+  .progress-history ol { padding-inline: 17px; }
+}

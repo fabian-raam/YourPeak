@@ -3,7 +3,7 @@ import json
 from urllib.error import HTTPError, URLError
 
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.middleware.csrf import get_token
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
@@ -122,7 +122,8 @@ def _headers_cliente(id_usuario):
 
 def _respuesta_spring_json(data, status=200):
     """Devuelve JSON sin permitir que el navegador almacene la respuesta administrativa."""
-    response = JsonResponse(data, safe=isinstance(data, dict), status=status)
+    response = (HttpResponse(status=status) if data is None
+                else JsonResponse(data, safe=isinstance(data, dict), status=status))
     response["Cache-Control"] = "no-store"
     return response
 
