@@ -5,6 +5,10 @@ import com.ramirez.yourpeak.data.model.LoginResponse
 import com.ramirez.yourpeak.data.model.EjercicioResponse
 import com.ramirez.yourpeak.data.model.DisponibilidadRequest
 import com.ramirez.yourpeak.data.model.DisponibilidadResponse
+import com.ramirez.yourpeak.data.model.AlimentoNutricionResponse
+import com.ramirez.yourpeak.data.model.IngestaNutricionResponse
+import com.ramirez.yourpeak.data.model.RegistrarIngestaRequest
+import com.ramirez.yourpeak.data.model.ResumenNutricionalResponse
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.model.RutinaResponse
 import com.ramirez.yourpeak.data.model.RegistroRequest
@@ -14,6 +18,9 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.DELETE
+import retrofit2.http.Path
+import retrofit2.http.Query
 import retrofit2.http.PUT
 
 /** Endpoints públicos de autenticación expuestos por Spring Boot. */
@@ -61,4 +68,44 @@ interface ApiService {
         @Header("X-Client-User-Id") idUsuario: Long,
         @Body request: RutinaRequest
     ): Response<RutinaResponse>
+
+    /** Lista los alimentos del catálogo que puede registrar un cliente activo. */
+    @GET("api/cliente/nutricion/alimentos")
+    suspend fun listarAlimentosNutricion(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long
+    ): Response<List<AlimentoNutricionResponse>>
+
+    /** Consulta los consumos y totales nutricionales de una fecha. */
+    @GET("api/cliente/nutricion")
+    suspend fun consultarNutricionDia(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Query("fecha") fecha: String
+    ): Response<ResumenNutricionalResponse>
+
+    /** Registra un alimento consumido en la fecha actual. */
+    @POST("api/cliente/nutricion/ingestas")
+    suspend fun registrarIngesta(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Body request: RegistrarIngestaRequest
+    ): Response<IngestaNutricionResponse>
+
+    /** Actualiza alimento o cantidad de un consumo propio. */
+    @PUT("api/cliente/nutricion/ingestas/{idIngesta}")
+    suspend fun actualizarIngesta(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Path("idIngesta") idIngesta: Long,
+        @Body request: RegistrarIngestaRequest
+    ): Response<IngestaNutricionResponse>
+
+    /** Elimina un consumo propio. */
+    @DELETE("api/cliente/nutricion/ingestas/{idIngesta}")
+    suspend fun eliminarIngesta(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Path("idIngesta") idIngesta: Long
+    ): Response<Unit>
 }
