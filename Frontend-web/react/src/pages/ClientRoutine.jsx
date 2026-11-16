@@ -62,10 +62,13 @@ function toPayload(days) {
   }))
 }
 
-export default function ClientRoutine({ onExpired, onNavigate }) {
+export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
   const [today] = useState(() => atMidnight(new Date()))
-  const [weekStart, setWeekStart] = useState(() => mondayOf(today))
-  const [selectedDate, setSelectedDate] = useState(today)
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const date = new Date(`${initialDate}T00:00:00`)
+    return Number.isNaN(date.getTime()) ? today : date
+  })
+  const [weekStart, setWeekStart] = useState(() => mondayOf(selectedDate))
   const [days, setDays] = useState(() => Array.from({ length: 7 }, (_, index) => emptyDay(index + 1)))
   const [savedDays, setSavedDays] = useState(() => Array.from({ length: 7 }, (_, index) => emptyDay(index + 1)))
   const [catalog, setCatalog] = useState([])
@@ -209,10 +212,7 @@ export default function ClientRoutine({ onExpired, onNavigate }) {
     return { day, date, index }
   })
 
-  return <section className="client-routine" aria-labelledby="client-routine-title">
-    <header className="client-header">
-      <div><h1 id="client-routine-title">Mi rutina</h1><p>Tu planificación semanal de entrenamiento</p></div>
-    </header>
+  return <section className="client-routine" aria-labelledby="client-page-title">
 
     {error && <p className="routine-error" role="alert">{error}</p>}
     {notice && <div className="routine-notice" role="status"><Icon name="check" /><span>{notice}</span>
@@ -276,7 +276,7 @@ export default function ClientRoutine({ onExpired, onNavigate }) {
             </button>
             <span>{formatDate(selectedDate, { weekday: 'long', day: 'numeric', month: 'long' })}</span>
             <h2>Agregar ejercicio</h2>
-            <p>Busca un ejercicio activo y define c?mo lo realizar?s este d?a.</p>
+            <p>Busca un ejercicio activo y define cómo lo realizarás este día.</p>
           </div>
           <form className="routine-add-form routine-add-screen-form" onSubmit={addExercise}>
             <label className="routine-add-search"><Icon name="search" /><input value={search} onChange={event => setSearch(event.target.value)}
@@ -284,7 +284,7 @@ export default function ClientRoutine({ onExpired, onNavigate }) {
             <div className="routine-add-fields">
               <label className="routine-exercise-select"><span>Ejercicio</span><select value={selectedExerciseId} onChange={event => updateExerciseSelection(event.target.value)} disabled={saving} required>
                 <option value="">Selecciona un ejercicio</option>
-                {filteredCatalog.map(exercise => <option key={exercise.idEjercicio} value={exercise.idEjercicio}>{exercise.nombre} ? {exercise.grupoMuscular}</option>)}
+                {filteredCatalog.map(exercise => <option key={exercise.idEjercicio} value={exercise.idEjercicio}>{exercise.nombre} · {exercise.grupoMuscular}</option>)}
               </select></label>
               <label><span>Series</span><input type="number" min="1" max="100" value={draft.series}
                 onChange={event => setDraft(current => ({ ...current, series: event.target.value }))} disabled={!selectedExercise || saving} required /></label>
@@ -298,14 +298,14 @@ export default function ClientRoutine({ onExpired, onNavigate }) {
             </div>
             {selectedExercise && <div className="routine-selected-exercise"><span><Icon name="dumbbell" /></span>
               <div><strong>{selectedExercise.nombre}</strong><small>{selectedExercise.grupoMuscular}</small></div></div>}
-            {!filteredCatalog.length && <p className="routine-catalog-empty">No hay m?s ejercicios disponibles para este d?a.</p>}
+            {!filteredCatalog.length && <p className="routine-catalog-empty">No hay más ejercicios disponibles para este día.</p>}
             <div className="routine-editor-actions">
               <button type="button" className="routine-reset" onClick={() => setShowExerciseScreen(false)}>Cancelar</button>
               <button className="routine-add-button" type="submit" disabled={!selectedExercise || saving}><Icon name="plus" />Agregar a rutina</button>
             </div>
           </form>
         </section> : <div className="routine-add-entry">
-          <div><h4>Completa tu entrenamiento</h4><p>Agrega ejercicios activos a la rutina de este d?a.</p></div>
+          <div><h4>Completa tu entrenamiento</h4><p>Agrega ejercicios activos a la rutina de este día.</p></div>
           <button type="button" className="routine-add-button" onClick={() => { setSearch(''); setSelectedExerciseId(''); setDraft(formDraft(null)); setShowExerciseScreen(true) }}>
             <Icon name="plus" />Agregar ejercicio
           </button>

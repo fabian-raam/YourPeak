@@ -48,12 +48,7 @@ export default function ClientExercises({ onExpired }) {
     setNivel('Todos')
   }
 
-  return <section className="client-exercises" aria-labelledby="client-exercises-title">
-    <header className="client-header">
-      <div><h1 id="client-exercises-title">Ejercicios</h1>
-        <p>Explora los ejercicios del gimnasio por grupo muscular y nivel.</p></div>
-    </header>
-
+  return <section className="client-exercises" aria-labelledby="client-page-title">
     {!loading && !error && exercises.length > 0 && <section className="client-exercise-filters" aria-label="Filtros de ejercicios">
       <div className="client-exercise-filter-topline">
         <label className="client-exercise-search"><Icon name="search" />

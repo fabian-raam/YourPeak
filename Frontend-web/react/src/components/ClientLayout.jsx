@@ -1,15 +1,26 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Brand from './Brand'
 import Icon from './Icon'
 import { clientSections } from '../utils/clientSections'
-import { fullName, initials } from '../utils/format'
+import { fullName, initials, membershipDate } from '../utils/format'
 import './ClientLayout.css'
+
+const dateFormat = new Intl.DateTimeFormat('es-PE', { dateStyle: 'full', timeZone: 'America/Lima' })
 
 export default function ClientLayout({ user, section, onNavigate, onLogout, logoutBusy, error, children }) {
   const accountMenu = useRef(null)
+  const heading = useRef(null)
+  const [today] = useState(() => dateFormat.format(new Date()))
+  const { label, description } = clientSections[section]
+  const title = section === 'inicio' && user?.nombre ? `Hola, ${user.nombre}` : label
+  const subtitle = section === 'inicio' ? today : description
   const membershipStatus = user?.membresiaVigente ? 'vigente' : 'no vigente'
   const accountName = fullName(user || {}) || 'Mi cuenta'
   const avatar = initials(user || {}) || 'YP'
+
+  useEffect(() => {
+    heading.current?.focus({ preventScroll: true })
+  }, [section])
 
   function handleNavigation(event, target) {
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
@@ -43,12 +54,16 @@ export default function ClientLayout({ user, section, onNavigate, onLogout, logo
       </nav>
       <div className="client-sidebar-status">
         <strong>Membresía {membershipStatus}</strong>
-        {user?.fechaVencimiento && <span>Vence el {user.fechaVencimiento}</span>}
+        {user?.membresia?.fechaVencimiento && <span>Vence el {membershipDate(user.membresia.fechaVencimiento)}</span>}
       </div>
     </aside>
 
     <main className="client-workspace">
-      <header className="client-shell-header">
+      <header className="client-header">
+        <div className="client-heading">
+          <h1 id="client-page-title" ref={heading} tabIndex={-1}>{title}</h1>
+          <p>{subtitle}</p>
+        </div>
         <details className="client-account" ref={accountMenu}
           onBlur={event => {
             if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false

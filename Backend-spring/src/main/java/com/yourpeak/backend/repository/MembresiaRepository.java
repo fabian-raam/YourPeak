@@ -1,6 +1,7 @@
 package com.yourpeak.backend.repository;
 
 import com.yourpeak.backend.model.Membresia;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -18,6 +19,11 @@ public interface MembresiaRepository extends JpaRepository<Membresia, Long> {
     );
 
     List<Membresia> findAllByCliente_IdClienteOrderByFechaInicioDesc(Long idCliente);
+
+    @EntityGraph(attributePaths = "planMembresia")
+    Optional<Membresia> findFirstByCliente_IdClienteAndFechaInicioLessThanEqualAndFechaVencimientoGreaterThanEqualOrderByFechaVencimientoDescIdMembresiaDesc(
+            Long idCliente, LocalDate fechaInicio, LocalDate fechaVencimiento
+    );
 
     boolean existsByCliente_IdClienteAndFechaInicioLessThanEqualAndFechaVencimientoGreaterThanEqual(
             Long idCliente,

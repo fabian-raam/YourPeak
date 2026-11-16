@@ -71,6 +71,7 @@ public class LoginService {
                     usuario.getCorreo(),
                     "ADMINISTRADOR",
                     null,
+                    null,
                     null
             );
         }
@@ -79,15 +80,19 @@ public class LoginService {
         var cliente = clienteRepository.findByUsuario_IdUsuario(usuario.getIdUsuario());
         String estado = cliente.map(item -> item.getTipoEstado().getNombre()).orElse(null);
         String rol = cliente.isPresent() ? "CLIENTE" : null;
-        boolean membresiaVigente = cliente
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/Lima"));
+        LoginResponse.PeriodoVigente membresia = cliente
                 .filter(item -> "ACTIVO".equalsIgnoreCase(item.getTipoEstado().getNombre()))
-                .map(item -> membresiaRepository
-                        .existsByCliente_IdClienteAndFechaInicioLessThanEqualAndFechaVencimientoGreaterThanEqual(
-                                item.getIdCliente(),
-                                LocalDate.now(ZoneId.of("America/Lima")),
-                                LocalDate.now(ZoneId.of("America/Lima"))
-                        ))
-                .orElse(false);
+                .flatMap(item -> membresiaRepository
+                        .findFirstByCliente_IdClienteAndFechaInicioLessThanEqualAndFechaVencimientoGreaterThanEqualOrderByFechaVencimientoDescIdMembresiaDesc(
+                                item.getIdCliente(), hoy, hoy))
+                .map(periodo -> new LoginResponse.PeriodoVigente(
+                        periodo.getPlanMembresia().getNombre(),
+                        periodo.getPlanMembresia().getDuracionMeses(),
+                        periodo.getFechaInicio(),
+                        periodo.getFechaVencimiento()
+                ))
+                .orElse(null);
 
         return new LoginResponse(
                 usuario.getIdUsuario(),
@@ -96,7 +101,8 @@ public class LoginService {
                 usuario.getCorreo(),
                 rol,
                 estado,
-                membresiaVigente
+                membresia != null,
+                membresia
         );
     }
 }

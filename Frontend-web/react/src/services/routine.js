@@ -3,9 +3,13 @@ import { request } from './auth'
 const routinePath = 'cliente/rutina/'
 
 export async function getRoutine() {
+  return (await getRoutineSummary()).dias
+}
+
+export async function getRoutineSummary() {
   const data = await request(routinePath)
   if (!Array.isArray(data.dias)) throw new Error('No se pudo interpretar tu rutina semanal.')
-  return data.dias
+  return data
 }
 
 export async function getRoutineExercises() {

@@ -184,6 +184,20 @@ def perfil_cliente(request):
     return _respuesta_spring_json(resultado)
 
 
+@require_GET
+def mis_membresias(request):
+    id_usuario, respuesta_error = _validar_cliente_activo(request)
+    if respuesta_error:
+        return respuesta_error
+    try:
+        periodos = _spring_request("/api/cliente/perfil/membresias", headers=_headers_cliente(id_usuario))
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo consultar tu historial de membresías.", 503)
+    return _respuesta_spring_json(periodos)
+
+
 @require_http_methods(["GET", "PUT"])
 def rutina_cliente(request):
     """Consulta o reemplaza la rutina semanal del cliente autenticado."""

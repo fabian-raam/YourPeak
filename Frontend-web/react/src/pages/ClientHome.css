@@ -1,0 +1,57 @@
+.client-home-grid .client-card h2 {
+  font-size: 21px;
+}
+
+.client-home-grid .client-workout-card {
+  min-height: 270px;
+}
+
+.client-home-grid .client-workout-card h2 {
+  margin-top: 15px;
+  font-size: clamp(42px, 5.4vw, 78px);
+}
+
+.client-workout-card p,
+.client-workout-card .client-text-link {
+  color: #d7e3f6;
+}
+
+.client-workout-card .client-dashboard-eyebrow {
+  margin-top: 0;
+  color: #9abafd;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.client-workout-date::first-letter,
+.client-recent-activity p::first-letter {
+  text-transform: uppercase;
+}
+
+.client-workout-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  margin-top: 16px;
+  color: #d7e3f6;
+  font-size: 18px;
+}
+
+.client-workout-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.client-workout-meta svg { color: #9abafd; }
+
+.client-recent-activity { margin: 12px 0 0; padding: 0; list-style: none; }
+.client-recent-activity li { display: flex; align-items: center; gap: 14px; padding: 12px 0; }
+.client-recent-activity li + li { border-top: 1px solid #e4eaf4; }
+.client-recent-activity .client-card-icon { width: 42px; height: 42px; }
+.client-recent-activity p { margin-top: 2px; }
+
+.client-home-weight { font-size: 21px; }
+.client-home-weight strong { color: var(--client-ink); font-size: clamp(36px, 4vw, 50px); }

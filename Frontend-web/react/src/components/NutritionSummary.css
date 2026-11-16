@@ -1,0 +1,65 @@
+.nutrition-overview {
+  --protein: #13836b;
+  --carbs: #2465e8;
+  --fats: #c66816;
+  display: grid;
+  grid-template-columns: minmax(110px, .85fr) minmax(0, 1.5fr);
+  align-items: center;
+  gap: 24px;
+}
+
+.nutrition-overview:has(.client-nutrition-breakdown:only-child) {
+  grid-template-columns: 1fr;
+}
+
+.client-nutrition-ring {
+  aspect-ratio: 1;
+  width: min(100%, 160px);
+  display: grid;
+  place-items: center;
+  justify-self: center;
+  border-radius: 50%;
+  background: var(--ring);
+}
+
+.client-nutrition-ring > div {
+  display: grid;
+  place-content: center;
+  text-align: center;
+  width: 81%;
+  height: 81%;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.client-nutrition-ring strong { font-size: clamp(20px, 2.4vw, 33px); }
+.client-nutrition-ring span { color: var(--client-muted); font-size: 13px; }
+
+.nutrition-overview-macros { display: grid; gap: 13px; margin: 16px 0 0; }
+.nutrition-overview-macros > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 10px;
+}
+.nutrition-overview-macros dt { color: var(--client-muted); overflow-wrap: anywhere; }
+.nutrition-overview-macros dd { display: contents; }
+.nutrition-overview-track {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--macro-color) 16%, white);
+  overflow: hidden;
+}
+.nutrition-overview-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--macro-color);
+}
+
+.nutrition-overview-heading h2 { font-size: 21px; }
+
+@media (max-width: 460px) {
+  .nutrition-overview { grid-template-columns: 1fr; gap: 16px; }
+  .client-nutrition-ring { width: 126px; }
+}

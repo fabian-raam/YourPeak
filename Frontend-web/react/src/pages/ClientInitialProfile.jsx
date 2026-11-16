@@ -74,14 +74,7 @@ export default function ClientInitialProfile({ user, onExpired }) {
     }
   }
 
-  return <section className="client-initial-profile" aria-labelledby="initial-profile-title">
-    <header className="client-header">
-      <div>
-        <h1 id="initial-profile-title">Mi perfil</h1>
-        <p>Cuéntanos sobre tus objetivos y tu experiencia para personalizar tu entrenamiento.</p>
-      </div>
-    </header>
-
+  return <section className="client-initial-profile" aria-labelledby="client-page-title">
     <section className="client-card initial-profile-card">
       <div className="initial-profile-intro">
         <span className="client-avatar" aria-hidden="true">

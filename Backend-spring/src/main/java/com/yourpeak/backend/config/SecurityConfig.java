@@ -139,6 +139,7 @@ public class SecurityConfig {
                                 consultarDisponibilidadCliente,
                                 actualizarDisponibilidadCliente,
                                 consultarPerfilCliente,
+                                PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/api/cliente/perfil/membresias"),
                                 actualizarPerfilCliente,
                                 consultarRutinaCliente,
                                 actualizarRutinaCliente,
