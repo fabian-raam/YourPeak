@@ -11,6 +11,7 @@ import com.yourpeak.backend.repository.AdministradorRepository;
 import com.yourpeak.backend.repository.AlimentoRepository;
 import com.yourpeak.backend.repository.ClienteRepository;
 import com.yourpeak.backend.repository.RegistroIngestaRepository;
+import com.yourpeak.backend.repository.ResumenClienteRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,15 +33,18 @@ public class NutricionService {
     private final AdministradorRepository administradorRepository;
     private final AlimentoRepository alimentoRepository;
     private final RegistroIngestaRepository ingestaRepository;
+    private final ResumenClienteRepository resumenRepository;
 
     public NutricionService(ClienteRepository clienteRepository,
                             AdministradorRepository administradorRepository,
                             AlimentoRepository alimentoRepository,
-                            RegistroIngestaRepository ingestaRepository) {
+                            RegistroIngestaRepository ingestaRepository,
+                            ResumenClienteRepository resumenRepository) {
         this.clienteRepository = clienteRepository;
         this.administradorRepository = administradorRepository;
         this.alimentoRepository = alimentoRepository;
         this.ingestaRepository = ingestaRepository;
+        this.resumenRepository = resumenRepository;
     }
 
     @Transactional(readOnly = true)
@@ -69,7 +73,8 @@ public class NutricionService {
                 sumar(registros, IngestaResponse::kcal),
                 sumar(registros, IngestaResponse::proteinaG),
                 sumar(registros, IngestaResponse::carbohidratoG),
-                sumar(registros, IngestaResponse::grasaG), registros);
+                sumar(registros, IngestaResponse::grasaG), registros,
+                resumenRepository.buscarMeta(cliente.getIdCliente(), dia).orElse(null));
     }
 
     @Transactional

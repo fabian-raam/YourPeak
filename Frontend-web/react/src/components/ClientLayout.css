@@ -53,14 +53,6 @@
 .client-nav-submenu .client-nav-link svg { display: none; }
 .client-nav-link svg { width: 18px; height: 18px; flex: 0 0 18px; }
 .client-nav-disabled { width: 100%; border: 0; background: transparent; text-align: left; opacity: .55; cursor: not-allowed; font: inherit; }
-.client-shell-header { position: absolute; inset: 36px var(--client-gutter) auto auto; z-index: 2; }
-.client-workspace:has(> .client-error) .client-shell-header {
-  position: relative;
-  inset: auto;
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 12px;
-}
 
 .client-nav-link {
   display: flex;
@@ -75,16 +67,20 @@
 
 .client-nav-link:hover { background: #182642; color: #fff; }
 .client-nav-link[aria-current='page'] { background: var(--brand-primary); color: #fff; }
-.client-sidebar-status { margin-top: auto; border-top: 1px solid #25324a; padding-top: 16px; font-size: 14px; }
+.client-sidebar-status { display: grid; gap: 4px; margin-top: auto; border-top: 1px solid #25324a; padding-top: 16px; font-size: 14px; }
 
 .client-workspace {
   --client-gutter: clamp(26px, 3vw, 56px);
-  position: relative;
   min-width: 0;
   padding: 36px var(--client-gutter) 48px;
 }
-.client-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
-.client-header > div { min-width: 0; max-width: calc(100% - 210px); }
+.client-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px 24px;
+  margin-bottom: 24px;
+}
 .client-header h1, .client-card h2 { margin: 0; overflow-wrap: anywhere; }
 .client-header h1, .client-feature h2, .client-card-heading h2 {
   font-family: 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
@@ -97,7 +93,7 @@
 .client-header p, .client-card p { margin: 8px 0 0; color: var(--client-muted); }
 .client-header p::first-letter { text-transform: uppercase; }
 
-.client-account { position: relative; min-width: 0; max-width: 190px; }
+.client-account { position: relative; z-index: 2; min-width: 0; max-width: 190px; justify-self: end; }
 .client-account summary {
   display: flex;
   align-items: center;
@@ -156,7 +152,6 @@
 .client-feature { min-height: 254px; color: #fff; background: var(--client-navy); border-color: var(--client-navy); }
 .client-feature .client-card-icon { color: #a4c5ff; background: #192945; }
 .client-feature h2 { margin-top: 14px; font-size: clamp(32px, 3.4vw, 52px); }
-.client-home-profile h2 { margin-top: 16px; font-size: 22px; }
 .client-cta, .client-text-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; border: 0; font-weight: 600; text-decoration: none; }
 .client-cta { padding: 11px 16px; border-radius: 8px; background: var(--brand-primary); color: #fff; }
 .client-cta:hover { background: var(--brand-hover); }
@@ -201,9 +196,8 @@
   .client-nav-link { padding: 8px 10px; }
   .client-sidebar-status { display: none; }
   .client-workspace { padding: 20px 20px 36px; }
-  .client-shell-header { position: relative; inset: auto; display: flex; justify-content: flex-end; margin-bottom: 12px; }
-  .client-header { gap: 8px; }
-  .client-header > div { max-width: 100%; }
+  .client-header { grid-template-columns: minmax(0, 1fr); }
+  .client-account { grid-row: 1; }
   .client-account summary { gap: 5px; padding: 4px; }
   .client-card { padding: 22px; }
   .client-facts { grid-template-columns: 1fr; }

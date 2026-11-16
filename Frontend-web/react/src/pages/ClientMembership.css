@@ -1,0 +1,22 @@
+.client-membership-page { display: grid; gap: 18px; }
+.client-membership-page .client-card-heading h2 { margin-top: 5px; font-size: clamp(36px, 4.2vw, 58px); }
+.client-membership-page .client-membership-eyebrow {
+  margin-top: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.client-membership-facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.client-membership-table { margin-top: 9px; overflow-x: auto; }
+.client-membership-table table { width: 100%; min-width: 530px; border-collapse: collapse; text-align: left; }
+.client-membership-table th,
+.client-membership-table td { padding: 12px 12px 12px 0; border-bottom: 1px solid #e4eaf4; }
+.client-membership-table thead th { color: var(--client-muted); font-size: 15px; }
+.client-membership-table tbody th { width: 52%; font-weight: 600; }
+.client-membership-table tbody tr:last-child > * { border-bottom: 0; }
+.client-membership-status.is-neutral { color: #33435d; background: #e9eef5; }
+
+@media (max-width: 660px) {
+  .client-membership-facts { grid-template-columns: 1fr; }
+}

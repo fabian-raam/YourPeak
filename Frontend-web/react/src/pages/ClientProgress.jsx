@@ -79,10 +79,7 @@ export default function ClientProgress({ onExpired, onNavigate }) {
     }
   }
 
-  return <section className="client-progress">
-    <header className="client-header">
-      <div><h1>Mi progreso</h1><p>Registra tu peso y observa cómo cambia con el tiempo.</p></div>
-    </header>
+  return <section className="client-progress" aria-labelledby="client-page-title">
 
     {error && <p className="progress-error" role="alert">{error}</p>}
     {notice && <div className="progress-notice" role="status"><Icon name="check" /><span>{notice}</span>

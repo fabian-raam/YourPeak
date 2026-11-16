@@ -2,6 +2,7 @@ package com.yourpeak.backend.service;
 
 import com.yourpeak.backend.dto.MembresiaResponse;
 import com.yourpeak.backend.dto.ClienteMembresiaResumen;
+import com.yourpeak.backend.dto.PeriodoMembresiaCliente;
 import com.yourpeak.backend.model.Administrador;
 import com.yourpeak.backend.model.Cliente;
 import com.yourpeak.backend.model.Membresia;
@@ -151,6 +152,25 @@ public class MembresiaService {
                         estadoPeriodo(periodo, hoy),
                         periodo.getObservacion()
                 ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PeriodoMembresiaCliente> listarMisPeriodos(Long idUsuario) {
+        if (idUsuario == null || administradorRepository.existsByUsuario_IdUsuario(idUsuario)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo un cliente activo puede consultar su membresía.");
+        }
+        Cliente cliente = clienteRepository.findByUsuario_IdUsuario(idUsuario)
+                .filter(item -> "ACTIVO".equalsIgnoreCase(item.getTipoEstado().getNombre()))
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Solo un cliente activo puede consultar su membresía."));
+        LocalDate hoy = LocalDate.now(ZONA_GIMNASIO);
+        return membresiaRepository.findAllByCliente_IdClienteOrderByFechaInicioDesc(cliente.getIdCliente())
+                .stream()
+                .map(periodo -> new PeriodoMembresiaCliente(
+                        periodo.getIdMembresia(), periodo.getPlanMembresia().getNombre(),
+                        periodo.getPlanMembresia().getDuracionMeses(), periodo.getFechaInicio(),
+                        periodo.getFechaVencimiento(), estadoPeriodo(periodo, hoy)))
                 .toList();
     }
 
