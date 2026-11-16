@@ -24,6 +24,7 @@ import com.yourpeak.backend.repository.NivelExperienciaRepository;
 import com.yourpeak.backend.repository.PlanEntrenamientoDiaRepository;
 import com.yourpeak.backend.repository.PlanEntrenamientoEjercicioRepository;
 import com.yourpeak.backend.repository.PlanEntrenamientoRepository;
+import com.yourpeak.backend.repository.ResumenClienteRepository;
 import com.yourpeak.backend.repository.TipoEstadoRepository;
 import com.yourpeak.backend.repository.TipoOrigenEjercicioRepository;
 import org.springframework.http.HttpStatus;
@@ -52,6 +53,7 @@ public class RutinaService {
     private final PlanEntrenamientoEjercicioRepository planEjercicioRepository;
     private final TipoEstadoRepository estadoRepository;
     private final TipoOrigenEjercicioRepository origenRepository;
+    private final ResumenClienteRepository resumenRepository;
 
     public RutinaService(ClienteRepository clienteRepository,
                          AdministradorRepository administradorRepository,
@@ -62,7 +64,8 @@ public class RutinaService {
                          PlanEntrenamientoDiaRepository diaRepository,
                          PlanEntrenamientoEjercicioRepository planEjercicioRepository,
                          TipoEstadoRepository estadoRepository,
-                         TipoOrigenEjercicioRepository origenRepository) {
+                         TipoOrigenEjercicioRepository origenRepository,
+                         ResumenClienteRepository resumenRepository) {
         this.clienteRepository = clienteRepository;
         this.administradorRepository = administradorRepository;
         this.disponibilidadRepository = disponibilidadRepository;
@@ -73,12 +76,17 @@ public class RutinaService {
         this.planEjercicioRepository = planEjercicioRepository;
         this.estadoRepository = estadoRepository;
         this.origenRepository = origenRepository;
+        this.resumenRepository = resumenRepository;
     }
 
     /** Devuelve los siete días, aunque aún no haya rutina o disponibilidad guardada. */
     @Transactional(readOnly = true)
-    public RutinaResponse consultar(Long idUsuario) {
+    public RutinaResponse.Consulta consultar(Long idUsuario) {
         Cliente cliente = buscarClienteActivo(idUsuario);
+        return new RutinaResponse.Consulta(consultarDias(cliente), resumenRepository.listarActividadReciente(cliente.getIdCliente()));
+    }
+
+    private List<DiaRutinaResponse> consultarDias(Cliente cliente) {
         Map<Integer, DisponibilidadCliente> disponibilidad = new HashMap<>();
         disponibilidadRepository.findAllByCliente_IdClienteOrderByDiaSemanaAsc(cliente.getIdCliente())
                 .forEach(dia -> disponibilidad.put(dia.getDiaSemana(), dia));
@@ -108,7 +116,7 @@ public class RutinaService {
                     ejercicios
             ));
         }
-        return new RutinaResponse(dias);
+        return dias;
     }
 
     /** Catálogo de ejercicios activos que el cliente puede seleccionar para su rutina. */
@@ -147,7 +155,7 @@ public class RutinaService {
         ).ifPresent(plan -> plan.cambiarEstado(inactivo));
 
         // Si la persona quitó todos sus ejercicios, dejar sin plan activo también es válido.
-        if (!tieneEjercicios) return consultar(idUsuario);
+        if (!tieneEjercicios) return new RutinaResponse(consultarDias(cliente));
 
         NivelExperiencia nivel = resolverNivel(cliente);
         PlanEntrenamiento plan = planRepository.save(
@@ -176,7 +184,7 @@ public class RutinaService {
             }
             planEjercicioRepository.saveAll(filas);
         }
-        return consultar(idUsuario);
+        return new RutinaResponse(consultarDias(cliente));
     }
 
     private Map<Integer, DisponibilidadCliente> cargarDisponibilidad(Cliente cliente) {

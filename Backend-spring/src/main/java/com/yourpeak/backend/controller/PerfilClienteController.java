@@ -1,6 +1,7 @@
 package com.yourpeak.backend.controller;
 
 import com.yourpeak.backend.dto.PerfilInicialRequest;
+import com.yourpeak.backend.service.MembresiaService;
 import com.yourpeak.backend.service.PerfilClienteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,9 +27,11 @@ public class PerfilClienteController {
     private String internalApiKey;
 
     private final PerfilClienteService perfilClienteService;
+    private final MembresiaService membresiaService;
 
-    public PerfilClienteController(PerfilClienteService perfilClienteService) {
+    public PerfilClienteController(PerfilClienteService perfilClienteService, MembresiaService membresiaService) {
         this.perfilClienteService = perfilClienteService;
+        this.membresiaService = membresiaService;
     }
 
     @GetMapping
@@ -38,6 +41,15 @@ public class PerfilClienteController {
     ) {
         ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idUsuario);
         return error != null ? error : ResponseEntity.ok(perfilClienteService.consultar(idUsuario));
+    }
+
+    @GetMapping("/membresias")
+    public ResponseEntity<?> consultarMembresias(
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String apiKey,
+            @RequestHeader(value = "X-Client-User-Id", required = false) Long idUsuario
+    ) {
+        ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idUsuario);
+        return error != null ? error : ResponseEntity.ok(membresiaService.listarMisPeriodos(idUsuario));
     }
 
     @PutMapping

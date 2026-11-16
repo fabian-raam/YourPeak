@@ -140,11 +140,11 @@ El cliente puede consultar y guardar sus horarios en **Disponibilidad** y su pla
 
 El área cliente utiliza **Barlow Condensed** para los títulos e **IBM Plex Sans** para los textos y controles. Se aumentó el tamaño de los textos de tablas, filtros y formularios y se alinearon los encabezados con el menú de cuenta en escritorio.
 
-| Apartado pendiente | Soporte de backend requerido |
-| --- | --- |
-| Nutrición | Habilitar la consulta del catálogo de alimentos y la consulta y el guardado del diario del cliente. |
-| Mi progreso | Habilitar la consulta y el guardado de las mediciones del cliente. |
-| Detalle de membresía | Exponer el plan, las fechas y el historial de la membresía del cliente. |
+**Inicio** muestra el entrenamiento de hoy o el próximo de la rutina semanal, la actividad reciente basada en series realizadas y el último peso del cliente.
+
+**Nutrición** permite consultar el catálogo, registrar alimentos y revisar el diario por fecha. El gráfico de Inicio resume el consumo de hoy y el de Nutrición muestra el día seleccionado. Ambos muestran la meta cuando hay una registrada.
+
+**Mi membresía** muestra el plan, su duración y las fechas del período vigente. El cliente consulta su propio historial en `GET /api/web/cliente/membresias/`.
 
 ### Requisitos adicionales
 
@@ -198,7 +198,7 @@ Después de actualizar el backend Java, reinicia Spring Boot para cargar los cam
 ### Flujo y responsabilidades
 
 1. Al registrarse, Spring crea el usuario y su perfil `CLIENTE` con estado `PENDIENTE` en MySQL. Las cuentas normales siempre comienzan como clientes; el rol administrador se asigna por separado en la tabla `administrador`.
-2. El login devuelve `idUsuario`, `nombre`, `apellido`, `correo`, `rol`, `estado` y `membresiaVigente`. Los roles usados son `ADMINISTRADOR` y `CLIENTE`; los estados de cliente incluyen `PENDIENTE`, `ACTIVO` e `INACTIVO`. El rol administrador tiene prioridad si una cuenta tambien tiene perfil de cliente.
+2. El login devuelve `idUsuario`, `nombre`, `apellido`, `correo`, `rol`, `estado` y `membresiaVigente`. El campo `membresia` incluye `nombrePlan`, `duracionMeses`, `fechaInicio` y `fechaVencimiento` cuando el cliente tiene un período vigente. Los roles usados son `ADMINISTRADOR` y `CLIENTE`. Los estados de cliente incluyen `PENDIENTE`, `ACTIVO` e `INACTIVO`. El rol administrador tiene prioridad si una cuenta también tiene perfil de cliente.
 3. Django conserva el `id_usuario` en su sesion SQLite. Para las rutas administrativas, Django consulta el perfil actual a Spring y exige que `rol` sea `ADMINISTRADOR`; no confia en un ID de administrador enviado por React.
 4. Si el rol es valido, Django llama a Spring con `X-Internal-Api-Key` y `X-Admin-User-Id`. Spring vuelve a verificar la clave y confirma que el ID exista en la tabla `administrador` antes de listar, consultar o aprobar clientes.
 5. Spring realiza en una sola transacción el cambio `PENDIENTE` -> `ACTIVO` y el registro del primer período de membresía. El administrador debe seleccionar un plan activo. Si falla el registro del período, también se revierte la aprobación.

@@ -1,6 +1,11 @@
 export const fullName = person => `${person.nombre || ''} ${person.apellido || ''}`.trim()
 export const initials = person => `${person.nombre?.[0] || ''}${person.apellido?.[0] || ''}`.toUpperCase()
 
+export function membershipDate(value, month = 'short') {
+  return new Intl.DateTimeFormat('es-PE', { day: 'numeric', month, year: 'numeric', timeZone: 'UTC' })
+    .format(new Date(`${value}T00:00:00Z`))
+}
+
 /** Una fecha de nacimiento no tiene zona horaria; evita moverla al día anterior. */
 export function birthDate(value) {
   if (!value) return 'Sin registrar'

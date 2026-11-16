@@ -105,9 +105,9 @@ export default function App() {
     setAdminSection(section)
   }
 
-  function navigateClient(section) {
+  function navigateClient(section, state = {}) {
     if (section === clientSection) return
-    history.pushState({}, '', clientSections[section].path)
+    history.pushState(state, '', clientSections[section].path)
     setClientSection(section)
     window.scrollTo(0, 0)
   }
@@ -181,11 +181,11 @@ export default function App() {
     {clientSection === 'perfil'
       ? <ClientInitialProfile user={user} onExpired={sessionExpired} />
       : ['inicio', 'membresia'].includes(clientSection)
-      ? <ClientAccountSection user={user} section={clientSection} onNavigate={navigateClient} />
+      ? <ClientAccountSection user={user} section={clientSection} onNavigate={navigateClient} onExpired={sessionExpired} />
       : clientSection === 'disponibilidad'
         ? <ClientAvailability onExpired={sessionExpired} />
         : clientSection === 'mi-rutina'
-          ? <ClientRoutine onExpired={sessionExpired} onNavigate={navigateClient} />
+          ? <ClientRoutine onExpired={sessionExpired} onNavigate={navigateClient} initialDate={history.state?.fecha} />
           : clientSection === 'nutricion'
             ? <ClientNutrition onExpired={sessionExpired} />
             : clientSection === 'progreso'

@@ -127,12 +127,7 @@ export default function ClientAvailability({ onExpired }) {
     }
   }
 
-  return <section className="client-availability" aria-labelledby="client-availability-title">
-    <header className="client-header">
-      <h1 id="client-availability-title">Disponibilidad</h1>
-      <p>Indica en qué horarios puedes entrenar.</p>
-    </header>
-
+  return <section className="client-availability" aria-labelledby="client-page-title">
     {noticeVisible && <div className="availability-notice" role="status">
       <Icon name="check" /><span>{notice}</span>
       <button type="button" aria-label="Cerrar mensaje" onClick={() => setNoticeVisible(false)}><Icon name="close" /></button>
