@@ -14,7 +14,8 @@ data class LoginResponse(
     val apellido: String?,
     val correo: String?,
     val rol: String?,
-    val estado: String?
+    val estado: String?,
+    val membresiaVigente: Boolean? = null
 )
 
 data class RegistroRequest(

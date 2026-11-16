@@ -18,8 +18,8 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
-import retrofit2.http.DELETE
 import retrofit2.http.Path
+import retrofit2.http.DELETE
 import retrofit2.http.Query
 import retrofit2.http.PUT
 
@@ -28,6 +28,13 @@ interface ApiService {
 
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
+    /** Obtiene el estado actualizado del usuario después de restaurar una sesión guardada. */
+    @GET("api/auth/usuarios/{idUsuario}")
+    suspend fun consultarUsuario(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Path("idUsuario") idUsuario: Long
+    ): Response<LoginResponse>
 
     @POST("api/auth/registro")
     suspend fun registrar(@Body request: RegistroRequest): Response<RegistroResponse>
