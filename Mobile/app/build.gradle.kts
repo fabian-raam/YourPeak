@@ -31,6 +31,12 @@ android {
             ?: localProperties.getProperty("yourpeak.apiUrl")
             ?: "http://10.0.2.2:8080/"
         buildConfigField("String", "API_BASE_URL", "\"${apiUrl.trimEnd('/')}/\"")
+
+        // Clave temporal para desarrollo, debe coincidir con Spring.
+        val internalApiKey = providers.gradleProperty("yourpeak.internalApiKey").orNull
+            ?: localProperties.getProperty("yourpeak.internalApiKey")
+            ?: "yourpeak-dev-internal-key"
+        buildConfigField("String", "INTERNAL_API_KEY", "\"$internalApiKey\"")
     }
 
     buildTypes {

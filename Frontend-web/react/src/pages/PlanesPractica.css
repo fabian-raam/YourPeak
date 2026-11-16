@@ -1,4 +1,8 @@
 .practice-plans-page { color: #17233b; }
+.practice-exercise-tabs { display: flex; gap: 8px; margin: 0 0 18px; padding: 5px; border: 1px solid #c9d7eb; border-radius: 10px; background: #f4f7fc; }
+.practice-exercise-tabs button { min-height: 38px; padding: 8px 13px; border: 1px solid transparent; border-radius: 7px; color: #596b85; background: transparent; font: 600 12px 'IBM Plex Sans', Arial, sans-serif; cursor: pointer; }
+.practice-exercise-tabs button[aria-pressed="true"] { border-color: #b7cbed; color: #1f5597; background: #fff; box-shadow: 0 1px 3px #18355c12; }
+.practice-exercise-tabs button:focus-visible, .practice-component-map summary:focus-visible { outline: 3px solid #4d89df66; outline-offset: 2px; }
 .practice-kicker { color: #2868c7; font-size: 10px; font-weight: 700; letter-spacing: .13em; }
 .practice-plans-page .admin-heading { margin-bottom: 18px; }
 .practice-plans-page .admin-heading p { margin-top: 5px; }
@@ -43,10 +47,15 @@
 .practice-plan-notice { padding: 10px 13px; margin: 0 0 14px; border: 1px solid #a5d7be; border-radius: 8px; color: #16764e; background: #f1fbf6; font-size: 12px; }
 .practice-plan-explanation { max-width: 950px; margin: 16px 2px; color: #687995; font-size: 12px; line-height: 1.6; }
 .practice-plan-explanation strong { color: #34445f; }
+.practice-component-map { padding: 12px 15px; border: 1px solid #c9d7eb; border-radius: 10px; background: #fff; }
+.practice-component-map summary { color: #25456f; font-weight: 600; cursor: pointer; }
+.practice-component-map p { margin: 10px 0 0; }
+.practice-component-map pre { overflow-x: auto; margin: 10px 0 0; padding: 12px; border-radius: 8px; color: #e7eef9; background: #101b2c; font-size: 11px; line-height: 1.6; }
 @media (max-width: 650px) {
   .practice-plan-summary article { padding: 13px 10px; }
   .practice-plan-summary span { font-size: 10px; }
   .practice-plan-toolbar { align-items: flex-start; flex-direction: column; }
+  .practice-exercise-tabs { align-items: stretch; flex-direction: column; }
   .practice-plan-form-fields { grid-template-columns: 1fr; }
   .practice-plan-form-fields button { min-height: 40px; }
   .practice-plan-table { min-width: 560px; }

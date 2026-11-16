@@ -5,14 +5,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.ramirez.yourpeak.YourPeakApp
+import com.ramirez.yourpeak.data.model.LoginResponse
+import com.ramirez.yourpeak.data.session.SessionManager
+import com.ramirez.yourpeak.domain.DestinoUsuario
+import com.ramirez.yourpeak.domain.determinarDestinoUsuario
 import com.ramirez.yourpeak.ui.auth.LoginScreen
 import com.ramirez.yourpeak.ui.auth.RegistroScreen
+import com.ramirez.yourpeak.ui.home.EstadoAccesoScreen
 import com.ramirez.yourpeak.ui.home.HomeScreen
 import com.ramirez.yourpeak.ui.splash.SplashScreen
 
@@ -20,7 +26,11 @@ private object Rutas {
     const val SPLASH = "splash"
     const val LOGIN = "login?correo={correo}&aviso={aviso}"
     const val REGISTRO = "registro"
-    const val INICIO = "inicio"
+    const val INICIO_CLIENTE = "cliente/inicio"
+    const val PENDIENTE = "cuenta/pendiente"
+    const val INACTIVO = "cuenta/inactiva"
+    const val ADMINISTRADOR = "administrador/informacion"
+    const val SIN_ACCESO = "cuenta/sin-acceso"
 
     fun login(correo: String? = null, aviso: String? = null): String =
         "login?correo=${Uri.encode(correo.orEmpty())}&aviso=${Uri.encode(aviso.orEmpty())}"
@@ -31,16 +41,31 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val sesion = (LocalContext.current.applicationContext as YourPeakApp).sessionManager
 
-    NavHost(navController = navController, startDestination = Rutas.SPLASH) {
+    fun navegarSinVolver(ruta: String) {
+        navController.navigate(ruta) {
+            popUpTo(navController.graph.id) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
 
+    fun navegarSegunCuenta(usuario: LoginResponse) {
+        navegarSinVolver(rutaPara(determinarDestinoUsuario(usuario.rol, usuario.estado)))
+    }
+
+    fun cerrarSesion() {
+        sesion.cerrarSesion()
+        navegarSinVolver(Rutas.SPLASH)
+    }
+
+    NavHost(navController = navController, startDestination = Rutas.SPLASH) {
         composable(Rutas.SPLASH) {
             val haySesion = remember { sesion.usuarioActual() != null }
             SplashScreen(
                 haySesion = haySesion,
                 alContinuarConSesion = {
-                    navController.navigate(Rutas.INICIO) {
-                        popUpTo(Rutas.SPLASH) { inclusive = true }
-                    }
+                    val usuario = sesion.usuarioActual()
+                    if (usuario == null) navegarSinVolver(Rutas.login())
+                    else navegarSegunCuenta(usuario)
                 },
                 alIniciarSesion = { navController.navigate(Rutas.login()) },
                 alRegistrarse = { navController.navigate(Rutas.REGISTRO) }
@@ -57,15 +82,9 @@ fun AppNavigation() {
             LoginScreen(
                 correoInicial = entrada.arguments?.getString("correo"),
                 avisoInicial = entrada.arguments?.getString("aviso"),
-                alIniciarSesion = {
-                    navController.navigate(Rutas.INICIO) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                },
+                alIniciarSesion = { usuario -> navegarSegunCuenta(usuario) },
                 alIrARegistro = {
-                    navController.navigate(Rutas.REGISTRO) {
-                        popUpTo(Rutas.SPLASH)
-                    }
+                    navController.navigate(Rutas.REGISTRO) { popUpTo(Rutas.SPLASH) }
                 }
             )
         }
@@ -78,33 +97,76 @@ fun AppNavigation() {
                     }
                 },
                 alIrALogin = {
-                    navController.navigate(Rutas.login()) {
-                        popUpTo(Rutas.SPLASH)
-                    }
+                    navController.navigate(Rutas.login()) { popUpTo(Rutas.SPLASH) }
                 }
             )
         }
 
-        composable(Rutas.INICIO) {
-            val usuario = remember { sesion.usuarioActual() }
-            if (usuario == null) {
-                // Sesión borrada o dañada: volver a la bienvenida.
-                LaunchedEffect(Unit) {
-                    navController.navigate(Rutas.SPLASH) {
-                        popUpTo(navController.graph.id) { inclusive = true }
-                    }
-                }
-            } else {
-                HomeScreen(
-                    usuario = usuario,
-                    alCerrarSesion = {
-                        sesion.cerrarSesion()
-                        navController.navigate(Rutas.SPLASH) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                        }
-                    }
-                )
+        composable(Rutas.INICIO_CLIENTE) {
+            DestinoProtegido(
+                sesion = sesion,
+                navController = navController,
+                esperado = DestinoUsuario.INICIO_CLIENTE
+            ) { usuario ->
+                HomeScreen(usuario = usuario, alCerrarSesion = { cerrarSesion() })
             }
         }
+
+        composable(Rutas.PENDIENTE) {
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.CUENTA_PENDIENTE) { cerrarSesion() }
+        }
+        composable(Rutas.INACTIVO) {
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.CUENTA_INACTIVA) { cerrarSesion() }
+        }
+        composable(Rutas.ADMINISTRADOR) {
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.INFORMACION_ADMINISTRADOR) { cerrarSesion() }
+        }
+        composable(Rutas.SIN_ACCESO) {
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.ACCESO_NO_RECONOCIDO) { cerrarSesion() }
+        }
     }
+}
+
+@Composable
+private fun PantallaEstadoCuenta(
+    sesion: SessionManager,
+    navController: NavHostController,
+    esperado: DestinoUsuario,
+    alCerrarSesion: () -> Unit
+) {
+    DestinoProtegido(sesion, navController, esperado) { usuario ->
+        EstadoAccesoScreen(esperado, usuario, alCerrarSesion)
+    }
+}
+
+/** Revalida que una ruta guardada coincida con el rol y estado de la sesión local. */
+@Composable
+private fun DestinoProtegido(
+    sesion: SessionManager,
+    navController: NavHostController,
+    esperado: DestinoUsuario,
+    contenido: @Composable (LoginResponse) -> Unit
+) {
+    val usuario = remember { sesion.usuarioActual() }
+    val destinoActual = usuario?.let { determinarDestinoUsuario(it.rol, it.estado) }
+
+    if (usuario == null || destinoActual != esperado) {
+        LaunchedEffect(usuario, destinoActual) {
+            val siguiente = destinoActual?.let(::rutaPara) ?: Rutas.SPLASH
+            navController.navigate(siguiente) {
+                popUpTo(navController.graph.id) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    } else {
+        contenido(usuario)
+    }
+}
+
+private fun rutaPara(destino: DestinoUsuario): String = when (destino) {
+    DestinoUsuario.INICIO_CLIENTE -> Rutas.INICIO_CLIENTE
+    DestinoUsuario.CUENTA_PENDIENTE -> Rutas.PENDIENTE
+    DestinoUsuario.CUENTA_INACTIVA -> Rutas.INACTIVO
+    DestinoUsuario.INFORMACION_ADMINISTRADOR -> Rutas.ADMINISTRADOR
+    DestinoUsuario.ACCESO_NO_RECONOCIDO -> Rutas.SIN_ACCESO
 }

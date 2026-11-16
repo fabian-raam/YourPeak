@@ -1,0 +1,71 @@
+.practice-cafe { display: grid; gap: 16px; margin-top: 20px; color: #17233b; }
+.practice-cafe-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 19px 21px; border: 1px solid #c9d7eb; border-radius: 12px; background: #fff; }
+.practice-cafe-heading h2 { margin: 4px 0 0; color: #1a2942; font: 700 25px/1.1 'Barlow Condensed', 'Arial Narrow', sans-serif; }
+.practice-cafe-heading p { margin: 6px 0 0; color: #718099; font-size: 13px; line-height: 1.5; }
+.practice-data-note { flex: 0 0 auto; padding: 7px 10px; border: 1px solid #d5e1f0; border-radius: 8px; color: #63738d; background: #f7f9fd; font-size: 11px; }
+.practice-cafe-notice { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 12px; margin: 0; border: 1px solid #a5d7be; border-radius: 9px; color: #16764e; background: #f1fbf6; font-size: 13px; }
+.practice-cafe-notice > svg { width: 16px; height: 16px; }
+.practice-cafe-notice button { display: grid; place-items: center; width: 27px; height: 27px; margin-left: auto; border: 0; border-radius: 6px; color: #16764e; background: transparent; cursor: pointer; }
+.practice-cafe-notice button:hover { background: #e0f4e9; }
+.practice-cafe-notice button svg { width: 15px; height: 15px; }
+.practice-cafe-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 17px; border: 1px solid #d5e1f0; border-radius: 11px; background: #f5f8fd; }
+.practice-cafe-toolbar > span { color: #6d7d96; font-size: 12px; white-space: nowrap; }
+.practice-cafe-search { width: min(370px, 100%); min-height: 39px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid #bfd0e6; border-radius: 8px; color: #70819b; background: #fff; }
+.practice-cafe-search:focus-within { border-color: #4d89df; box-shadow: 0 0 0 3px #4d89df20; }
+.practice-cafe-search svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.practice-cafe-search input { width: 100%; min-width: 0; border: 0; outline: 0; color: #263650; background: transparent; font: 13px 'IBM Plex Sans', Arial, sans-serif; }
+.practice-cafe-layout { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(270px, .9fr); align-items: start; gap: 16px; }
+.practice-catalog, .practice-cart { min-width: 0; padding: 17px; border: 1px solid #c9d7eb; border-radius: 12px; background: #fff; }
+.practice-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+.practice-section-heading h3, .practice-cart h2 { margin: 0; color: #20314c; font-size: 15px; }
+.practice-section-heading span { color: #8794a8; font-size: 11px; }
+.practice-product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.practice-product-card { display: grid; gap: 10px; min-width: 0; padding: 13px; border: 1px solid #e0e8f2; border-radius: 10px; background: #fff; }
+.practice-product-card-top, .practice-product-card-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.practice-product-icon, .practice-cart-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; color: #20579c; background: #eaf1fc; }
+.practice-product-icon svg, .practice-cart-icon svg { width: 17px; height: 17px; }
+.practice-product-stock { color: #16764e; font-size: 10px; }
+.practice-product-stock.is-empty { color: #a34545; }
+.practice-product-card h3 { overflow: hidden; margin: 0; color: #243550; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.practice-product-card-bottom > strong { color: #17233b; font-size: 14px; }
+.practice-product-card-bottom button, .practice-cart-clear { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 30px; padding: 5px 8px; border: 1px solid #20579c; border-radius: 7px; color: #fff; background: #20579c; font: 600 10px 'IBM Plex Sans', Arial, sans-serif; cursor: pointer; }
+.practice-product-card-bottom button:hover:not(:disabled), .practice-cart-clear:hover { background: #18477f; }
+.practice-product-card-bottom button:disabled { border-color: #d6deea; color: #8b98aa; background: #edf1f6; cursor: not-allowed; }
+.practice-product-card-bottom button svg { width: 13px; height: 13px; }
+.practice-cafe-empty, .practice-cart-empty { padding: 20px 5px; margin: 0; color: #74839a; text-align: center; font-size: 13px; }
+.practice-cart { position: sticky; top: 16px; }
+.practice-cart-heading { display: flex; align-items: center; gap: 10px; padding-bottom: 13px; border-bottom: 1px solid #e2eaf4; }
+.practice-cart-heading > div { display: grid; gap: 3px; }
+.practice-cart-heading > div > span { color: #74839a; font-size: 11px; }
+.practice-cart-lines { display: grid; margin: 0; padding: 3px 0 0; list-style: none; }
+.practice-cart-lines li { display: flex; align-items: flex-start; justify-content: space-between; gap: 9px; padding: 12px 0; border-bottom: 1px solid #edf1f6; }
+.practice-cart-lines li > div:first-child { display: grid; gap: 4px; min-width: 0; }
+.practice-cart-lines li > div:first-child strong { color: #263650; font-size: 12px; }
+.practice-cart-lines li > div:first-child span { color: #74839a; font-size: 11px; }
+.practice-cart-line-total { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; color: #263650; font-size: 11px; }
+.practice-cart-line-total button { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid #e7caca; border-radius: 6px; color: #a84545; background: #fff; cursor: pointer; }
+.practice-cart-line-total button svg { width: 13px; height: 13px; }
+.practice-cart-total { display: flex; justify-content: space-between; gap: 10px; padding: 14px 0 12px; color: #263650; font-size: 13px; }
+.practice-cart-total strong { font-size: 16px; }
+.practice-cart-clear { width: 100%; min-height: 34px; color: #20579c; background: #fff; font-size: 11px; }
+.practice-learning-notes { overflow: hidden; border: 1px solid #c9d7eb; border-radius: 11px; background: #fff; }
+.practice-learning-notes summary { padding: 14px 17px; color: #25456f; font-size: 13px; font-weight: 600; cursor: pointer; }
+.practice-learning-notes[open] summary { border-bottom: 1px solid #e0e8f2; }
+.practice-notes-content { display: grid; gap: 10px; padding: 16px 18px 18px; color: #53627b; font-size: 12px; line-height: 1.65; }
+.practice-notes-content h3 { margin: 5px 0 0; color: #263650; font-size: 14px; }
+.practice-notes-content p, .practice-notes-content ul { margin: 0; }
+.practice-notes-content ul { padding-left: 19px; }
+.practice-props-table-wrap { overflow-x: auto; }
+.practice-props-table { width: 100%; border-collapse: collapse; text-align: left; }
+.practice-props-table th { padding: 8px 10px; color: #fff; background: #1f5597; font-size: 11px; }
+.practice-props-table td { padding: 8px 10px; border-bottom: 1px solid #e1e8f1; color: #53627b; }
+.practice-props-table code, .practice-notes-content code { color: #1f5597; font-family: Consolas, monospace; }
+.practice-notes-content pre { overflow-x: auto; margin: 0; padding: 11px 13px; border-radius: 8px; color: #e7eef9; background: #101b2c; font-size: 11px; }
+@media (max-width: 900px) { .practice-cafe-layout { grid-template-columns: minmax(0, 1fr); } .practice-cart { position: static; } }
+@media (max-width: 580px) {
+  .practice-cafe-heading { flex-direction: column; }
+  .practice-cafe-toolbar { align-items: stretch; flex-direction: column; }
+  .practice-cafe-search { width: 100%; }
+  .practice-product-grid { grid-template-columns: minmax(0, 1fr); }
+  .practice-props-table { min-width: 520px; }
+}
