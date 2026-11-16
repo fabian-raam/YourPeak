@@ -8,6 +8,7 @@ import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.data.repository.RutinaRepository
 import com.ramirez.yourpeak.data.repository.NutricionRepository
 import com.ramirez.yourpeak.data.repository.MembresiaClienteRepository
+import com.ramirez.yourpeak.data.repository.ProgresoRepository
 import com.ramirez.yourpeak.data.session.SessionManager
 
 /** Crea una sola vez las dependencias compartidas por las pantallas. */
@@ -25,6 +26,8 @@ class YourPeakApp : Application() {
         private set
     lateinit var membresiaClienteRepository: MembresiaClienteRepository
         private set
+    lateinit var progresoRepository: ProgresoRepository
+        private set
     lateinit var sessionManager: SessionManager
         private set
 
@@ -37,6 +40,7 @@ class YourPeakApp : Application() {
         rutinaRepository = RutinaRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         nutricionRepository = NutricionRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         membresiaClienteRepository = MembresiaClienteRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
+        progresoRepository = ProgresoRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         sessionManager = SessionManager(this, RetrofitClient.gson)
     }
 }

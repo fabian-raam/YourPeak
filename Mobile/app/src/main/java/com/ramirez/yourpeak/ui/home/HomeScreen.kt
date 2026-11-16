@@ -118,6 +118,7 @@ fun HomeScreen(
                                 rutinaRepository = app?.rutinaRepository,
                                 nutricionRepository = app?.nutricionRepository,
                                 membresiaClienteRepository = app?.membresiaClienteRepository,
+                                progresoRepository = app?.progresoRepository,
                                 alIrADisponibilidad = {
                                     viewModel.seleccionarSeccion(SeccionCliente.DISPONIBILIDAD)
                                 }
@@ -140,6 +141,7 @@ private fun ContenidoSeccion(
     rutinaRepository: com.ramirez.yourpeak.data.repository.RutinaRepository?,
     nutricionRepository: com.ramirez.yourpeak.data.repository.NutricionRepository?,
     membresiaClienteRepository: com.ramirez.yourpeak.data.repository.MembresiaClienteRepository?,
+    progresoRepository: com.ramirez.yourpeak.data.repository.ProgresoRepository?,
     alIrADisponibilidad: () -> Unit
 ) {
     when (seccion) {
@@ -183,7 +185,9 @@ private fun ContenidoSeccion(
             titulo = "Nutrición",
             descripcion = "Aquí podrás registrar tus alimentos y revisar tus consumos diarios."
         )
-        SeccionCliente.PROGRESO -> SeccionProximamente(
+        SeccionCliente.PROGRESO -> progresoRepository?.let {
+            ProgresoScreen(usuario.idUsuario, it)
+        } ?: SeccionProximamente(
             titulo = "Mi progreso",
             descripcion = "Aquí podrás registrar tu peso y consultar su evolución."
         )

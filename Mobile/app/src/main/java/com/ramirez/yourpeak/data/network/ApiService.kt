@@ -11,6 +11,8 @@ import com.ramirez.yourpeak.data.model.RegistrarIngestaRequest
 import com.ramirez.yourpeak.data.model.ResumenNutricionalResponse
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.model.RutinaResponse
+import com.ramirez.yourpeak.data.model.RegistroProgresoRequest
+import com.ramirez.yourpeak.data.model.RegistroProgresoResponse
 import com.ramirez.yourpeak.data.model.RegistroRequest
 import com.ramirez.yourpeak.data.model.RegistroResponse
 import retrofit2.Response
@@ -115,4 +117,19 @@ interface ApiService {
         @Header("X-Client-User-Id") idUsuario: Long,
         @Path("idIngesta") idIngesta: Long
     ): Response<Unit>
+
+    /** Consulta el historial de peso del cliente autenticado. */
+    @GET("api/cliente/progreso")
+    suspend fun consultarProgreso(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long
+    ): Response<List<RegistroProgresoResponse>>
+
+    /** Registra una medición nueva de peso para el cliente autenticado. */
+    @POST("api/cliente/progreso/peso")
+    suspend fun registrarPeso(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Body request: RegistroProgresoRequest
+    ): Response<RegistroProgresoResponse>
 }
