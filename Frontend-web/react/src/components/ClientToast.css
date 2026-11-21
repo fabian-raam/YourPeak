@@ -1,0 +1,73 @@
+.client-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(420px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 18px 14px 20px 18px;
+  overflow: hidden;
+  background: #fff;
+  color: #101d35;
+  border: 1px solid #dce3ef;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px #0b152629;
+  transform-origin: bottom right;
+  animation: client-toast-enter 360ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.client-toast-leaving { animation: client-toast-exit 220ms ease-in both; pointer-events: none; }
+.client-toast-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #15803d;
+  background: #e4f8eb;
+}
+.client-toast-copy { flex: 1; min-width: 0; }
+.client-toast-copy strong { display: block; font-size: 16px; line-height: 1.4; }
+.client-toast-copy p { margin: 4px 0 0; color: #536783; font-size: 14px; line-height: 1.45; }
+.client-toast-close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #62728b;
+  cursor: pointer;
+}
+.client-toast-close:hover { background: #eef2f8; }
+.client-toast-close:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.client-toast-timer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: #22c55e;
+  transform-origin: left;
+  animation: client-toast-countdown 4s linear forwards;
+}
+@keyframes client-toast-enter {
+  0% { opacity: 0; transform: translateY(24px) scale(.92); }
+  70% { opacity: 1; transform: translateY(-2px) scale(1.015); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes client-toast-exit {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(12px) scale(.96); }
+}
+@keyframes client-toast-countdown { to { transform: scaleX(0); } }
+@media (max-width: 600px) {
+  .client-toast { right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .client-toast, .client-toast-timer { animation: none; }
+}

@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import { getClientProfile, saveClientProfile } from '../services/clientProfile'
@@ -87,7 +88,7 @@ export default function ClientInitialProfile({ user, onExpired }) {
       </div>
 
       {error && <div className="initial-profile-alert" role="alert">{error}</div>}
-      {notice && <div className="initial-profile-notice" role="status">{notice}</div>}
+      {notice && <ClientToast title="Perfil guardado" message={notice} onClose={() => setNotice('')} />}
       {loading ? <p className="initial-profile-loading" role="status">Cargando tu perfil…</p> :
         <form className="initial-profile-form" onSubmit={submit}>
           <div className="initial-profile-fields">

@@ -52,17 +52,10 @@ export default function ClientLayout({ user, section, onNavigate, onLogout, logo
         {link('progreso', <><Icon name="activity" /> Mi progreso</>)}
         {link('membresia', <><Icon name="card" /> Mi membresía</>)}
       </nav>
-      <div className="client-sidebar-status">
-        <strong>Membresía {membershipStatus}</strong>
-        {user?.membresia?.fechaVencimiento && <span>Vence el {membershipDate(user.membresia.fechaVencimiento)}</span>}
-      </div>
-    </aside>
-
-    <main className="client-workspace">
-      <header className="client-header">
-        <div className="client-heading">
-          <h1 id="client-page-title" ref={heading} tabIndex={-1}>{title}</h1>
-          <p>{subtitle}</p>
+      <div className="client-sidebar-footer">
+        <div className="client-sidebar-status">
+          <strong>Membresía {membershipStatus}</strong>
+          {user?.membresia?.fechaVencimiento && <span>Vence el {membershipDate(user.membresia.fechaVencimiento)}</span>}
         </div>
         <details className="client-account" ref={accountMenu}
           onBlur={event => {
@@ -83,6 +76,13 @@ export default function ClientLayout({ user, section, onNavigate, onLogout, logo
             </button>
           </div>
         </details>
+      </div>
+    </aside>
+
+    <main className="client-workspace">
+      <header className="client-header">
+        <h1 id="client-page-title" ref={heading} tabIndex={-1}>{title}</h1>
+        <p>{subtitle}</p>
       </header>
       {error && <p className="client-error" role="alert">{error}</p>}
       {children}

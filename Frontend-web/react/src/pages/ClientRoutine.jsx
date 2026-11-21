@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { getRoutine, getRoutineExercises, saveRoutine } from '../services/routine'
@@ -215,8 +216,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
   return <section className="client-routine" aria-labelledby="client-page-title">
 
     {error && <p className="routine-error" role="alert">{error}</p>}
-    {notice && <div className="routine-notice" role="status"><Icon name="check" /><span>{notice}</span>
-      <button type="button" aria-label="Cerrar mensaje" onClick={() => setNotice('')}><Icon name="close" /></button></div>}
+    {notice && <ClientToast title="Rutina guardada" message={notice} onClose={() => setNotice('')} />}
 
     <section className="routine-week" aria-label="Calendario semanal" aria-busy={loading}>
       <div className="routine-week-toolbar">

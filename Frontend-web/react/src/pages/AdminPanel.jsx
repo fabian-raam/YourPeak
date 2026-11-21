@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import ApprovalDialog from '../components/ApprovalDialog'
@@ -81,7 +82,7 @@ export default function AdminPanel({ section, onNavigate, pendingCount, onExpire
           <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
         <UserStats active={activeCount} pending={clients.length} inactive={inactiveCount} loading={loading} />
-        {notice && <p className="alert success" role="status">{notice}</p>}
+        {notice && <ClientToast key={notice} title="Usuario aprobado" message={notice} onClose={() => setNotice('')} />}
         {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}{!forbidden && <button className="text-button" onClick={reload} disabled={loading}>Volver a intentar</button>}</p>}
         <section className="users-panel requests-list-panel" aria-label="Solicitudes de registro" aria-busy={loading}>
           <UserManagementTabs section={section} onNavigate={onNavigate} pendingCount={pendingCount} />

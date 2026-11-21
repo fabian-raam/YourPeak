@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
+import ClientToast from '../components/ClientToast'
 import UserManagementTabs from './UserManagementTabs'
 import UserStats from './UserStats'
 import { listPending } from '../services/admin'
@@ -17,14 +18,6 @@ const daysUntil = value => {
   today.setHours(0, 0, 0, 0)
   const expiry = new Date(`${value}T00:00:00`)
   return Math.ceil((expiry - today) / 86400000)
-}
-
-function DismissibleNotice({ message, onDismiss }) {
-  if (!message) return null
-  return <div className="alert success dismissible-alert" role="status">
-    <span>{message}</span>
-    <button type="button" aria-label="Cerrar mensaje" onClick={onDismiss}>×</button>
-  </div>
 }
 
 export default function ClientMemberships({ section, onNavigate, pendingCount, onPendingCount, onExpired, logoutError }) {
@@ -109,7 +102,6 @@ export default function ClientMemberships({ section, onNavigate, pendingCount, o
     </div>
     <UserStats active={clients.length} pending={pendingRequests.length} inactive={inactiveClients.length} loading={loading} />
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
-    {!selected && <DismissibleNotice message={notice} onDismiss={() => setNotice('')} />}
     <section className="users-panel client-list-panel" aria-label="Listado de clientes" aria-busy={loading}>
       <UserManagementTabs section={section} onNavigate={onNavigate} pendingCount={pendingCount} />
       <div className="client-filter-row">
@@ -153,7 +145,8 @@ export default function ClientMemberships({ section, onNavigate, pendingCount, o
         <button className="icon-button" aria-label="Cerrar" disabled={busy} onClick={() => setSelected(null)}>×</button>
       </header>
       {error && <p className="alert" role="alert">{error}</p>}
-      <DismissibleNotice message={notice} onDismiss={() => setNotice('')} />
+      {notice && <ClientToast title="Membresía renovada" message={notice}
+        inline onClose={() => setNotice('')} />}
       <section className="membership-timeline" aria-labelledby="membership-timeline-title">
         <h3 id="membership-timeline-title">Línea de tiempo</h3>
         {history.length ? <div className="membership-timeline-list">{history.map(period => {
