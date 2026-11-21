@@ -67,20 +67,15 @@
 
 .client-nav-link:hover { background: #182642; color: #fff; }
 .client-nav-link[aria-current='page'] { background: var(--brand-primary); color: #fff; }
-.client-sidebar-status { display: grid; gap: 4px; margin-top: auto; border-top: 1px solid #25324a; padding-top: 16px; font-size: 14px; }
+.client-sidebar-footer { margin-top: auto; min-width: 0; }
+.client-sidebar-status { display: grid; gap: 4px; padding: 0 0 14px; border-bottom: 1px solid #25324a; margin-bottom: 8px; font-size: 14px; }
 
 .client-workspace {
   --client-gutter: clamp(26px, 3vw, 56px);
   min-width: 0;
   padding: 36px var(--client-gutter) 48px;
 }
-.client-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px 24px;
-  margin-bottom: 24px;
-}
+.client-header { margin-bottom: 24px; }
 .client-header h1, .client-card h2 { margin: 0; overflow-wrap: anywhere; }
 .client-header h1, .client-feature h2, .client-card-heading h2 {
   font-family: 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
@@ -93,7 +88,7 @@
 .client-header p, .client-card p { margin: 8px 0 0; color: var(--client-muted); }
 .client-header p::first-letter { text-transform: uppercase; }
 
-.client-account { position: relative; z-index: 2; min-width: 0; max-width: 190px; justify-self: end; }
+.client-account { position: relative; z-index: 2; min-width: 0; }
 .client-account summary {
   display: flex;
   align-items: center;
@@ -104,9 +99,11 @@
   cursor: pointer;
 }
 .client-account summary::-webkit-details-marker { display: none; }
-.client-account summary:hover, .client-account[open] summary { background: var(--client-tint); }
+.client-account summary:hover, .client-account[open] summary { background: #182642; }
+.client-account summary:focus-visible { outline: 2px solid #a4c5ff; outline-offset: 2px; }
 .client-account summary > svg { flex-shrink: 0; }
-.client-account-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.client-account:not([open]) summary > svg { transform: rotate(180deg); }
+.client-account-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
 
 .client-avatar, .client-card-icon {
   display: inline-grid;
@@ -123,12 +120,12 @@
 .client-account-links {
   position: absolute;
   z-index: 1;
-  inset: calc(100% + 8px) 0 auto auto;
-  width: 192px;
+  inset: auto 0 calc(100% + 8px) 0;
   padding: 6px;
   border: 1px solid var(--client-line);
   border-radius: 10px;
   background: #fff;
+  color: var(--client-ink);
   box-shadow: 0 8px 24px #0b14271a;
 }
 .client-account-links a, .client-account-links button {
@@ -188,17 +185,19 @@
 
 @media (max-width: 660px) {
   .client-layout { display: block; }
-  .client-sidebar { position: static; min-height: 0; gap: 14px; padding: 14px 20px; }
-  .client-sidebar nav { display: flex; flex-wrap: wrap; }
+  .client-sidebar { position: static; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; min-height: 0; gap: 14px; padding: 14px 20px; }
+  .client-sidebar nav { grid-column: 1 / -1; display: flex; flex-wrap: wrap; }
   .client-nav-group, .client-nav-submenu { display: contents; }
   .client-nav-heading { display: none; }
   .client-nav-submenu .client-nav-link { min-height: 36px; padding: 8px 10px; }
   .client-nav-link { padding: 8px 10px; }
   .client-sidebar-status { display: none; }
+  .client-sidebar-footer { grid-area: 1 / 2; justify-self: end; width: min(100%, 190px); margin: 0; }
+  .client-account summary { gap: 6px; padding: 4px; }
+  .client-account:not([open]) summary > svg { transform: none; }
+  .client-account[open] summary > svg { transform: rotate(180deg); }
+  .client-account-links { inset: calc(100% + 8px) 0 auto auto; width: 192px; }
   .client-workspace { padding: 20px 20px 36px; }
-  .client-header { grid-template-columns: minmax(0, 1fr); }
-  .client-account { grid-row: 1; }
-  .client-account summary { gap: 5px; padding: 4px; }
   .client-card { padding: 22px; }
   .client-facts { grid-template-columns: 1fr; }
 }

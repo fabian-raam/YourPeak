@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { getAvailability, saveAvailability } from '../services/availability'
@@ -128,10 +129,7 @@ export default function ClientAvailability({ onExpired }) {
   }
 
   return <section className="client-availability" aria-labelledby="client-page-title">
-    {noticeVisible && <div className="availability-notice" role="status">
-      <Icon name="check" /><span>{notice}</span>
-      <button type="button" aria-label="Cerrar mensaje" onClick={() => setNoticeVisible(false)}><Icon name="close" /></button>
-    </div>}
+    {noticeVisible && <ClientToast title="Disponibilidad guardada" message={notice} onClose={() => setNoticeVisible(false)} />}
     {error && <p className="availability-error" role="alert">{error}</p>}
 
     <form className="availability-panel" onSubmit={save} aria-busy={loading || saving}>

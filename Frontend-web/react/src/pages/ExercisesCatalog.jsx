@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import ExerciseDialog from '../components/ExerciseDialog'
@@ -89,7 +90,7 @@ export default function ExercisesCatalog({ onExpired, logoutError }) {
       <article><span className="stat-icon green"><Icon name="check" /></span><div><span>Disponibles</span><strong>{count(activeCount)}</strong><small>Activos para asignar</small></div></article>
       <article><span className="stat-icon neutral"><Icon name="pause" /></span><div><span>Inactivos</span><strong>{count(exercises.length - activeCount)}</strong><small>Conservados en el catálogo</small></div></article>
     </section>
-    {notice && <p className="alert success" role="status">{notice}</p>}
+    {notice && <ClientToast key={notice} title="Ejercicios" message={notice} onClose={() => setNotice('')} />}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
     <section className="users-panel" aria-label="Catálogo de ejercicios" aria-busy={loading}>
       <div className="users-panel-heading"><h2 className="sr-only" id="exercises-heading" tabIndex="-1">Catálogo de ejercicios</h2>

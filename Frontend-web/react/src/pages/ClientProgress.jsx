@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import { getProgressHistory, recordWeight } from '../services/progress'
@@ -82,9 +83,7 @@ export default function ClientProgress({ onExpired, onNavigate }) {
   return <section className="client-progress" aria-labelledby="client-page-title">
 
     {error && <p className="progress-error" role="alert">{error}</p>}
-    {notice && <div className="progress-notice" role="status"><Icon name="check" /><span>{notice}</span>
-      <button type="button" aria-label="Cerrar mensaje" onClick={() => setNotice('')}><Icon name="close" /></button>
-    </div>}
+    {notice && <ClientToast title="Peso registrado" message={notice} onClose={() => setNotice('')} />}
 
     <section className="progress-stats" aria-label="Resumen de peso">
       <article><span className="progress-stat-icon"><Icon name="activity" /></span>
