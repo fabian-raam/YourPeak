@@ -140,6 +140,66 @@
 .primary.compact { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; min-height: 43px; padding: 10px 16px; margin: 0; width: auto; border-radius: 8px; }
 .admin-main .alert { font-size: 12px; }
 
+.light-workspace .approval-dialog:is(.plan-dialog:not(.client-membership-dialog), .exercise-dialog, .food-dialog) {
+  color-scheme: light;
+  color: #14213d;
+  background: #fff;
+  border-color: #b9cce8;
+  border-radius: 18px;
+  box-shadow: 0 28px 80px #10213e40;
+
+  &::backdrop { background: #0c1c3680; backdrop-filter: blur(5px); }
+  & .dialog-top .eyebrow { color: #1f5597; }
+  & .icon-button { color: #526176; }
+  & h2 {
+    max-width: none;
+    padding: 0 0 16px 18px;
+    border-bottom: 1px solid #d3e0f2;
+    color: #14213d;
+    position: relative;
+  }
+  & h2::before {
+    content: '';
+    position: absolute;
+    inset: .12em auto auto 0;
+    width: 5px;
+    height: .85em;
+    border-radius: 5px;
+    background: #1f5597;
+  }
+  & :is(.plan-summary, .exercise-summary, .food-summary) { border-color: #d3e0f2; }
+  & :is(.plan-summary, .exercise-summary, .food-summary) h3,
+  & .detail-grid dd,
+  & .field label { color: #14213d; }
+  & .detail-grid dt,
+  & .food-summary > div > span,
+  & .field small:not(.field-error),
+  & input::placeholder,
+  & textarea::placeholder { color: #526176; opacity: 1; }
+  & .stat-icon { color: #1f5597; background: #e8f0fc; }
+  & .plan-status.is-active { color: #167044; background: #eaf6ef; border-color: #b7dfc5; }
+  & .plan-status.is-inactive { color: #526176; background: #eef1f5; border-color: #d5dbe3; }
+  & :is(.plan-info, .food-form-note) {
+    color: #405571;
+    background: #f1f6ff;
+    border-color: #d3e0f2;
+    border-radius: 9px;
+  }
+  & .input-wrap { background: #fff; border-color: #a9c3e8; color: #14213d; border-radius: 10px; }
+  & .input-wrap :is(input, select, textarea) { color: #14213d; }
+  & .input-wrap select option { color: #14213d; background: #fff; }
+  & .input-wrap:focus-within { border-color: #1f5597; box-shadow: 0 0 0 2px #1f559726; }
+  & .input-wrap:has(:disabled) { opacity: 1; background: #f1f5fa; }
+  & .input-wrap.invalid { border-color: #c95d69; }
+  & .field-error { color: #8f2824; }
+  & .alert { color: #8f2824; background: #fff0ee; border-color: #e6a8a5; }
+  & .dialog-actions button { min-height: 44px; border-radius: 10px; }
+  & .dialog-actions .secondary-button { color: #174ea6; background: #fff; border-color: #a9c3e8; }
+  & .dialog-actions .secondary-button:hover:not(:disabled) { background: #f1f6ff; border-color: #7fa5da; }
+  & .dialog-actions .primary:not(.catalog-deactivate) { color: #fff; background: #1f5597; border-color: #427fce; }
+  & .dialog-actions .primary:not(.catalog-deactivate):hover:not(:disabled) { background: #305e9f; }
+}
+
 @media (max-width: 1250px) {
   .admin-layout { grid-template-columns: 220px minmax(0, 1fr); }
   .admin-sidebar { padding-inline: 12px; }

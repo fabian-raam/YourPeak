@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import FoodDialog from '../components/FoodDialog'
@@ -90,7 +91,7 @@ export default function FoodsCatalog({ onExpired, logoutError }) {
     <section className="admin-stats foods-stats catalog-stats" aria-label="Resumen del catálogo de alimentos">
       <article><span className="stat-icon accent"><Icon name="food" /></span><div><span>Total de alimentos</span><strong>{count}</strong><small>Valores nutricionales por porción base</small></div></article>
     </section>
-    {notice && <p className="alert success" role="status">{notice}</p>}
+    {notice && <ClientToast key={notice} title="Alimentos" message={notice} onClose={() => setNotice('')} />}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
     <section className="users-panel" aria-label="Catálogo de alimentos" aria-busy={loading}>
       <div className="users-panel-heading"><h2 className="sr-only" id="foods-heading" tabIndex="-1">Catálogo de alimentos</h2>
