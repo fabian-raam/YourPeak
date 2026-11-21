@@ -1,3 +1,4 @@
+import ClientToast from '../components/ClientToast'
 import { useEffect, useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import NutritionSummary from '../components/NutritionSummary'
@@ -180,10 +181,7 @@ export default function ClientNutrition({ onExpired }) {
   }
 
   return <section className="client-nutrition" aria-labelledby="client-page-title">
-    {notice && <div className="nutrition-notice" role="status">
-      <Icon name="check" /><span>{notice}</span>
-      <button type="button" aria-label="Cerrar mensaje" onClick={() => setNotice('')}><Icon name="close" /></button>
-    </div>}
+    {notice && <ClientToast title="Registro actualizado" message={notice} onClose={() => setNotice('')} />}
     {(error || dayError || (showRegister && catalogError)) && <p className="nutrition-error" role="alert">{error || dayError || catalogError}</p>}
 
     <div className="nutrition-toolbar">

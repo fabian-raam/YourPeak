@@ -6,6 +6,7 @@
 .membership-current { color: #9ae0c1; border-color: #5ab99144; background: #5ab99112; }
 .membership-expired { color: #f3b2a8; border-color: #ed806844; background: #ed806812; }
 .client-membership-dialog { position: fixed; inset: 0; margin: auto; }
+.client-membership-dialog[open] { animation-fill-mode: backwards; }
 .client-membership-email { margin: -15px 0 20px; color: #a7bbd5; font-size: 13px; overflow-wrap: anywhere; }
 .membership-history { display: grid; gap: 9px; max-height: 220px; overflow: auto; margin: 18px 0 23px; }
 .membership-history article { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 12px; border: 1px solid #34465f; border-radius: 6px; }
@@ -138,11 +139,6 @@
 .renewal-submit { color: #fff; background: #1f5597; border-color: #1f5597 !important; }
 .renewal-submit:hover:not(:disabled) { background: #305e9f; }
 .client-membership-dialog .alert { margin: 0 0 16px; }
-.light-workspace .alert.success.dismissible-alert { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-color: #8bc6a1; border-radius: 10px; color: #155b36; background: #eaf7ef; font-size: 14px; font-weight: 600; line-height: 1.5; }
-.dismissible-alert > span { min-width: 0; }
-.dismissible-alert > button { display: grid; place-items: center; width: 30px; height: 30px; flex: 0 0 30px; padding: 0; border: 0; border-radius: 7px; color: #155b36; background: transparent; font: inherit; font-size: 22px; line-height: 1; cursor: pointer; }
-.dismissible-alert > button:hover { background: #d5efdf; }
-.dismissible-alert > button:focus-visible { outline: 2px solid #198754; outline-offset: 2px; }
 
 @media (max-width: 560px) {
   .client-membership-dialog { padding: 22px 18px; border-radius: 18px; }

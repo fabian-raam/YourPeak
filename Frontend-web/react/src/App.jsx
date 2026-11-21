@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Field from './components/Field'
 import { request } from './services/auth'
+import { listPending } from './services/admin'
 import AuthHero from './components/AuthHero'
 import UserManagement from './pages/UserManagement'
 import MembershipPlans from './pages/MembershipPlans'
@@ -91,6 +92,20 @@ export default function App() {
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
   }, [])
+
+  // Usuarios y Clientes ya cargan las solicitudes como parte de sus listas.
+  useEffect(() => {
+    if (!isAdmin || pendingCount !== null || adminSection === 'usuarios' || adminSection === 'clientes') return
+
+    let active = true
+    listPending()
+      .then(requests => { if (active) setPendingCount(requests.length) })
+      .catch(err => {
+        if (active && err.status === 401) sessionExpired()
+      })
+    return () => { active = false }
+  }, [isAdmin, pendingCount, adminSection, sessionExpired])
+
   useEffect(() => {
     const adminTitles = { membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', practica: 'Práctica React', usuarios: 'Usuarios' }
     const title = isAdmin ? `${adminTitles[adminSection]} · Administración`
