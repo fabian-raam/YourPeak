@@ -6,24 +6,24 @@ import androidx.compose.ui.graphics.Color
 // degradado y azul como color de la marca en botones, enlaces y acentos.
 
 // Fondos y bordes
-val Marino = Color(0xFF10131C)
-val TarjetaInicio = Color(0xFF1C1F30)
-val TarjetaFin = Color(0xFF161A26)
-val TarjetaBorde = Color(0xFF262A3A)
-val Campo = Color(0xFF1E2233)
-val CampoBorde = Color(0xFF30354A)
+val Marino = Color(0xFF050506)
+val TarjetaInicio = Color(0xFF111216)
+val TarjetaFin = Color(0xFF090A0C)
+val TarjetaBorde = Color(0xFF25272B)
+val Campo = Color(0xFF121315)
+val CampoBorde = Color(0xFF2B2D32)
 
 // Textos
 val Texto = Color(0xFFF8F9FA)
-val TextoSuave = Color(0xFFB2B5C6)
-val TextoPlaceholder = Color(0xFF7C8196)
+val TextoSuave = Color(0xFFB8BCC6)
+val TextoPlaceholder = Color(0xFF858A96)
 
 // Azules de la marca
-val Azul = Color(0xFF1D72FF)
-val AzulAcento = Color(0xFF2F7BFF)
-val AzulEnlace = Color(0xFF97A8FF)
-val AzulFondo = Color(0xFF1C2747)
-val AzulClaro = Color(0xFFA9C4FF)
+val Azul = Color(0xFF2677FF)
+val AzulAcento = Color(0xFF3484FF)
+val AzulEnlace = Color(0xFF4D8CFF)
+val AzulFondo = Color(0xFF16233D)
+val AzulClaro = Color(0xFFADCAFF)
 
 // Avisos
 val ErrorTexto = Color(0xFFF4A7A9)
