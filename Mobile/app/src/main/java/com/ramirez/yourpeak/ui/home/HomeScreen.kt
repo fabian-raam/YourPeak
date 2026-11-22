@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -46,6 +49,7 @@ import com.ramirez.yourpeak.ui.components.IconoInicio
 import com.ramirez.yourpeak.ui.components.IconoMembresia
 import com.ramirez.yourpeak.ui.components.IconoNutricion
 import com.ramirez.yourpeak.ui.components.IconoProgreso
+import com.ramirez.yourpeak.ui.components.IconoPerfil
 import com.ramirez.yourpeak.ui.components.NotaPie
 import com.ramirez.yourpeak.ui.components.TarjetaAuth
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
@@ -65,8 +69,27 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("YOUR PEAK") },
-                actions = { TextButton(onClick = alCerrarSesion) { Text("Cerrar sesión") } }
+                title = {
+                    Text(
+                        text = "YOUR PEAK",
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.5.sp
+                    )
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.seleccionarSeccion(SeccionCliente.PERFIL) }) {
+                        Surface(
+                            modifier = Modifier.size(44.dp),
+                            shape = CircleShape,
+                            color = Color(0xFF202020),
+                            border = BorderStroke(1.dp, Color(0xFF3A3A3A))
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                IconoPerfil(Color.White, Modifier.size(23.dp))
+                            }
+                        }
+                    }
+                }
             )
         },
         bottomBar = {
@@ -122,6 +145,7 @@ fun HomeScreen(
                             nutricionRepository = app?.nutricionRepository,
                             membresiaClienteRepository = app?.membresiaClienteRepository,
                             progresoRepository = app?.progresoRepository,
+                            alCerrarSesion = alCerrarSesion,
                             alIrADisponibilidad = {
                                 viewModel.seleccionarSeccion(SeccionCliente.DISPONIBILIDAD)
                             }
@@ -234,6 +258,7 @@ private fun ContenidoSeccion(
     nutricionRepository: com.ramirez.yourpeak.data.repository.NutricionRepository?,
     membresiaClienteRepository: com.ramirez.yourpeak.data.repository.MembresiaClienteRepository?,
     progresoRepository: com.ramirez.yourpeak.data.repository.ProgresoRepository?,
+    alCerrarSesion: () -> Unit,
     alIrADisponibilidad: () -> Unit
 ) {
     when (seccion) {
@@ -289,6 +314,17 @@ private fun ContenidoSeccion(
             titulo = "Mi membresía",
             descripcion = "Aquí podrás consultar el estado y vigencia de tu membresía."
         )
+        SeccionCliente.PERFIL -> {
+            EncabezadoTarjeta(
+                etiqueta = "CUENTA DEL CLIENTE",
+                titulo = "Mi perfil",
+                introduccion = "Consulta los datos de tu cuenta Your Peak."
+            )
+            DatoPerfil("Nombre", "${usuario.nombre.orEmpty()} ${usuario.apellido.orEmpty()}".trim())
+            DatoPerfil("Correo", usuario.correo.orEmpty())
+            DatoPerfil("Estado de cuenta", usuario.estado.orEmpty())
+            TextButton(onClick = alCerrarSesion) { Text("Cerrar sesión") }
+        }
     }
 }
 

@@ -103,3 +103,22 @@ fun IconoMembresia(color: Color, modifier: Modifier = Modifier) {
         drawLine(color, Offset(7f * escala, 14f * escala), Offset(10f * escala, 14f * escala), 1.6.dp.toPx(), StrokeCap.Round)
     }
 }
+
+@Composable
+fun IconoPerfil(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier.size(25.dp)) {
+        val escala = size.width / 24f
+        drawCircle(
+            color = color,
+            radius = 3.2f * escala,
+            center = Offset(12f * escala, 8f * escala),
+            style = estiloTrazo(1.8.dp.toPx())
+        )
+        val busto = Path().apply {
+            moveTo(5f * escala, 20f * escala)
+            cubicTo(5.5f * escala, 15.5f * escala, 8f * escala, 13f * escala, 12f * escala, 13f * escala)
+            cubicTo(16f * escala, 13f * escala, 18.5f * escala, 15.5f * escala, 19f * escala, 20f * escala)
+        }
+        drawPath(busto, color, style = estiloTrazo(1.8.dp.toPx()))
+    }
+}

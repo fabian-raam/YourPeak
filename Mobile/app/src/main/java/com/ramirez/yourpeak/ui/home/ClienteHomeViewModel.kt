@@ -14,7 +14,8 @@ enum class SeccionCliente(val titulo: String) {
     DISPONIBILIDAD("Disponibilidad"),
     NUTRICION("Nutrición"),
     PROGRESO("Mi progreso"),
-    MEMBRESIA("Mi membresía")
+    MEMBRESIA("Mi membresía"),
+    PERFIL("Mi perfil")
 }
 
 data class ClienteHomeUiState(
