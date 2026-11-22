@@ -79,23 +79,21 @@ export default function FoodsCatalog({ onExpired, logoutError }) {
 
   const format = value => numberFormat.format(Number(value))
 
-  return <main className="admin-main foods-main">
+  return <main className="admin-main foods-main catalog-main">
     <div className="admin-heading"><div>
-      <h1>Catálogo de alimentos</h1>
+      <h1 id="foods-heading" tabIndex={-1}>Catálogo de alimentos</h1>
       <p>Registra porciones base y consulta sus valores nutricionales.</p></div>
       <div className="admin-heading-actions">
-        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
+        <button className="secondary-button catalog-refresh" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Agregar alimento</button>
       </div>
     </div>
     <section className="admin-stats foods-stats catalog-stats" aria-label="Resumen del catálogo de alimentos">
-      <article><span className="stat-icon accent"><Icon name="food" /></span><div><span>Total de alimentos</span><strong>{count}</strong><small>Valores nutricionales por porción base</small></div></article>
+      <article className="catalog-total"><span className="stat-icon accent"><Icon name="food" /></span><div><span>Total de alimentos</span><strong>{count}</strong><small>Valores nutricionales por porción base</small></div></article>
     </section>
     {notice && <ClientToast key={notice} title="Alimentos" message={notice} onClose={() => setNotice('')} />}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
     <section className="users-panel" aria-label="Catálogo de alimentos" aria-busy={loading}>
-      <div className="users-panel-heading"><h2 className="sr-only" id="foods-heading" tabIndex="-1">Catálogo de alimentos</h2>
-      </div>
       <div className="users-toolbar foods-toolbar">
         <label className="search-input"><Icon name="search" /><input type="search" aria-label="Buscar alimentos"
           placeholder="Buscar por nombre…" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} /></label>
@@ -118,17 +116,17 @@ export default function FoodsCatalog({ onExpired, logoutError }) {
             : <div className="users-table-scroll"><table className="users-table foods-table"><caption className="sr-only">Catálogo de alimentos</caption>
               <thead><tr><th scope="col">Alimento</th><th scope="col">Porción base</th><th scope="col">Energía</th><th scope="col">Proteína</th><th scope="col">Carbohidratos</th><th scope="col">Grasa</th><th scope="col">Acciones</th></tr></thead>
               <tbody>{visible.map(food => <tr key={food.idAlimento}>
-                <td><div className="user-cell"><span className="food-row-icon"><Icon name="food" /></span><div><strong>{food.nombre}</strong><span>Alimento #{food.idAlimento}</span></div></div></td>
+                <td><div className="user-cell"><span className="catalog-row-icon"><Icon name="food" /></span><div><strong>{food.nombre}</strong><span>Alimento #{food.idAlimento}</span></div></div></td>
                 <td>{format(food.porcionBaseG)} g</td><td>{format(food.kcal)} kcal</td>
                 <td>{format(food.proteinaG)} g</td><td>{format(food.carbohidratoG)} g</td><td>{format(food.grasaG)} g</td>
                 <td><div className="plan-actions">
-                  <button className="review-button" onClick={event => openDialog('detail', food.idAlimento, event)}>Ver</button>
-                  <button className="review-button" onClick={event => openDialog('edit', food.idAlimento, event)}>Editar</button>
+                  <button type="button" className="plan-view" aria-label={`Ver ${food.nombre}`} onClick={event => openDialog('detail', food.idAlimento, event)}><Icon name="eye" /> Ver</button>
+                  <button type="button" className="plan-edit" aria-label={`Editar ${food.nombre}`} onClick={event => openDialog('edit', food.idAlimento, event)}><Icon name="edit" /> Editar</button>
                 </div></td>
               </tr>)}</tbody></table></div>}
       <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `${filtered.length} ${filtered.length === 1 ? 'alimento' : 'alimentos'}`}</span>
         <div><button aria-label="Página anterior" disabled={currentPage <= 1 || loading || !!error} onClick={() => setPage(currentPage - 1)}>←</button>
-          <span>{currentPage} / {totalPages}</span><button aria-label="Página siguiente" disabled={currentPage >= totalPages || loading || !!error} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
+          <strong aria-current="page" aria-label={`Página ${currentPage} de ${totalPages}`}>{currentPage}</strong><button aria-label="Página siguiente" disabled={currentPage >= totalPages || loading || !!error} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
     </section>
     <p className="membership-note"><Icon name="shield" /> Los datos nutricionales se guardan por porción base en el catálogo central.</p>
     {selected && <FoodDialog key={`${selected.mode}-${selected.foodId}`} foodId={selected.foodId} initialMode={selected.mode}

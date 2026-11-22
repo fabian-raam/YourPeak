@@ -4,7 +4,7 @@ import Icon from './Icon'
 
 const emptyExercise = {
   nombre: '', idGrupoMuscular: '', idNivelExperiencia: '', idTipoMedicion: '',
-  descripcion: '', equipamiento: '', imagenRuta: '',
+  descripcion: '', equipamiento: '',
 }
 
 export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSaved, onEdit, onExpired, onStale }) {
@@ -45,7 +45,6 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
           idTipoMedicion: String(selected.idTipoMedicion ?? ''),
           descripcion: selected.descripcion ?? '',
           equipamiento: selected.equipamiento ?? '',
-          imagenRuta: selected.imagenRuta ?? '',
         })
       } catch (err) {
         if (!current) return
@@ -99,7 +98,7 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
         idTipoMedicion: Number(form.idTipoMedicion),
         descripcion: form.descripcion.trim() || null,
         equipamiento: form.equipamiento.trim() || null,
-        imagenRuta: form.imagenRuta.trim() || null,
+        imagenRuta: exercise?.imagenRuta ?? null,
       }
       const result = formMode
         ? creating ? await createExercise(datos) : await updateExercise(exerciseId, datos)
@@ -127,7 +126,7 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
     {hint && <small>{hint}</small>}
   </div>
 
-  return <dialog ref={dialog} className="approval-dialog exercise-dialog" aria-labelledby={titleId}
+  return <dialog ref={dialog} className="approval-dialog exercise-dialog catalog-dialog" data-mode={mode} aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); close() }}>
     <div className="dialog-top"><span className="eyebrow">CATÁLOGO DE EJERCICIOS</span>
       <button type="button" className="icon-button" aria-label="Cerrar" disabled={busy} onClick={close}><Icon name="close" /></button></div>
@@ -152,10 +151,7 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
             onChange={change} maxLength={500} rows="3" placeholder="Describe la ejecución o el objetivo del ejercicio." /></div>
           <small>Opcional, máximo 500 caracteres.</small>
         </div>
-        <div className="exercise-select-grid">
-          <div className="field"><label htmlFor="exercise-equipamiento">Equipamiento</label><div className="input-wrap"><input id="exercise-equipamiento" name="equipamiento" value={form.equipamiento} onChange={change} maxLength={100} placeholder="Ej. Barra" /></div><small>Opcional.</small></div>
-          <div className="field"><label htmlFor="exercise-imagenRuta">Ruta de imagen</label><div className="input-wrap"><input id="exercise-imagenRuta" name="imagenRuta" value={form.imagenRuta} onChange={change} maxLength={255} placeholder="/images/sentadilla.png" /></div><small>Opcional; ruta del recurso.</small></div>
-        </div>
+        <div className="field"><label htmlFor="exercise-equipamiento">Equipamiento</label><div className="input-wrap"><input id="exercise-equipamiento" name="equipamiento" value={form.equipamiento} onChange={change} maxLength={100} placeholder="Ej. Barra" /></div><small>Opcional.</small></div>
       </fieldset>}
       {!formMode && exercise && <>
         <div className="exercise-summary"><span className="stat-icon accent"><Icon name="dumbbell" /></span><div><h3>{exercise.nombre}</h3>
@@ -166,15 +162,14 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
           <div><dt>Medición</dt><dd>{exercise.tipoMedicion}</dd></div>
           <div><dt>Equipamiento</dt><dd>{exercise.equipamiento || 'No especificado'}</dd></div>
           {exercise.descripcion && <div className="exercise-description"><dt>Descripción</dt><dd>{exercise.descripcion}</dd></div>}
-          {exercise.imagenRuta && <div className="exercise-description"><dt>Ruta de imagen</dt><dd>{exercise.imagenRuta}</dd></div>}
         </dl>
-        {changingStatus && <p className="plan-info">{active ? 'El ejercicio dejará de estar disponible en el catálogo. Se conservarán sus datos.' : 'El ejercicio volverá a estar disponible en el catálogo.'}</p>}
+        {changingStatus && <p className={active ? "plan-info plan-warning" : "plan-info"}><Icon name={active ? "shield" : "info"} /><span>{active ? 'El ejercicio dejará de estar disponible en el catálogo. Se conservarán sus datos.' : 'El ejercicio volverá a estar disponible en el catálogo.'}</span></p>}
       </>}
       {error && <p className="alert" role="alert">{error}</p>}
       <div className="dialog-actions">
         <button type="button" className="secondary-button" disabled={busy} onClick={close}>{stale ? 'Volver al catálogo' : formMode || changingStatus ? 'Cancelar' : 'Cerrar'}</button>
         {!stale && (formMode || changingStatus) && <button className={changingStatus && active ? 'primary compact catalog-deactivate' : 'primary compact'} type="submit" disabled={busy}>
-          {busy ? 'Guardando…' : creating ? 'Crear ejercicio' : editing ? 'Guardar cambios' : active ? 'Desactivar' : 'Reactivar'}</button>}
+          {busy ? 'Guardando…' : creating ? 'Crear ejercicio' : editing ? 'Guardar cambios' : active ? 'Desactivar' : 'Activar'}</button>}
         {!stale && mode === 'detail' && exercise && <button className="primary compact" type="button" onClick={onEdit}>Editar ejercicio</button>}
       </div>
     </form>}

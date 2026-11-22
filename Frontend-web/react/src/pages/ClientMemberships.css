@@ -1,4 +1,3 @@
-.client-membership-main .users-panel-heading { padding-inline: 22px; }
 .client-state-tabs { display: flex; gap: 8px; padding: 16px 22px 0; }
 .client-state-tabs button { min-height: 38px; padding: 8px 14px; color: #a9bddb; background: #111b2a; border: 1px solid #354861; border-radius: 4px; font: inherit; font-size: 13px; }
 .client-state-tabs button[aria-pressed="true"] { color: #edf4ff; border-color: #6baaff; background: #1a2a42; }

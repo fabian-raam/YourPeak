@@ -119,7 +119,7 @@ export default function FoodDialog({ foodId, initialMode, onClose, onSaved, onEd
     {fields[name] && <small className="field-error" id={`food-${name}-error`}>{fields[name]}</small>}
   </>
 
-  return <dialog ref={dialog} className="approval-dialog food-dialog" aria-labelledby={titleId}
+  return <dialog ref={dialog} className="approval-dialog food-dialog catalog-dialog" data-mode={mode} aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); close() }}>
     <div className="dialog-top"><span className="eyebrow">CATÁLOGO DE ALIMENTOS</span>
       <button type="button" className="icon-button" aria-label="Cerrar" disabled={busy} onClick={close}><Icon name="close" /></button></div>
@@ -143,7 +143,7 @@ export default function FoodDialog({ foodId, initialMode, onClose, onSaved, onEd
             {fieldError(name, name === 'porcionBaseG' ? `Mayor que 0; máximo ${maxInteger} dígitos enteros y 2 decimales.` : `Por porción base, en ${unit}; admite hasta 2 decimales.`)}
           </div>)}
         </div>
-        <p className="food-form-note">Los valores de energía y macronutrientes corresponden a la porción base indicada.</p>
+        <p className="food-form-note"><Icon name="info" /><span>Los valores de energía y macronutrientes corresponden a la porción base indicada.</span></p>
       </fieldset>}
       {!formMode && food && <>
         <div className="food-summary"><span className="stat-icon accent"><Icon name="food" /></span><div><h3>{food.nombre}</h3><span>Alimento #{food.idAlimento}</span></div></div>
@@ -154,7 +154,7 @@ export default function FoodDialog({ foodId, initialMode, onClose, onSaved, onEd
           <div><dt>Carbohidratos</dt><dd>{format(food.carbohidratoG)} g</dd></div>
           <div><dt>Grasa</dt><dd>{format(food.grasaG)} g</dd></div>
         </dl>
-        <p className="food-form-note">Todos los valores nutricionales corresponden a la porción base del alimento.</p>
+        <p className="food-form-note"><Icon name="info" /><span>Todos los valores nutricionales corresponden a la porción base del alimento.</span></p>
       </>}
       {error && <p className="alert" role="alert">{error}</p>}
       <div className="dialog-actions">

@@ -4,11 +4,14 @@ import Icon from './Icon'
 
 const durationLabel = months => `${months} ${months === 1 ? 'mes' : 'meses'}`
 
+function PlanStatus({ active }) {
+  return <span className={`status-badge plan-status ${active ? 'is-active' : 'is-inactive'}`}><i />{active ? 'Activo' : 'Inactivo'}</span>
+}
+
 export default function PlanDialog({ planId, initialMode, onClose, onSaved, onExpired, onStale }) {
   const dialog = useRef(null)
   const saving = useRef(false)
   const titleId = useId()
-  const [mode, setMode] = useState(initialMode)
   const [plan, setPlan] = useState(null)
   const [name, setName] = useState('')
   const [duration, setDuration] = useState('')
@@ -17,13 +20,13 @@ export default function PlanDialog({ planId, initialMode, onClose, onSaved, onEx
   const [error, setError] = useState('')
   const [fields, setFields] = useState({})
   const [stale, setStale] = useState(false)
-  const creating = mode === 'create'
-  const editing = mode === 'edit'
-  const changingStatus = mode === 'status'
+  const creating = initialMode === 'create'
+  const editing = initialMode === 'edit'
+  const changingStatus = initialMode === 'status'
   const formMode = creating || editing
   const isActive = plan?.estado === 'ACTIVO'
   const nextStatus = isActive ? 'INACTIVO' : 'ACTIVO'
-  const statusAction = isActive ? 'Desactivar plan' : 'Reactivar plan'
+  const statusAction = isActive ? 'Desactivar plan' : 'Activar plan'
 
   useEffect(() => {
     dialog.current.showModal()
@@ -73,9 +76,10 @@ export default function PlanDialog({ planId, initialMode, onClose, onSaved, onEx
     } finally { saving.current = false; setBusy(false) }
   }
 
-  const title = creating ? 'Crear plan de membresía' : editing ? 'Editar nombre del plan' : changingStatus ? statusAction : 'Detalle del plan'
+  const title = creating ? 'Crear plan de membresía' : editing ? 'Editar nombre del plan'
+    : changingStatus ? loading ? 'Cambiar estado del plan' : statusAction : plan?.nombre || 'Detalle del plan'
 
-  return <dialog ref={dialog} className="approval-dialog plan-dialog" aria-labelledby={titleId}
+  return <dialog ref={dialog} className="approval-dialog plan-dialog catalog-plan-dialog catalog-dialog" data-mode={initialMode} aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); close() }}>
     <div className="dialog-top"><span className="eyebrow">PLANES DE MEMBRESÍA</span>
       <button className="icon-button" aria-label="Cerrar plan" disabled={busy} onClick={close}><Icon name="close" /></button></div>
@@ -87,33 +91,41 @@ export default function PlanDialog({ planId, initialMode, onClose, onSaved, onEx
             onChange={event => { setName(event.target.value); setError(''); setFields(previous => ({ ...previous, nombre: undefined })) }}
             maxLength={60} required autoFocus autoComplete="off" placeholder="Ej. Plan trimestral"
             aria-invalid={!!fields.nombre} aria-describedby={fields.nombre ? 'plan-name-error' : 'plan-name-hint'} /></div>
-          <small id="plan-name-hint">Nombre único, máximo 60 caracteres.</small>
+          <div className="plan-field-note"><small id="plan-name-hint">Nombre único, máximo 60 caracteres.</small><small className="plan-name-count">{name.length} / 60</small></div>
           {fields.nombre && <small className="field-error" id="plan-name-error">{fields.nombre}</small>}
         </div>
         {creating ? <div className="field"><label htmlFor="plan-duracionMeses">Duración en meses</label>
           <div className={`input-wrap ${fields.duracionMeses ? 'invalid' : ''}`}><input id="plan-duracionMeses" name="duracionMeses"
             type="number" min="1" max="127" step="1" required value={duration} placeholder="Ej. 3"
             onChange={event => { setDuration(event.target.value); setError(''); setFields(previous => ({ ...previous, duracionMeses: undefined })) }}
-            aria-invalid={!!fields.duracionMeses} aria-describedby={fields.duracionMeses ? 'plan-duration-error' : 'plan-duration-hint'} /></div>
-          <small id="plan-duration-hint">Entre 1 y 127 meses. La duración queda fija al crear el plan.</small>
+            aria-invalid={!!fields.duracionMeses} aria-describedby={fields.duracionMeses ? 'plan-duration-error' : 'plan-duration-hint'} />
+            <span className="plan-duration-unit" aria-hidden="true">meses</span></div>
+          <small className="plan-duration-hint" id="plan-duration-hint"><Icon name="lock" /> Entre 1 y 127 meses. La duración queda fija al crear el plan.</small>
           {fields.duracionMeses && <small className="field-error" id="plan-duration-error">{fields.duracionMeses}</small>}
-        </div> : <p className="plan-info">Duración: <strong>{durationLabel(plan.duracionMeses)}</strong>. Para ofrecer otra duración, crea otro plan.</p>}
-        <p className="plan-info">{creating ? 'El nuevo plan se creará con estado ACTIVO.' : 'El cambio de nombre también se verá en las membresías históricas vinculadas a este plan.'}</p>
+        </div> : <div className="field">
+          <span className="plan-fixed-label">Duración</span>
+          <div className="plan-fixed-duration"><Icon name="lock" /> {durationLabel(plan.duracionMeses)}</div>
+          <small>La duración queda fija al crear el plan.</small>
+        </div>}
+        {editing && <div className="plan-current-status"><strong>Estado actual</strong><PlanStatus active={isActive} /></div>}
+        <p className="plan-info"><Icon name="info" /><span>{creating
+          ? <>El nuevo plan se creará con estado <strong className="plan-active-text">ACTIVO</strong>.</>
+          : 'El cambio de nombre también se verá en las membresías históricas vinculadas a este plan.'}</span></p>
       </fieldset>}
       {!formMode && plan && <>
-        <div className="plan-summary"><span className="stat-icon accent"><Icon name="card" /></span><div><h3>{plan.nombre}</h3>
-          <span className={`status-badge plan-status ${isActive ? 'is-active' : 'is-inactive'}`}><i />{isActive ? 'Activo' : 'Inactivo'}</span></div></div>
-        <dl className="detail-grid"><div><dt>N.º de plan</dt><dd>#{plan.idPlanMembresia}</dd></div><div><dt>Duración</dt><dd>{durationLabel(plan.duracionMeses)}</dd></div></dl>
-        {changingStatus && <p className="plan-info">{isActive
+        {changingStatus && <div className="plan-confirm-name"><Icon name="card" /><strong>{plan.nombre}</strong></div>}
+        <dl className="detail-grid"><div><dt>N.º de plan</dt><dd>#{plan.idPlanMembresia}</dd></div>
+          <div><dt>Duración fija</dt><dd className="plan-duration-hint"><Icon name="lock" />{durationLabel(plan.duracionMeses)}</dd></div>
+          <div><dt>Estado actual</dt><dd><PlanStatus active={isActive} /></dd></div></dl>
+        {changingStatus && <p className={`plan-info${isActive ? ' plan-warning' : ''}`}><Icon name={isActive ? 'shield' : 'info'} /><span>{isActive
           ? 'El plan quedará inactivo. Se conservarán las membresías históricas y sus periodos registrados.'
-          : 'El plan volverá a estar activo y conservará su duración original.'}</p>}
+          : 'El plan volverá a estar activo y conservará su duración original.'}</span></p>}
       </>}
       {error && <p className="alert" role="alert">{error}</p>}
       <div className="dialog-actions">
         <button type="button" className="secondary-button" disabled={busy} onClick={close}>{stale ? 'Volver a la lista' : formMode || changingStatus ? 'Cancelar' : 'Cerrar'}</button>
         {!stale && (formMode || changingStatus) && <button className={changingStatus && isActive ? 'primary compact catalog-deactivate' : 'primary compact'} type="submit" disabled={busy}>
-          {busy ? 'Guardando…' : creating ? 'Crear plan' : editing ? 'Guardar cambios' : statusAction}</button>}
-        {!stale && mode === 'detail' && plan && <button className="primary compact" type="button" onClick={() => setMode('edit')}>Editar nombre</button>}
+          {busy ? changingStatus ? isActive ? 'Desactivando…' : 'Activando…' : 'Guardando…' : creating ? 'Crear plan' : editing ? 'Guardar cambios' : statusAction}</button>}
       </div>
     </form>}
     {loading && <div className="dialog-actions"><button className="secondary-button" onClick={close}>Cancelar</button></div>}
