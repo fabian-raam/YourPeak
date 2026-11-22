@@ -1,30 +1,29 @@
 package com.ramirez.yourpeak.ui.home
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,7 +36,8 @@ import com.ramirez.yourpeak.ui.components.FondoMarca
 import com.ramirez.yourpeak.ui.components.NotaPie
 import com.ramirez.yourpeak.ui.components.TarjetaAuth
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
-import kotlinx.coroutines.launch
+
+private val seccionesEntrenamiento = listOf(SeccionCliente.MI_RUTINA, SeccionCliente.EJERCICIOS, SeccionCliente.DISPONIBILIDAD)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,90 +48,130 @@ fun HomeScreen(
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val app = LocalContext.current.applicationContext as? YourPeakApp
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            MenuLateralCliente(
-                usuario = usuario,
-                seccionSeleccionada = estado.seccionSeleccionada,
-                alSeleccionar = { seccion ->
-                    viewModel.seleccionarSeccion(seccion)
-                    scope.launch { drawerState.close() }
-                },
-                alCerrarSesion = alCerrarSesion
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("YOUR PEAK") },
+                actions = { TextButton(onClick = alCerrarSesion) { Text("Cerrar sesión") } }
             )
-        }
-    ) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("YOUR PEAK") },
-                    navigationIcon = {
-                        IconButton(
-                            onClick = { scope.launch { drawerState.open() } },
-                            modifier = Modifier.semantics { contentDescription = "Abrir menú lateral" }
-                        ) {
-                            Text("☰", color = MaterialTheme.colorScheme.tertiary)
-                        }
+        },
+        bottomBar = {
+            NavegacionPrincipal(
+                seccionSeleccionada = estado.seccionSeleccionada,
+                alSeleccionar = viewModel::seleccionarSeccion
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { contenidoPadding ->
+        FondoMarca(Modifier.fillMaxSize().padding(contenidoPadding)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Column(Modifier.widthIn(max = 560.dp)) {
+                    Text(
+                        text = estado.seccionSeleccionada.titulo.uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "Hola, ${usuario.nombre.orEmpty()}${usuario.apellido?.let { " $it" }.orEmpty()}",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Tu cuenta está activa.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
+                    )
+                    if ((estado.seccionSeleccionada in seccionesEntrenamiento)) {
+                        NavegacionEntrenamiento(
+                            seccionSeleccionada = estado.seccionSeleccionada,
+                            alSeleccionar = viewModel::seleccionarSeccion
+                        )
+                        Spacer(Modifier.height(12.dp))
                     }
-                )
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        ) { contenidoPadding ->
-            FondoMarca(Modifier.fillMaxSize().padding(contenidoPadding)) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Column(Modifier.widthIn(max = 560.dp)) {
-                        Text(
-                            text = estado.seccionSeleccionada.titulo.uppercase(),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            fontWeight = FontWeight.Bold
+                    TarjetaAuth {
+                        ContenidoSeccion(
+                            seccion = estado.seccionSeleccionada,
+                            usuario = usuario,
+                            ejercicioRepository = app?.ejercicioRepository,
+                            disponibilidadRepository = app?.disponibilidadRepository,
+                            rutinaRepository = app?.rutinaRepository,
+                            nutricionRepository = app?.nutricionRepository,
+                            membresiaClienteRepository = app?.membresiaClienteRepository,
+                            progresoRepository = app?.progresoRepository,
+                            alIrADisponibilidad = {
+                                viewModel.seleccionarSeccion(SeccionCliente.DISPONIBILIDAD)
+                            }
                         )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = "Hola, ${usuario.nombre.orEmpty()}${usuario.apellido?.let { " $it" }.orEmpty()}",
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Tu cuenta está activa.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
-                        )
-                        TarjetaAuth {
-                            ContenidoSeccion(
-                                seccion = estado.seccionSeleccionada,
-                                usuario = usuario,
-                                ejercicioRepository = app?.ejercicioRepository,
-                                disponibilidadRepository = app?.disponibilidadRepository,
-                                rutinaRepository = app?.rutinaRepository,
-                                nutricionRepository = app?.nutricionRepository,
-                                membresiaClienteRepository = app?.membresiaClienteRepository,
-                                progresoRepository = app?.progresoRepository,
-                                alIrADisponibilidad = {
-                                    viewModel.seleccionarSeccion(SeccionCliente.DISPONIBILIDAD)
-                                }
-                            )
-                        }
-                        NotaPie()
                     }
+                    NotaPie()
                 }
             }
         }
     }
 }
 
+/** Bottom navigation for the five main client sections. */
+@Composable
+private fun NavegacionPrincipal(
+    seccionSeleccionada: SeccionCliente,
+    alSeleccionar: (SeccionCliente) -> Unit
+) {
+    val entrenamientoSeleccionado = seccionSeleccionada in seccionesEntrenamiento
+    val destinos = listOf(
+        Triple(SeccionCliente.INICIO, "\u2302", "Inicio"),
+        Triple(SeccionCliente.MI_RUTINA, "\u2194", "Entrenamiento"),
+        Triple(SeccionCliente.NUTRICION, "\u25c9", "Nutricion"),
+        Triple(SeccionCliente.PROGRESO, "\u2197", "Progreso"),
+        Triple(SeccionCliente.MEMBRESIA, "\u25a3", "Membresia")
+    )
+
+    NavigationBar {
+        destinos.forEach { (seccion, simbolo, etiqueta) ->
+            val seleccionado = if (seccion == SeccionCliente.MI_RUTINA) {
+                entrenamientoSeleccionado
+            } else seccionSeleccionada == seccion
+            NavigationBarItem(
+                selected = seleccionado,
+                onClick = { alSeleccionar(seccion) },
+                icon = { Text(simbolo, style = MaterialTheme.typography.titleMedium) },
+                label = { Text(etiqueta, maxLines = 1) }
+            )
+        }
+    }
+}
+/** Conserva Mi rutina, Ejercicios y Disponibilidad como destinos internos de Entrenamiento. */
+@Composable
+private fun NavegacionEntrenamiento(
+    seccionSeleccionada: SeccionCliente,
+    alSeleccionar: (SeccionCliente) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        seccionesEntrenamiento.forEach { seccion ->
+            TextButton(onClick = { alSeleccionar(seccion) }) {
+                Text(
+                    text = seccion.titulo,
+                    color = if (seccion == seccionSeleccionada) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (seccion == seccionSeleccionada) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+        }
+    }
+}
 @Composable
 private fun ContenidoSeccion(
     seccion: SeccionCliente,
