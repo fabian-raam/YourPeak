@@ -209,14 +209,20 @@ export default function App() {
   </ClientLayout>
 
   if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />
-  return <main className={`auth-layout ${registering ? 'register-layout' : ''}`}>
-    <AuthHero registering={registering} onNavigate={event => { event.preventDefault(); if (!busy) navigate('inicio') }} />
+  const goHome = event => {
+    if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
+    event.preventDefault()
+    if (!busy) navigate('inicio')
+  }
+
+  return <main className={`auth-layout${!user ? ' auth-layout-access' : ''}${registering ? ' register-layout' : ''}`}>
+    <AuthHero onNavigate={goHome} />
     <section className="form-side" aria-label="Acceso a YourPeak">
-      {!user && <a className="auth-home-link" href="/" onClick={event => { if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); if (!busy) navigate('inicio') } }}>← Volver al inicio</a>}
+      {!user && <a className="auth-home-link" href="/" onClick={goHome}>← Volver al inicio</a>}
       <div className="auth-card" key={loading ? 'loading' : user ? 'profile' : page}>
         {loading ? <p role="status">Comprobando tu sesión…</p> : user ?
           <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : <>
-          <span className="eyebrow">COMUNIDAD TECSUP</span>
+          <img className="auth-tecsup" src="/assets/home/tecsup.png" alt="Tecsup" width="102" height="30" />
           <h1>{registering ? 'Crea tu cuenta' : 'Iniciar sesión'}</h1>
           <p className="intro">{registering ? 'Comienza tu camino con Your Peak.' : 'Bienvenido de nuevo a Your Peak.'}</p>
           {notice && <p className="alert success" role="status">{notice}</p>}
@@ -233,7 +239,7 @@ export default function App() {
               {field('correo', 'Correo institucional', { type: 'email', autoComplete: 'username', maxLength: 254,
                 placeholder: 'nombre@tecsup.edu.pe', hint: 'Acceso exclusivo con tu correo @tecsup.edu.pe.' })}
               {field('contrasena', 'Contraseña', { type: 'password', autoComplete: registering ? 'new-password' : 'current-password',
-                maxLength: 128, placeholder: 'Ingresa tu contraseña', hint: registering ? 'Entre 8 y 128 caracteres. Puedes usar una frase.' : undefined })}
+                maxLength: 128, placeholder: 'Ingresa tu contraseña', hint: registering ? 'Mínimo 8 caracteres.' : undefined })}
               {registering && field('confirmar_contrasena', 'Confirmar contraseña', { type: 'password', autoComplete: 'new-password', maxLength: 128, placeholder: 'Repite tu contraseña' })}
               <button className="primary" type="submit">{busy ? 'Un momento…' : registering ? 'Crear cuenta' : 'Iniciar sesión'}</button>
             </fieldset>

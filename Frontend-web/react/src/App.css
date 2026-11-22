@@ -1,13 +1,13 @@
 .auth-layout { --muted: #b9c0c7; min-height: 100svh; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(390px, .9fr); max-width: 1800px; margin: auto; }
 /* El bloque visual conserva el alto de la ventana aunque el registro sea más largo. */
-.brand-side { position: sticky; top: 0; align-self: start; height: 100svh; overflow: hidden; background: radial-gradient(ellipse at 70% 50%, var(--hero-glow) 0, var(--surface-end) 42%, var(--page-background) 72%); isolation: isolate; }
+.brand-side { position: sticky; top: 0; align-self: start; height: 100svh; overflow: hidden; isolation: isolate; }
 .brand { position: absolute; left: 7.9%; top: 40px; display: flex; align-items: center; gap: 18px; text-decoration: none; font-size: 26px; font-weight: 800; z-index: 4; }
 .brand img { width: 37px; height: 62px; }
 .hero-copy { position: relative; z-index: 3; padding: clamp(155px, 26svh, 270px) 0 0 8%; pointer-events: none; max-width: 440px; }
 .hero-kicker { font-size: 9px; font-weight: 700; letter-spacing: .21em; color: #a9b2b9; margin-bottom: 24px; }
-.hero-copy h2 { font-family: Impact, 'Arial Narrow', sans-serif; font-size: clamp(46px, 5.2vw, 80px); font-weight: 900; line-height: 1.02; letter-spacing: -.03em; margin: 0; }
-.hero-copy h2 span { color: var(--brand-highlight); }
-.hero-copy h2 .hero-dot { color: #fff; }
+.hero-copy h2 { font: 700 clamp(48px, 5.5vw, 100px)/.92 'Barlow Condensed', 'Arial Narrow', sans-serif; text-transform: uppercase; margin: 0; }
+.hero-copy h2 strong { color: var(--brand-highlight); font-weight: inherit; }
+.hero-break-mobile { display: none; }
 .hero-copy > p:last-child { color: #b9c0c7; font-size: 16px; line-height: 1.6; margin-top: 24px; }
 .hero-athlete { position: absolute; z-index: 2; bottom: 0; right: 0; width: min(80%, 64svh); height: auto; object-fit: contain; object-position: bottom; filter: drop-shadow(0 0 25px #0006); pointer-events: none; }
 .hero-shape { position: absolute; z-index: 1; right: 2%; top: 27%; width: 47%; height: 53%; border-radius: 28px; background: linear-gradient(130deg, var(--brand-highlight), var(--brand-gradient-end)); clip-path: polygon(0 22%, 100% 0, 70% 100%); transform: rotate(-9deg); filter: drop-shadow(0 0 30px var(--brand-halo)); }
@@ -18,6 +18,67 @@
 .auth-card fieldset { gap: 18px; }
 .auth-card .primary { min-height: 52px; font-size: 16px; margin-top: 6px; }
 .auth-card .switch { margin-top: 23px; font-size: 13px; }
+.auth-layout-access {
+  --auth-card-width: 520px;
+  --auth-edge: clamp(16px, 4vw, 54px);
+  --muted: #b6c1d5;
+  position: relative;
+  font-family: 'IBM Plex Sans', Arial, sans-serif;
+}
+.auth-layout-access .brand { top: clamp(18px, 4svh, 42px); gap: 12px; font-size: clamp(18px, 2vw, 24px); }
+.auth-layout-access .brand img { width: 24px; height: 40px; }
+.auth-layout-access .hero-copy { padding-top: clamp(120px, 25svh, 320px); }
+.auth-layout-access .hero-shape { filter: none; }
+.auth-layout-access .hero-athlete { right: 0; filter: none; }
+.auth-layout-access .form-side { padding: 16px var(--auth-edge) 16px 0; }
+.auth-home-link {
+  width: 100%;
+  max-width: var(--auth-card-width);
+  margin-bottom: 10px;
+  color: var(--brand-link);
+  text-decoration: none;
+  font-size: 14px;
+}
+.auth-home-link:hover { color: var(--brand-link-hover); }
+.auth-layout-access .auth-card {
+  max-width: var(--auth-card-width);
+  padding: 24px clamp(20px, 2.5vw, 36px);
+  border: 1px solid #293856;
+  border-top: 3px solid var(--brand-primary);
+  border-radius: 14px;
+  background: #0d1425;
+  box-shadow: none;
+}
+.auth-tecsup { display: block; width: 102px; height: 30px; }
+.auth-layout-access .auth-card h1 {
+  font: 700 clamp(34px, 3vw, 46px)/1 'Barlow Condensed', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  margin: 12px 0 6px;
+}
+.auth-layout-access .auth-card .intro { margin-bottom: 18px; }
+.auth-layout-access .auth-card fieldset { gap: 14px; }
+.auth-layout-access .field { gap: 6px; }
+.auth-layout-access .input-wrap {
+  min-height: 46px;
+  border-color: #3c5072;
+  border-radius: 8px;
+  background: #111b31;
+}
+.auth-layout-access .input-wrap:focus-within { border-color: var(--brand-focus); }
+.auth-layout-access .input-wrap.invalid { border-color: var(--error-border); }
+.auth-layout-access .input-wrap input { min-height: 44px; padding: 10px 12px; border-radius: inherit; font-size: 16px; }
+.auth-layout-access .field-icon { margin-left: 12px; }
+.auth-layout-access .field-icon img, .auth-layout-access .visibility img { display: block; width: 18px; height: 18px; }
+.auth-layout-access .visibility { display: grid; min-width: 44px; min-height: 44px; place-items: center; margin: 0; padding: 6px; }
+.auth-layout-access .auth-card .primary { min-height: 48px; margin-top: 2px; border-radius: 8px; box-shadow: none; }
+.auth-layout-access .auth-card .switch { margin-top: 16px; font-size: 14px; }
+.register-layout.auth-layout-access .auth-card fieldset { gap: 10px; }
+.register-layout.auth-layout-access .auth-card .intro { margin-bottom: 12px; }
+@media (min-width: 801px) and (max-height: 800px) {
+  .register-layout.auth-layout-access .auth-card { padding-block: 18px; }
+  .register-layout.auth-layout-access .auth-card .switch { margin-top: 12px; }
+}
 .eyebrow { font-size: 11px; letter-spacing: .18em; font-weight: 700; color: var(--muted); }
 h1 { font-size: clamp(32px, 3.1vw, 46px); line-height: 1.15; margin: 16px 0 10px; letter-spacing: -.04em; }
 .intro { margin: 0 0 30px; color: var(--muted); font-size: 17px; line-height: 1.5; }
@@ -44,12 +105,51 @@ input::placeholder { color: #929ca4; opacity: 1; }
 .profile span { color: var(--muted); font-size: 12px; }
 @media (max-width: 1100px) { .auth-layout { grid-template-columns: minmax(0, 1.1fr) minmax(370px, .9fr); } .form-side { padding-right: 20px; } .auth-card { padding: 28px 25px; } .brand { font-size: 21px; } }
 @media (max-width: 800px) { .auth-layout { display: block; } .brand-side { position: relative; height: 120px; } .hero-athlete, .hero-shape, .hero-copy { display: none; } .brand { visibility: visible; left: 26px; top: 24px; font-size: 22px; } .brand img { width: 28px; height: 47px; } .form-side { padding: 0 20px 28px; max-width: 580px; margin: auto; } .auth-card { padding: 30px 25px; } h1 { font-size: 34px; } }
-@media (max-width: 380px) { .name-row { grid-template-columns: 1fr; gap: 21px; } .auth-card { padding: 25px 19px; } .form-side { padding-inline: 12px; } }
+@media (max-width: 800px) {
+  .auth-layout-access { --auth-edge: clamp(14px, 4vw, 28px); }
+  .auth-layout-access .brand-side { height: clamp(208px, 52vw, 280px); }
+  .auth-layout-access .brand { left: var(--auth-edge); top: 12px; min-height: 44px; }
+  .auth-layout-access .brand img { width: 19px; height: 32px; }
+  .auth-layout-access .hero-copy { display: block; padding: 72px 0 0 var(--auth-edge); }
+  .auth-layout-access .hero-kicker { margin: 0 0 12px; }
+  .auth-layout-access .hero-copy h2 { font-size: clamp(34px, 9vw, 54px); }
+  .auth-layout-access .hero-copy > p:last-child, .hero-break-desktop { display: none; }
+  .hero-break-mobile { display: initial; }
+  .auth-layout-access .hero-athlete {
+    display: block;
+    right: 5%;
+    bottom: auto;
+    top: 62px;
+    width: clamp(104px, 31vw, 164px);
+    animation-duration: 240ms;
+  }
+  .auth-layout-access .hero-shape { display: block; width: min(42%, 240px); height: 68%; top: 48%; right: 3%; }
+  .auth-layout-access .form-side { padding: 0 var(--auth-edge) 24px; }
+  .auth-home-link {
+    position: absolute;
+    top: 12px;
+    right: var(--auth-edge);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    width: auto;
+    min-height: 44px;
+    margin: 0;
+    font-size: 13px;
+  }
+}
+@media (max-width: 380px) {
+  .name-row { grid-template-columns: 1fr; gap: 21px; }
+  .auth-card { padding: 25px 19px; }
+  .form-side { padding-inline: 12px; }
+  .auth-layout-access .name-row { gap: 10px; }
+  .auth-layout-access .hero-copy h2 { font-size: 32px; }
+}
 
 
 /* La entrada se anima al cambiar de pantalla, sin repetirse al escribir. */
 @keyframes card-rise {
-  from { opacity: 0; transform: translateY(26px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes scene-reveal {
@@ -60,8 +160,8 @@ input::placeholder { color: #929ca4; opacity: 1; }
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.auth-card { animation: card-rise 560ms cubic-bezier(.2, .75, .25, 1) both; }
-.hero-athlete { animation: scene-reveal 850ms ease-out both; }
+.auth-card { animation: card-rise 300ms cubic-bezier(.2, .75, .25, 1) both; }
+.hero-athlete { animation: scene-reveal 450ms ease-out both; }
 .alert { animation: message-reveal 200ms ease-out both; }
 .primary { transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease; }
 @media (hover: hover) and (pointer: fine) {
@@ -85,7 +185,8 @@ input::placeholder { color: #929ca4; opacity: 1; }
 .status-logout { margin: 20px auto 0; display: block; }
 @media (min-width: 801px) and (max-width: 1100px) {
   .hero-copy { padding-top: clamp(155px, 26svh, 230px); }
-  .hero-copy h2 { font-size: 51px; }
+  .hero-copy h2 { font-size: clamp(38px, 4.6vw, 51px); }
   .hero-copy > p:last-child { font-size: 14px; max-width: 200px; }
   .hero-athlete { width: min(92%, 64svh); right: -5%; }
+  .auth-layout-access .hero-athlete { width: min(69%, 60svh); right: -6%; }
 }
