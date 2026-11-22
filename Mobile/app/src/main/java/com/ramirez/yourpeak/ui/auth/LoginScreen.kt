@@ -2,6 +2,7 @@ package com.ramirez.yourpeak.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -184,7 +185,7 @@ private fun LoginContenido(
             Aviso(estado.aviso, TipoAviso.Exito)
             Aviso(estado.mensajeError, TipoAviso.Error)
 
-            CampoLogin(
+            CampoAutenticacion(
                 valor = estado.correo,
                 alCambiar = alCambiarCorreo,
                 etiqueta = "Correo institucional",
@@ -197,7 +198,7 @@ private fun LoginContenido(
                 longitudMaxima = 254
             )
             Spacer(Modifier.height(14.dp))
-            CampoLogin(
+            CampoAutenticacion(
                 valor = estado.contrasena,
                 alCambiar = alCambiarContrasena,
                 etiqueta = "Contrase\u00F1a",
@@ -209,44 +210,18 @@ private fun LoginContenido(
                 alCambiarVisibilidad = { mostrarContrasena = !mostrarContrasena },
                 habilitado = !estado.cargando,
                 longitudMaxima = 128,
+                ultimo = true,
                 alEnviar = { foco.clearFocus(); alEnviar() }
             )
 
             Spacer(Modifier.height(12.dp))
 
-            Button(
-                onClick = { foco.clearFocus(); alEnviar() },
-                enabled = !estado.cargando,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Azul,
-                    contentColor = Color.White,
-                    disabledContainerColor = Azul.copy(alpha = 0.6f),
-                    disabledContentColor = Color.White
-                )
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (estado.cargando) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.padding(horizontal = 4.dp))
-                    }
-                    Text(
-                        text = if (estado.cargando) "INICIANDO SESI\u00D3N..." else "INICIAR SESI\u00D3N",
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 16.sp,
-                        letterSpacing = 0.8.sp
-                    )
-                }
-            }
+            BotonAutenticacion(
+                texto = "INICIAR SESI\u00D3N",
+                textoEnProceso = "INICIANDO SESI\u00D3N...",
+                alPresionar = { foco.clearFocus(); alEnviar() },
+                cargando = estado.cargando
+            )
 
             Spacer(Modifier.height((alturaMaxima * 0.22f).coerceAtLeast(52.dp)))
             Row(
@@ -273,11 +248,51 @@ private fun LoginContenido(
 }
 
 @Composable
-private fun CampoLogin(
+fun BotonAutenticacion(
+    texto: String,
+    textoEnProceso: String,
+    alPresionar: () -> Unit,
+    cargando: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = alPresionar,
+        enabled = !cargando,
+        modifier = modifier.fillMaxWidth().heightIn(min = 60.dp),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Azul,
+            contentColor = Color.White,
+            disabledContainerColor = Azul.copy(alpha = 0.6f),
+            disabledContentColor = Color.White
+        )
+    ) {
+        Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+            if (cargando) {
+                CircularProgressIndicator(
+                    color = Color.White,
+                    strokeWidth = 2.dp,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.padding(horizontal = 4.dp))
+            }
+            Text(
+                text = if (cargando) textoEnProceso else texto,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Black,
+                fontSize = 16.sp,
+                letterSpacing = 0.8.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun CampoAutenticacion(
     valor: String,
     alCambiar: (String) -> Unit,
     etiqueta: String,
-    icono: Int,
+    icono: Int?,
     placeholder: String,
     modifier: Modifier = Modifier,
     ayuda: String? = null,
@@ -288,7 +303,10 @@ private fun CampoLogin(
     tipoTeclado: KeyboardType = KeyboardType.Text,
     habilitado: Boolean = true,
     longitudMaxima: Int,
-    alEnviar: () -> Unit = {}
+    alEnviar: () -> Unit = {},
+    soloLectura: Boolean = false,
+    alPresionar: (() -> Unit)? = null,
+    ultimo: Boolean = esContrasena
 ) {
     Column(modifier.fillMaxWidth().padding(bottom = 11.dp)) {
         Text(
@@ -298,19 +316,21 @@ private fun CampoLogin(
             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
             modifier = Modifier.padding(bottom = 8.dp)
         )
+        Box {
         OutlinedTextField(
             value = valor,
             onValueChange = { if (it.length <= longitudMaxima) alCambiar(it) },
             modifier = Modifier.fillMaxWidth().heightIn(min = 60.dp),
             enabled = habilitado,
+            readOnly = soloLectura,
             singleLine = true,
             isError = error != null,
             placeholder = {
                 Text(placeholder, style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp))
             },
-            leadingIcon = {
-                Icon(painterResource(icono), contentDescription = null)
-            },
+            leadingIcon = if (icono != null) {
+                { Icon(painterResource(icono), contentDescription = null) }
+            } else null,
             trailingIcon = if (esContrasena) {
                 {
                     IconButton(onClick = alCambiarVisibilidad, enabled = habilitado) {
@@ -328,7 +348,7 @@ private fun CampoLogin(
             } else VisualTransformation.None,
             keyboardOptions = KeyboardOptions(
                 keyboardType = if (esContrasena) KeyboardType.Password else tipoTeclado,
-                imeAction = if (esContrasena) ImeAction.Done else ImeAction.Next
+                imeAction = if (ultimo) ImeAction.Done else ImeAction.Next
             ),
             keyboardActions = KeyboardActions(onDone = { alEnviar() }),
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp, color = Texto),
@@ -353,6 +373,15 @@ private fun CampoLogin(
                 cursorColor = Azul
             )
         )
+        if (soloLectura && alPresionar != null && habilitado) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(Color.Transparent)
+                    .clickable(onClick = alPresionar)
+            )
+        }
+        }
         val textoInferior = error ?: ayuda
         if (textoInferior != null) {
             Text(
