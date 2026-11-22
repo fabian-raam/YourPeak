@@ -20,7 +20,7 @@
 .admin-sidebar nav b { margin-left: auto; color: #c2d8ff; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .sidebar-account { display: flex; align-items: center; gap: 12px; padding: 22px 6px 0; margin-top: auto; border-top: 1px solid #26384f; }
 .sidebar-account > div { display: grid; gap: 5px; flex: 1; min-width: 0; }
-.sidebar-account strong { font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.sidebar-account strong { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 14px; font-weight: 600; }
 .sidebar-account > div span { color: #a5b5cc; font-size: 12px; }
 .avatar { display: inline-grid; place-items: center; width: 48px; height: 48px; border: 1px solid #3c5273; background: #20314b; color: #edf3ff; border-radius: 6px; font-size: 14px; font-weight: 600; flex-shrink: 0; }
 .icon-button { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 6px; border-radius: 4px; border: 1px solid transparent; background: transparent; color: #aebbd0; }
@@ -54,12 +54,9 @@
 .admin-stats strong { font-size: 30px; font-weight: 500; line-height: 1; }
 .admin-stats small { font-size: 11px; color: #94a4bd; line-height: 1.5; }
 .users-panel { border: 1px solid #344962; border-radius: 4px; background: #111d2d; overflow: hidden; }
-.users-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 24px 22px 12px; }
 .users-panel h2 { font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif; display: flex; gap: 12px; align-items: center; font-size: 29px; font-weight: 700; line-height: 1.15; letter-spacing: 0; margin: 0; }
 .users-panel h2 span { font-size: 11px; border: 1px solid #425473; padding: 2px 7px; border-radius: 3px; color: #b9cff0; font-weight: 500; }
-.users-panel-heading p { font-size: 12px; line-height: 1.6; margin: 0; color: #97a7bf; }
-.live-label { font-size: 14px; color: #ffd27f; display: flex; gap: 10px; align-items: center; white-space: nowrap; }
-.live-label i, .status-badge i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.status-badge i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 .users-toolbar { display: flex; gap: 20px; align-items: center; justify-content: space-between; padding: 14px 22px 18px; }
 .search-input { display: flex; align-items: center; gap: 12px; padding: 0 14px; background: #0e1928; border: 1px solid #3b5272; border-radius: 4px; max-width: 510px; flex: 1; color: #a9bfdf; }
 .search-input svg { width: 17px; flex-shrink: 0; }
@@ -98,7 +95,6 @@
 .requests-workspace .requests-list-panel > .user-management-tabs { border-color: #b7cbed; }
 .requests-workspace .requests-list-panel .users-toolbar { padding: 18px 24px; background: #fff; border-bottom: 1px solid #b7cbed; }
 .requests-workspace .requests-list-panel .search-input { background: #fff; border-color: #a9c3e8; }
-.requests-workspace .requests-list-panel .users-table th { color: #fff; background: #1f5597; border-color: #1f5597; text-transform: none; letter-spacing: 0; font-size: 13px; }
 .requests-workspace .requests-list-panel .users-table td { background: transparent; border-color: #b7cbed; color: #172033; }
 .requests-workspace .requests-list-panel .users-table tbody tr { background: #fff; }
 .requests-workspace .requests-list-panel .users-table tbody tr:hover { background: #f4f7fb; }
@@ -167,8 +163,8 @@
     border-radius: 5px;
     background: #1f5597;
   }
-  & :is(.plan-summary, .exercise-summary, .food-summary) { border-color: #d3e0f2; }
-  & :is(.plan-summary, .exercise-summary, .food-summary) h3,
+  & :is(.exercise-summary, .food-summary) { border-color: #d3e0f2; }
+  & :is(.exercise-summary, .food-summary) h3,
   & .detail-grid dd,
   & .field label { color: #14213d; }
   & .detail-grid dt,
@@ -203,6 +199,8 @@
 @media (max-width: 1250px) {
   .admin-layout { grid-template-columns: 220px minmax(0, 1fr); }
   .admin-sidebar { padding-inline: 12px; }
+  .sidebar-account { gap: 8px; padding-inline: 2px; }
+  .sidebar-account > .avatar { width: 40px; height: 40px; }
   .admin-main { padding: 32px 26px 24px; }
   .queue-summary { gap: 22px; }
   .queue-oldest { padding-left: 22px; }
@@ -218,7 +216,6 @@
   .sidebar-account { margin: auto auto 0; padding: 0; border: 0; }
   .admin-stats article { padding-inline: 14px; }
   .admin-stats .stat-icon { display: none; }
-  .live-label { display: none; }
 }
 @media (max-width: 700px) {
   .admin-heading-actions { width: 100%; flex-wrap: wrap; }
@@ -247,9 +244,7 @@
   .admin-stats small { display: none; }
   .admin-stats article > div > span { font-size: 11px; }
   .admin-stats strong { font-size: 26px; }
-  .users-panel-heading { padding: 20px 16px; }
   .users-panel h2 { font-size: 25px; }
-  .live-label { display: none; }
   .users-toolbar { flex-direction: column; align-items: stretch; padding: 16px; gap: 12px; }
   .search-input { max-width: none; }
   .sort-control { justify-content: space-between; }
@@ -275,8 +270,6 @@
 .users-table td:first-child { min-width: 250px; }
 .users-main .users-table td:last-child { text-align: right; }
 .users-main .review-button { margin-left: auto; }
-.membership-main .users-panel-heading { padding-bottom: 18px; }
-.membership-main .users-panel-heading p { margin-top: 8px; }
 @media (max-width: 1100px) and (min-width: 701px) {
   .users-table td, .users-table th { padding-inline: 14px; }
   .user-cell > div span { font-size: 12px; }
@@ -288,7 +281,6 @@
   .admin-sidebar .brand { font-size: 25px; }
   .queue-total span { font-size: 15px; }
   .queue-oldest > span { font-size: 13px; }
-  .users-panel-heading { padding-bottom: 6px; }
   .user-cell > div span { font-size: 13px; }
   .sort-control { font-size: 13px; }
   .users-table td { font-size: 14px; }

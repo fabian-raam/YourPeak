@@ -9,7 +9,7 @@ import { listActiveClients, listInactiveClients } from '../services/memberships'
 import { fullName, initials, registrationDate } from '../utils/format'
 import './AdminPanel.css'
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 7
 const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 export default function AdminPanel({ section, onNavigate, pendingCount, onExpired, logoutError, onPendingCount }) {
@@ -78,7 +78,7 @@ export default function AdminPanel({ section, onNavigate, pendingCount, onExpire
 
   return <>
       <main className="admin-main users-main">
-        <div className="admin-heading"><div><h1>Gestión de usuarios</h1><p>Revisa los registros y autoriza el acceso a Your Peak.</p></div>
+        <div className="admin-heading"><div><h1 id="users-heading" tabIndex={-1}>Gestión de usuarios</h1><p>Revisa los registros y autoriza el acceso a Your Peak.</p></div>
           <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
         <UserStats active={activeCount} pending={clients.length} inactive={inactiveCount} loading={loading} />

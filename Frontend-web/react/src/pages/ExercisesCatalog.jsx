@@ -76,25 +76,23 @@ export default function ExercisesCatalog({ onExpired, logoutError }) {
 
   function editSelected() { setSelected(previous => ({ ...previous, mode: 'edit' })) }
 
-  return <main className="admin-main exercise-main">
+  return <main className="admin-main exercise-main catalog-main">
     <div className="admin-heading"><div>
-      <h1>Catálogo de ejercicios</h1>
+      <h1 id="exercises-heading" tabIndex={-1}>Catálogo de ejercicios</h1>
       <p>Administra los ejercicios, sus grupos musculares y niveles recomendados.</p></div>
       <div className="admin-heading-actions">
-        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
+        <button className="secondary-button catalog-refresh" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Agregar ejercicio</button>
       </div>
     </div>
     <section className="admin-stats catalog-stats" aria-label="Resumen del catálogo de ejercicios">
-      <article><span className="stat-icon accent"><Icon name="dumbbell" /></span><div><span>Total de ejercicios</span><strong>{count(exercises.length)}</strong><small>En el catálogo</small></div></article>
-      <article><span className="stat-icon green"><Icon name="check" /></span><div><span>Disponibles</span><strong>{count(activeCount)}</strong><small>Activos para asignar</small></div></article>
-      <article><span className="stat-icon neutral"><Icon name="pause" /></span><div><span>Inactivos</span><strong>{count(exercises.length - activeCount)}</strong><small>Conservados en el catálogo</small></div></article>
+      <article className="catalog-total"><span className="stat-icon accent"><Icon name="dumbbell" /></span><div><span>Total de ejercicios</span><strong>{count(exercises.length)}</strong><small>En el catálogo</small></div></article>
+      <article className="catalog-active"><span className="stat-icon green"><Icon name="check" /></span><div><span>Disponibles</span><strong>{count(activeCount)}</strong><small>Activos para asignar</small></div></article>
+      <article className="catalog-inactive"><span className="stat-icon neutral"><Icon name="pause" /></span><div><span>Inactivos</span><strong>{count(exercises.length - activeCount)}</strong><small>Conservados en el catálogo</small></div></article>
     </section>
     {notice && <ClientToast key={notice} title="Ejercicios" message={notice} onClose={() => setNotice('')} />}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
     <section className="users-panel" aria-label="Catálogo de ejercicios" aria-busy={loading}>
-      <div className="users-panel-heading"><h2 className="sr-only" id="exercises-heading" tabIndex="-1">Catálogo de ejercicios</h2>
-      </div>
       <div className="users-toolbar exercise-toolbar">
         <label className="search-input"><Icon name="search" /><input type="search" aria-label="Buscar ejercicios"
           placeholder="Buscar por nombre, grupo o equipamiento…" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} /></label>
@@ -113,19 +111,20 @@ export default function ExercisesCatalog({ onExpired, logoutError }) {
             : <div className="users-table-scroll"><table className="users-table exercise-table"><caption className="sr-only">Catálogo de ejercicios</caption>
               <thead><tr><th scope="col">Ejercicio</th><th scope="col">Grupo muscular</th><th scope="col">Nivel mínimo</th><th scope="col">Medición</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
               <tbody>{visible.map(item => <tr key={item.idEjercicio}>
-                <td><div className="user-cell"><span className="exercise-row-icon"><Icon name="dumbbell" /></span><div><strong>{item.nombre}</strong><span>Ejercicio #{item.idEjercicio}</span></div></div></td>
+                <td><div className="user-cell"><span className="catalog-row-icon"><Icon name="dumbbell" /></span><div><strong>{item.nombre}</strong><span>Ejercicio #{item.idEjercicio}</span></div></div></td>
                 <td>{item.grupoMuscular}</td><td>{item.nivelExperiencia}</td><td>{item.tipoMedicion}</td>
                 <td><span className={`status-badge plan-status ${item.estado === 'ACTIVO' ? 'is-active' : 'is-inactive'}`}><i />{item.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}</span></td>
                 <td><div className="plan-actions">
-                  <button className="review-button" onClick={event => openDialog('detail', item.idEjercicio, event)}>Ver</button>
-                  <button className="review-button" onClick={event => openDialog('edit', item.idEjercicio, event)}>Editar</button>
-                  <button className={item.estado === 'ACTIVO' ? 'secondary-button catalog-deactivate' : 'secondary-button'}
-                    onClick={event => openDialog('status', item.idEjercicio, event)}>{item.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'}</button>
+                  <button type="button" className="plan-view" aria-label={`Ver ${item.nombre}`} onClick={event => openDialog('detail', item.idEjercicio, event)}><Icon name="eye" /> Ver</button>
+                  <button type="button" className="plan-edit" aria-label={`Editar ${item.nombre}`} onClick={event => openDialog('edit', item.idEjercicio, event)}><Icon name="edit" /> Editar</button>
+                  <button type="button" className={item.estado === 'ACTIVO' ? 'plan-deactivate' : 'plan-activate'}
+                    aria-label={`${item.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'} ${item.nombre}`}
+                    onClick={event => openDialog('status', item.idEjercicio, event)}><Icon name="power" /> {item.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'}</button>
                 </div></td>
               </tr>)}</tbody></table></div>}
       <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `${filtered.length} ${filtered.length === 1 ? 'ejercicio' : 'ejercicios'}`}</span>
         <div><button aria-label="Página anterior" disabled={currentPage <= 1 || unavailable} onClick={() => setPage(currentPage - 1)}>←</button>
-          <span>{currentPage} / {totalPages}</span><button aria-label="Página siguiente" disabled={currentPage >= totalPages || unavailable} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
+          <strong aria-current="page" aria-label={`Página ${currentPage} de ${totalPages}`}>{currentPage}</strong><button aria-label="Página siguiente" disabled={currentPage >= totalPages || unavailable} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
     </section>
     <p className="membership-note"><Icon name="shield" /> Los ejercicios se desactivan de forma lógica para conservar sus datos y referencias.</p>
     {selected && <ExerciseDialog key={`${selected.mode}-${selected.exerciseId}`} exerciseId={selected.exerciseId} initialMode={selected.mode}

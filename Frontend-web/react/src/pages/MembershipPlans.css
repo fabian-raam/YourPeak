@@ -1,11 +1,9 @@
 .stat-icon.neutral { color: #aebbd0; background: #91baff12; }
-.plan-row-icon { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border: 1px solid var(--brand-border-soft); border-radius: 10px; color: var(--brand-link); background: var(--brand-soft); }
 .plans-table { white-space: normal; }
 .plans-table .user-cell > div { min-width: 0; }
 .plans-table .user-cell strong { overflow-wrap: anywhere; line-height: 1.6; }
 .plans-table td:first-child { width: 36%; }
 .plan-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-.plan-actions .secondary-button { font-size: 13px; padding: 9px 12px; }
 .status-badge.plan-status {
   gap: 7px;
   padding: 4px 10px;
@@ -21,15 +19,10 @@
 .membership-note { display: flex; gap: 10px; align-items: flex-start; color: #9ba8b5; font-size: 12px; line-height: 1.7; margin-top: 22px; }
 .membership-note svg { flex-shrink: 0; }
 .plan-info { padding: 14px; margin: 0; background: var(--brand-soft); border: 1px solid var(--brand-border-soft); border-radius: 9px; color: #bac8dc; font-size: 12px; line-height: 1.8; }
-.plan-summary { display: flex; align-items: center; gap: 14px; padding-block: 18px; border-block: 1px solid #35414a; }
-.plan-summary h3 { margin: 0 0 10px; color: inherit; font-size: 20px; line-height: 1.5; overflow-wrap: anywhere; }
-.plan-summary > .stat-icon { flex-shrink: 0; }
 .plan-dialog .detail-grid { grid-template-columns: 1fr 1fr; }
 .plan-dialog .detail-grid > div:first-child { grid-column: auto; }
 .plan-dialog .input-wrap:has(input:disabled) { opacity: .65; }
 
-/* Catálogo con la misma tarjeta clara y encabezado azul de Usuarios. */
-.light-workspace .membership-main .users-panel-heading { display: none; }
 .light-workspace .membership-main .users-panel {
   overflow: hidden;
   background: #fff;
@@ -37,23 +30,6 @@
   border-radius: 16px;
   box-shadow: 0 10px 30px #18355c12;
 }
-.light-workspace .membership-main .users-panel-heading {
-  padding: 22px 24px 16px;
-  background: #fff;
-}
-.light-workspace .membership-main .users-panel-heading h2 { color: #172033; }
-.light-workspace .membership-main .users-panel-heading h2 span {
-  display: inline-grid;
-  place-items: center;
-  min-width: 22px;
-  height: 22px;
-  margin-left: 6px;
-  border: 1px solid #a9c3e8;
-  border-radius: 5px;
-  color: #1f5597;
-  font: 600 12px/1 'IBM Plex Sans', Arial, sans-serif;
-}
-.light-workspace .membership-main .users-panel-heading p { color: #64748b; }
 .light-workspace .membership-main .users-toolbar {
   padding: 14px 22px 18px;
   background: #fff;
@@ -61,48 +37,10 @@
 }
 .light-workspace .membership-main .search-input { border-color: #a9c3e8; }
 .light-workspace .membership-main .sort-control select { border-color: #a9c3e8; }
-.light-workspace .membership-main .plans-table th {
-  color: #fff;
-  background: #1f5597;
-  border-color: #1f5597;
-  font-size: 13px;
-  letter-spacing: 0;
-  text-transform: none;
-}
 .light-workspace .membership-main .plans-table td {
   color: #172033;
   background: #fff;
   border-color: #b7cbed;
-}
-.light-workspace .membership-main .plans-table tbody tr { background: #fff; }
-.light-workspace .membership-main .plans-table tbody tr:hover { background: #f4f7fb; }
-.light-workspace .membership-main .plans-table tbody tr:hover td { background: transparent; }
-.light-workspace .membership-main .plan-row-icon {
-  color: #1f5597;
-  background: #e8f0fc;
-  border-color: #bfd2f2;
-}
-.light-workspace .membership-main .plan-actions .review-button,
-.light-workspace .membership-main .plan-actions .secondary-button {
-  min-height: 42px;
-  padding: 9px 15px;
-  color: #fff;
-  background: #1f5597;
-  border: 1px solid #427fce;
-  border-radius: 10px;
-}
-.light-workspace .membership-main .plan-actions button:hover:not(:disabled) {
-  background: #305e9f;
-  border-color: #8bb0e9;
-}
-.light-workspace .users-table .plan-actions .secondary-button.catalog-deactivate {
-  color: #a62735;
-  background-color: #fff;
-  border-color: #e7adb4;
-}
-.light-workspace .users-table .plan-actions .secondary-button.catalog-deactivate:hover:not(:disabled) {
-  background-color: #fff1f2;
-  border-color: #c95d69;
 }
 .approval-dialog .primary.catalog-deactivate {
   background-color: #b42335;
@@ -126,7 +64,6 @@
   background: #fff;
 }
 .light-workspace .membership-main .users-pagination button:disabled { color: #aebbd0; }
-.light-workspace .membership-main .membership-note { color: #64748b; }
 /* La navegación sigue disponible en ventanas estrechas del navegador. */
 @media (max-width: 700px) {
   .admin-sidebar { flex-wrap: wrap; }
@@ -137,6 +74,30 @@
   .plans-table td:first-child { width: auto; }
   .plans-table .plan-actions { flex-wrap: nowrap; }
   .plans-table .plan-actions > button { width: auto; flex: 1; justify-content: center; min-height: 38px; }
-  .membership-main .users-panel-heading { align-items: flex-start; }
   .membership-main .admin-heading .primary { width: 100%; }
+}
+
+.light-workspace .approval-dialog.catalog-plan-dialog { width: min(580px, calc(100vw - 28px)); padding: 24px clamp(16px, 4vw, 28px); }
+.light-workspace .catalog-plan-dialog:is([data-mode="detail"], [data-mode="status"]) { width: min(480px, calc(100vw - 28px)); }
+.light-workspace .catalog-plan-dialog h2 { margin: 10px 0 16px; overflow-wrap: anywhere; }
+.catalog-plan-dialog fieldset { gap: 15px; }
+.catalog-plan-dialog .field { gap: 6px; }
+.catalog-plan-dialog .input-wrap { min-height: 44px; }
+.catalog-plan-dialog .input-wrap input { padding: 10px 12px; }
+.catalog-plan-dialog .plan-duration-unit { padding-right: 12px; font-size: 13px; color: #475569; }
+.catalog-plan-dialog .plan-field-note { display: flex; justify-content: space-between; gap: 12px; }
+.catalog-plan-dialog .plan-name-count { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.catalog-plan-dialog .plan-duration-hint, .catalog-plan-dialog .plan-info { display: flex; align-items: flex-start; gap: 8px; }
+.catalog-plan-dialog :is(.plan-duration-hint, .plan-info, .plan-fixed-duration, .plan-confirm-name) svg { flex-shrink: 0; width: 16px; height: 16px; }
+.catalog-plan-dialog .plan-active-text { color: #167044; }
+.catalog-plan-dialog .plan-fixed-label, .catalog-plan-dialog .plan-current-status strong { font-size: 14px; font-weight: 650; }
+.catalog-plan-dialog .plan-fixed-duration, .catalog-plan-dialog .plan-current-status, .catalog-plan-dialog .plan-confirm-name { display: flex; align-items: center; gap: 9px; }
+.catalog-plan-dialog .plan-fixed-duration, .catalog-plan-dialog .plan-confirm-name { padding: 10px 12px; border-radius: 8px; background: #f2f5fa; overflow-wrap: anywhere; }
+.catalog-plan-dialog .plan-fixed-duration { min-height: 44px; color: #475569; }
+.catalog-plan-dialog .plan-current-status { justify-content: space-between; }
+.catalog-plan-dialog .detail-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-block: 14px; }
+.catalog-plan-dialog .dialog-actions { margin-top: 16px; }
+
+@media (max-width: 400px) {
+  .catalog-plan-dialog .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

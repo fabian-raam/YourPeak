@@ -72,25 +72,23 @@ export default function MembershipPlans({ onExpired, logoutError }) {
     closeDialog(); reload()
   }
 
-  return <main className="admin-main membership-main">
+  return <main className="admin-main membership-main plans-main catalog-main">
     <div className="admin-heading"><div>
-      <h1>Planes de membresía</h1>
+      <h1 id="plans-heading" tabIndex={-1}>Planes de membresía</h1>
       <p>Organiza el catálogo de planes de membresía de Your Peak.</p></div>
       <div className="admin-heading-actions">
-        <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
+        <button className="secondary-button catalog-refresh" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         <button className="primary compact" disabled={forbidden} onClick={event => openDialog('create', null, event)}><Icon name="plus" /> Crear plan</button>
       </div>
     </div>
     <section className="admin-stats catalog-stats" aria-label="Resumen de planes">
-      <article><span className="stat-icon accent"><Icon name="card" /></span><div><span>Total de planes</span><strong>{count(plans.length)}</strong><small>Catálogo de membresías</small></div></article>
-      <article><span className="stat-icon green"><Icon name="check" /></span><div><span>Planes activos</span><strong>{count(activeCount)}</strong><small>Habilitados en el catálogo</small></div></article>
-      <article><span className="stat-icon neutral"><Icon name="pause" /></span><div><span>Planes inactivos</span><strong>{count(plans.length - activeCount)}</strong><small>Conservan su historial</small></div></article>
+      <article className="catalog-total"><span className="stat-icon accent"><Icon name="card" /></span><div><span>Total de planes</span><strong>{count(plans.length)}</strong><small>Catálogo de membresías</small></div></article>
+      <article className="catalog-active"><span className="stat-icon green"><Icon name="check" /></span><div><span>Planes activos</span><strong>{count(activeCount)}</strong><small>Habilitados en el catálogo</small></div></article>
+      <article className="catalog-inactive"><span className="stat-icon neutral"><Icon name="pause" /></span><div><span>Planes inactivos</span><strong>{count(plans.length - activeCount)}</strong><small>Conservan su historial</small></div></article>
     </section>
     {notice && <ClientToast key={notice} title="Planes de membresía" message={notice} onClose={() => setNotice('')} />}
     {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}</p>}
     <section className="users-panel" aria-label="Catálogo de planes" aria-busy={loading}>
-      <div className="users-panel-heading"><h2 className="sr-only" id="plans-heading" tabIndex="-1">Catálogo de planes</h2>
-      </div>
       <div className="users-toolbar"><label className="search-input"><Icon name="search" /><input type="search" aria-label="Buscar planes"
         placeholder="Buscar por nombre o número…" value={query} onChange={event => { setQuery(event.target.value); setPage(1) }} /></label>
         <label className="sort-control">Estado <select value={status} onChange={event => { setStatus(event.target.value); setPage(1) }}>
@@ -105,19 +103,19 @@ export default function MembershipPlans({ onExpired, logoutError }) {
             : <div className="users-table-scroll"><table className="users-table plans-table"><caption className="sr-only">Planes de membresía</caption>
               <thead><tr><th scope="col">Plan</th><th scope="col">Duración</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
               <tbody>{visible.map(plan => <tr key={plan.idPlanMembresia}>
-                <td><div className="user-cell"><span className="plan-row-icon"><Icon name="card" /></span><div><strong>{plan.nombre}</strong><span>Plan #{plan.idPlanMembresia}</span></div></div></td>
+                <td><div className="user-cell"><span className="catalog-row-icon"><Icon name="card" /></span><div><strong>{plan.nombre}</strong><span>Plan #{plan.idPlanMembresia}</span></div></div></td>
                 <td>{plan.duracionMeses} {plan.duracionMeses === 1 ? 'mes' : 'meses'}</td>
                 <td><span className={`status-badge plan-status ${plan.estado === 'ACTIVO' ? 'is-active' : 'is-inactive'}`}><i />{plan.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}</span></td>
                 <td><div className="plan-actions">
-                  <button className="review-button" aria-label={`Ver ${plan.nombre}`} onClick={event => openDialog('detail', plan.idPlanMembresia, event)}>Ver</button>
-                  <button className="review-button" aria-label={`Editar ${plan.nombre}`} onClick={event => openDialog('edit', plan.idPlanMembresia, event)}>Editar</button>
-                  <button className={plan.estado === 'ACTIVO' ? 'secondary-button catalog-deactivate' : 'secondary-button'} aria-label={`${plan.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'} ${plan.nombre}`}
-                    onClick={event => openDialog('status', plan.idPlanMembresia, event)}>{plan.estado === 'ACTIVO' ? 'Desactivar' : 'Reactivar'}</button>
+                  <button type="button" className="plan-view" aria-label={`Ver ${plan.nombre}`} onClick={event => openDialog('detail', plan.idPlanMembresia, event)}><Icon name="eye" /> Ver</button>
+                  <button type="button" className="plan-edit" aria-label={`Editar ${plan.nombre}`} onClick={event => openDialog('edit', plan.idPlanMembresia, event)}><Icon name="edit" /> Editar</button>
+                  <button type="button" className={plan.estado === 'ACTIVO' ? 'plan-deactivate' : 'plan-activate'} aria-label={`${plan.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'} ${plan.nombre}`}
+                    onClick={event => openDialog('status', plan.idPlanMembresia, event)}><Icon name="power" /> {plan.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'}</button>
                 </div></td>
               </tr>)}</tbody></table></div>}
-      <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `${filtered.length} ${filtered.length === 1 ? 'plan' : 'planes'}`}</span>
+      <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `Mostrando ${filtered.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} de ${filtered.length}`}</span>
         <div><button aria-label="Página anterior" disabled={currentPage <= 1 || unavailable} onClick={() => setPage(currentPage - 1)}>←</button>
-          <span>{currentPage} / {totalPages}</span><button aria-label="Página siguiente" disabled={currentPage >= totalPages || unavailable} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
+          <strong aria-current="page" aria-label={`Página ${currentPage} de ${totalPages}`}>{currentPage}</strong><button aria-label="Página siguiente" disabled={currentPage >= totalPages || unavailable} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
     </section>
     <p className="membership-note"><Icon name="shield" /> Desactivar un plan conserva las membresías históricas. La duración se define al crearlo.</p>
     {selected && <PlanDialog key={`${selected.mode}-${selected.planId}`} planId={selected.planId} initialMode={selected.mode}
