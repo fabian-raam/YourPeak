@@ -82,7 +82,7 @@ public class Cliente {
         this.idTipoObjetivo = idTipoObjetivo;
         this.idNivelExperiencia = idNivelExperiencia;
         this.idNivelActividad = idNivelActividad;
-        if (sexo != null) this.sexo = sexo;
+        if (this.sexo == null) this.sexo = sexo;
     }
 
     /**

@@ -59,6 +59,7 @@ public class PerfilClienteService {
                 : actividadRepository.findById(cliente.getIdNivelActividad()).orElse(null);
 
         boolean completado = objetivo != null && experiencia != null && actividad != null
+                && cliente.getSexo() != null
                 && registro.isPresent();
         return new PerfilInicialResponse(
                 completado,
@@ -76,6 +77,10 @@ public class PerfilClienteService {
     @Transactional
     public PerfilInicialResponse guardar(Long idUsuario, PerfilInicialRequest request) {
         Cliente cliente = buscarClienteActivo(idUsuario);
+        if (cliente.getSexo() != null && !cliente.getSexo().equals(request.sexo())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "El sexo solo se puede registrar una vez y no puede modificarse.");
+        }
         var objetivo = objetivoRepository.findById(request.idTipoObjetivo())
                 .orElseThrow(() -> datoCatalogoInvalido("objetivo"));
         var experiencia = experienciaRepository.findById(request.idNivelExperiencia())

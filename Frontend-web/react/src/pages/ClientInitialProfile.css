@@ -8,6 +8,7 @@
 .initial-profile-fields select, .initial-profile-fields input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #d3dced; border-radius: 8px; color: #17233b; background: #fff; font: 14px 'IBM Plex Sans', Arial, sans-serif; }
 .initial-profile-fields select:focus, .initial-profile-fields input:focus { outline: 2px solid #2166e833; border-color: #5590eb; }
 .initial-profile-fields select:disabled, .initial-profile-fields input:disabled { color: #8794a8; background: #f2f5f9; }
+.initial-profile-fields input[readonly] { color: #687995; background: #f2f5f9; cursor: default; }
 .initial-profile-help { margin: 16px 0 0; color: #75839a; font-size: 12px; line-height: 1.5; }
 .initial-profile-actions { display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 17px; border-top: 1px solid #e4eaf4; }
 .initial-profile-actions button { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 15px; border: 1px solid #2166e8; border-radius: 8px; color: #fff; background: #2166e8; font: 600 13px 'IBM Plex Sans', Arial, sans-serif; }

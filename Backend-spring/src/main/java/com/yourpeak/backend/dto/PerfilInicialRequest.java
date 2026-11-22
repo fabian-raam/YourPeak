@@ -18,6 +18,7 @@ public record PerfilInicialRequest(
         @NotNull(message = "Selecciona tu nivel de actividad.")
         Integer idNivelActividad,
 
+        @NotNull(message = "Selecciona tu sexo.")
         @Pattern(regexp = "HOMBRE|MUJER", message = "El sexo debe ser HOMBRE o MUJER.")
         String sexo,
 

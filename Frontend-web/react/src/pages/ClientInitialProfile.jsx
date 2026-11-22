@@ -25,6 +25,7 @@ function formFromProfile(profile) {
 export default function ClientInitialProfile({ user, onExpired }) {
   const [catalogs, setCatalogs] = useState({ objetivos: [], nivelesExperiencia: [], nivelesActividad: [] })
   const [form, setForm] = useState(blankForm)
+  const [sexo, setSexo] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -36,6 +37,7 @@ export default function ClientInitialProfile({ user, onExpired }) {
       if (!current) return
       setCatalogs(profile.catalogos || { objetivos: [], nivelesExperiencia: [], nivelesActividad: [] })
       setForm(formFromProfile(profile))
+      setSexo(profile.sexo || '')
     }).catch(err => {
       if (!current) return
       if (err.status === 401) onExpired()
@@ -61,10 +63,12 @@ export default function ClientInitialProfile({ user, onExpired }) {
         idTipoObjetivo: Number(form.idTipoObjetivo),
         idNivelExperiencia: Number(form.idNivelExperiencia),
         idNivelActividad: Number(form.idNivelActividad),
+        sexo,
         pesoKg: Number(form.pesoKg),
         tallaCm: Number(form.tallaCm),
       })
       setForm(formFromProfile(profile))
+      setSexo(profile.sexo || '')
       setCatalogs(profile.catalogos || catalogs)
       setNotice('Tu perfil se guardó correctamente.')
     } catch (err) {
@@ -112,6 +116,19 @@ export default function ClientInitialProfile({ user, onExpired }) {
                 <option value="">Selecciona tu actividad</option>
                 {catalogs.nivelesActividad.map(option => <option key={option.id} value={option.id}>{option.nombre}</option>)}
               </select>
+            </label>
+            <label>
+              <span>Sexo</span>
+              {sexo ? <input
+                type="text"
+                value={sexo === 'HOMBRE' ? 'Hombre' : 'Mujer'}
+                readOnly
+                aria-readonly="true"
+              /> : <select value={sexo} onChange={event => setSexo(event.target.value)} required disabled={saving}>
+                <option value="">Selecciona tu sexo</option>
+                <option value="HOMBRE">Hombre</option>
+                <option value="MUJER">Mujer</option>
+              </select>}
             </label>
             <label>
               <span>Peso (kg)</span>
