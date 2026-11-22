@@ -1,6 +1,11 @@
 package com.ramirez.yourpeak.ui.home
 
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,13 +14,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -24,15 +29,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramirez.yourpeak.data.model.LoginResponse
 import com.ramirez.yourpeak.YourPeakApp
 import com.ramirez.yourpeak.ui.components.EncabezadoTarjeta
 import com.ramirez.yourpeak.ui.components.FondoMarca
+import com.ramirez.yourpeak.ui.components.IconoEntrenamiento
+import com.ramirez.yourpeak.ui.components.IconoInicio
+import com.ramirez.yourpeak.ui.components.IconoMembresia
+import com.ramirez.yourpeak.ui.components.IconoNutricion
+import com.ramirez.yourpeak.ui.components.IconoProgreso
 import com.ramirez.yourpeak.ui.components.NotaPie
 import com.ramirez.yourpeak.ui.components.TarjetaAuth
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
@@ -129,24 +142,63 @@ private fun NavegacionPrincipal(
 ) {
     val entrenamientoSeleccionado = seccionSeleccionada in seccionesEntrenamiento
     val destinos = listOf(
-        Triple(SeccionCliente.INICIO, "\u2302", "Inicio"),
-        Triple(SeccionCliente.MI_RUTINA, "\u2194", "Entrenamiento"),
-        Triple(SeccionCliente.NUTRICION, "\u25c9", "Nutricion"),
-        Triple(SeccionCliente.PROGRESO, "\u2197", "Progreso"),
-        Triple(SeccionCliente.MEMBRESIA, "\u25a3", "Membresia")
+        SeccionCliente.INICIO to "Inicio",
+        SeccionCliente.MI_RUTINA to "Entrenamiento",
+        SeccionCliente.NUTRICION to "Nutrici\u00F3n",
+        SeccionCliente.PROGRESO to "Progreso",
+        SeccionCliente.MEMBRESIA to "Membres\u00EDa"
     )
 
-    NavigationBar {
-        destinos.forEach { (seccion, simbolo, etiqueta) ->
-            val seleccionado = if (seccion == SeccionCliente.MI_RUTINA) {
-                entrenamientoSeleccionado
-            } else seccionSeleccionada == seccion
-            NavigationBarItem(
-                selected = seleccionado,
-                onClick = { alSeleccionar(seccion) },
-                icon = { Text(simbolo, style = MaterialTheme.typography.titleMedium) },
-                label = { Text(etiqueta, maxLines = 1) }
-            )
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(0.94f),
+            shape = RoundedCornerShape(22.dp),
+            color = Color(0xFF151515),
+            border = BorderStroke(1.dp, Color(0xFF292929)),
+            shadowElevation = 8.dp
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 5.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                destinos.forEach { (seccion, etiqueta) ->
+                    val seleccionado = if (seccion == SeccionCliente.MI_RUTINA) {
+                        entrenamientoSeleccionado
+                    } else seccionSeleccionada == seccion
+                    val colorContenido = if (seleccionado) Color.White else Color(0xFF9A9A9A)
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxSize()
+                            .padding(horizontal = 2.dp, vertical = 1.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (seleccionado) Color(0xFF292929) else Color.Transparent)
+                            .clickable { alSeleccionar(seccion) },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        when (seccion) {
+                            SeccionCliente.INICIO -> IconoInicio(colorContenido)
+                            SeccionCliente.MI_RUTINA -> IconoEntrenamiento(colorContenido)
+                            SeccionCliente.NUTRICION -> IconoNutricion(colorContenido)
+                            SeccionCliente.PROGRESO -> IconoProgreso(colorContenido)
+                            SeccionCliente.MEMBRESIA -> IconoMembresia(colorContenido)
+                            else -> Unit
+                        }
+                        Text(
+                            text = etiqueta,
+                            color = colorContenido,
+                            fontSize = 10.sp,
+                            lineHeight = 12.sp,
+                            maxLines = 1,
+                            fontWeight = if (seleccionado) FontWeight.SemiBold else FontWeight.Medium
+                        )
+                    }
+                }
+            }
         }
     }
 }
