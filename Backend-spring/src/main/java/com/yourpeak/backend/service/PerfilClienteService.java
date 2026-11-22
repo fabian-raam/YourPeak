@@ -18,10 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 /** Guarda y consulta el perfil inicial de un cliente, incluidas sus medidas físicas. */
 @Service
 public class PerfilClienteService {
+    private static final ZoneId ZONA_LIMA = ZoneId.of("America/Lima");
 
     private final ClienteRepository clienteRepository;
     private final AdministradorRepository administradorRepository;
@@ -29,6 +32,7 @@ public class PerfilClienteService {
     private final NivelExperienciaRepository experienciaRepository;
     private final NivelActividadRepository actividadRepository;
     private final RegistroFisicoRepository registroFisicoRepository;
+    private final MetaNutricionalService metaNutricionalService;
 
     public PerfilClienteService(
             ClienteRepository clienteRepository,
@@ -36,7 +40,8 @@ public class PerfilClienteService {
             TipoObjetivoRepository objetivoRepository,
             NivelExperienciaRepository experienciaRepository,
             NivelActividadRepository actividadRepository,
-            RegistroFisicoRepository registroFisicoRepository
+            RegistroFisicoRepository registroFisicoRepository,
+            MetaNutricionalService metaNutricionalService
     ) {
         this.clienteRepository = clienteRepository;
         this.administradorRepository = administradorRepository;
@@ -44,6 +49,7 @@ public class PerfilClienteService {
         this.experienciaRepository = experienciaRepository;
         this.actividadRepository = actividadRepository;
         this.registroFisicoRepository = registroFisicoRepository;
+        this.metaNutricionalService = metaNutricionalService;
     }
 
     @Transactional(readOnly = true)
@@ -97,14 +103,16 @@ public class PerfilClienteService {
 
         var ultimaMedicion = registroFisicoRepository
                 .findFirstByCliente_IdClienteOrderByFechaRegistroDesc(cliente.getIdCliente());
+        RegistroFisico medicion = ultimaMedicion.orElse(null);
         boolean cambioMedidas = ultimaMedicion.isEmpty()
                 || ultimaMedicion.get().getPesoKg().compareTo(request.pesoKg()) != 0
                 || ultimaMedicion.get().getTallaCm().compareTo(request.tallaCm()) != 0;
         if (cambioMedidas) {
-            registroFisicoRepository.save(new RegistroFisico(
-                    cliente, request.pesoKg(), request.tallaCm()
-            ));
+            medicion = registroFisicoRepository.save(new RegistroFisico(
+                    cliente, request.pesoKg(), request.tallaCm()));
         }
+
+        metaNutricionalService.actualizar(cliente, medicion, LocalDate.now(ZONA_LIMA));
 
         return consultar(idUsuario);
     }

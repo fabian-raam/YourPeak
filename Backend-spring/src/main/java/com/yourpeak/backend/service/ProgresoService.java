@@ -13,20 +13,27 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.ZoneId;
 
 /** Consulta el historial de peso y registra mediciones nuevas del cliente activo. */
 @Service
 public class ProgresoService {
+    private static final ZoneId ZONA_LIMA = ZoneId.of("America/Lima");
+
     private final ClienteRepository clienteRepository;
     private final AdministradorRepository administradorRepository;
     private final RegistroFisicoRepository registroFisicoRepository;
+    private final MetaNutricionalService metaNutricionalService;
 
     public ProgresoService(ClienteRepository clienteRepository,
                            AdministradorRepository administradorRepository,
-                           RegistroFisicoRepository registroFisicoRepository) {
+                           RegistroFisicoRepository registroFisicoRepository,
+                           MetaNutricionalService metaNutricionalService) {
         this.clienteRepository = clienteRepository;
         this.administradorRepository = administradorRepository;
         this.registroFisicoRepository = registroFisicoRepository;
+        this.metaNutricionalService = metaNutricionalService;
     }
 
     @Transactional(readOnly = true)
@@ -47,6 +54,7 @@ public class ProgresoService {
 
         RegistroFisico nuevaMedicion = registroFisicoRepository.save(
                 new RegistroFisico(cliente, request.pesoKg(), ultimaMedicion.getTallaCm()));
+        metaNutricionalService.actualizar(cliente, nuevaMedicion, LocalDate.now(ZONA_LIMA));
         return respuesta(nuevaMedicion);
     }
 
