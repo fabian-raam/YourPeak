@@ -1,10 +1,11 @@
 import ClientToast from '../components/ClientToast'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import { getAvailability, saveAvailability } from '../services/availability'
 import './ClientAvailability.css'
 
 const weekdays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+const dayInitials = 'LMXJVSD'
 const emptyWeek = () => weekdays.map((nombre, index) => ({
   diaSemana: index + 1,
   disponible: false,
@@ -63,13 +64,31 @@ function openTimePicker(input) {
   input.focus()
 }
 
+function AvailabilityTimeField({ day, start, disabled, invalid, errorId, onChange }) {
+  const key = start ? 'horaInicio' : 'horaFin'
+  const label = start ? 'Desde' : 'Hasta'
+  const id = `availability-${key}-${day.diaSemana}`
+  return <div className="availability-time-field">
+    <label htmlFor={id}>{label}<span className="sr-only"> · {day.nombre}</span></label>
+    <span className="availability-time-input">
+      <input id={id} type="time" value={day[key]} disabled={disabled}
+        aria-invalid={invalid || undefined} aria-describedby={invalid ? errorId : undefined}
+        onClick={event => openTimePicker(event.currentTarget)}
+        onChange={event => onChange(day.diaSemana, { [key]: event.target.value })} />
+      <button type="button" aria-label={`Elegir hora ${start ? 'de inicio' : 'final'} para ${day.nombre}`} disabled={disabled}
+        onClick={event => openTimePicker(event.currentTarget.parentElement.querySelector('input'))}><Icon name="clock" /></button>
+    </span>
+  </div>
+}
+
 export default function ClientAvailability({ onExpired }) {
   const [week, setWeek] = useState(emptyWeek)
   const [savedWeek, setSavedWeek] = useState(emptyWeek)
   const [loading, setLoading] = useState(true)
+  const [loadFailed, setLoadFailed] = useState(false)
+  const [attempt, setAttempt] = useState(0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
   const [noticeVisible, setNoticeVisible] = useState(false)
 
   useEffect(() => {
@@ -82,14 +101,27 @@ export default function ClientAvailability({ onExpired }) {
     }).catch(err => {
       if (!current) return
       if (err.status === 401) onExpired()
-      else setError(err.message || 'No se pudo consultar tu disponibilidad.')
+      else {
+        setError(err.message || 'No se pudo consultar tu disponibilidad.')
+        setLoadFailed(true)
+      }
     }).finally(() => { if (current) setLoading(false) })
     return () => { current = false }
-  }, [onExpired])
+  }, [attempt, onExpired])
 
-  const totalMinutes = useMemo(() => week.reduce((sum, day) => sum + Math.max(0, duration(day)), 0), [week])
+  const schedule = week.map((day, index) => {
+    const saved = savedWeek[index]
+    const minutes = duration(day)
+    const modified = day.disponible !== saved.disponible
+      || (day.disponible && (day.horaInicio !== saved.horaInicio || day.horaFin !== saved.horaFin))
+    const invalid = day.disponible && minutes <= 0
+    return { day, minutes, modified, invalid }
+  })
+  const totalMinutes = schedule.reduce((sum, item) => sum + Math.max(0, item.minutes), 0)
   const availableCount = week.filter(day => day.disponible).length
-  const dirty = JSON.stringify(week) !== JSON.stringify(savedWeek)
+  const pendingCount = schedule.filter(item => item.modified).length
+  const invalidCount = schedule.filter(item => item.invalid).length
+  const busy = loading || saving
 
   function updateDay(dayNumber, changes) {
     setError('')
@@ -98,19 +130,21 @@ export default function ClientAvailability({ onExpired }) {
   }
 
   function reset() {
-    setWeek(savedWeek.map(day => ({ ...day })))
+    setWeek(savedWeek)
     setError('')
     setNoticeVisible(false)
   }
 
+  function retry() {
+    setError('')
+    setLoadFailed(false)
+    setLoading(true)
+    setAttempt(previous => previous + 1)
+  }
+
   async function save(event) {
     event.preventDefault()
-    const invalid = week.find(day => day.disponible && (!day.horaInicio || !day.horaFin || duration(day) <= 0))
-    if (invalid) {
-      setError(`Revisa el horario del ${invalid.nombre.toLowerCase()}: define una hora final posterior a la inicial.`)
-      return
-    }
-
+    if (busy || loadFailed || !pendingCount || invalidCount) return
     setSaving(true)
     setError('')
     setNoticeVisible(false)
@@ -118,7 +152,6 @@ export default function ClientAvailability({ onExpired }) {
       const saved = fromApi(await saveAvailability(toPayload(week)))
       setWeek(saved)
       setSavedWeek(saved)
-      setNotice('Tu disponibilidad semanal se guardó correctamente.')
       setNoticeVisible(true)
     } catch (err) {
       if (err.status === 401) onExpired()
@@ -128,62 +161,83 @@ export default function ClientAvailability({ onExpired }) {
     }
   }
 
+  if (loading) return <p className="availability-loading" role="status">Cargando tus horarios.</p>
+
   return <section className="client-availability" aria-labelledby="client-page-title">
-    {noticeVisible && <ClientToast title="Disponibilidad guardada" message={notice} onClose={() => setNoticeVisible(false)} />}
+    {noticeVisible && <ClientToast title="Disponibilidad guardada" message="Tu disponibilidad semanal se guardó correctamente."
+      onClose={() => setNoticeVisible(false)} />}
     {error && <p className="availability-error" role="alert">{error}</p>}
+    {loadFailed ? <button className="availability-reset" type="button" onClick={retry}>Reintentar</button> : <>
+      <section className="availability-summary" aria-labelledby="availability-summary-title">
+        <div>
+          <h2 id="availability-summary-title">Resumen semanal</h2>
+          <div className="availability-summary-totals">
+            <span><strong>{availableCount}</strong> {availableCount === 1 ? 'día disponible' : 'días disponibles'}</span>
+            <span><strong>{readableDuration(totalMinutes)}</strong> por semana</span>
+          </div>
+        </div>
+        <ul className="availability-summary-days" aria-label="Disponibilidad por día">
+          {schedule.map(({ day, invalid }, index) => <li key={day.diaSemana}
+            className={invalid ? 'is-invalid' : day.disponible ? 'is-available' : undefined} title={day.nombre}>
+            <span aria-hidden="true">{dayInitials[index]}</span>
+            <span className="sr-only">{day.nombre} · {invalid ? 'Horario por corregir' : day.disponible ? 'Disponible' : 'No disponible'}</span>
+          </li>)}
+        </ul>
+        {invalidCount > 0 && <p className="availability-summary-warning" role="status">
+          Sin contar {invalidCount} {invalidCount === 1 ? 'horario por corregir' : 'horarios por corregir'}
+        </p>}
+      </section>
 
-    <form className="availability-panel" onSubmit={save} aria-busy={loading || saving}>
-      <div className="availability-panel-heading">
-        <div><h2>Horarios semanales</h2><p>Elige los días y rangos en los que estás disponible.</p></div>
-        <span className="availability-summary"><Icon name="clock" />
-          {availableCount} {availableCount === 1 ? 'día disponible' : 'días disponibles'} · {readableDuration(totalMinutes)} por semana
-        </span>
-      </div>
-
-      {!loading && availableCount === 0 && <div className="availability-empty-note">
-        <Icon name="clock" /><span><strong>Sin horarios definidos</strong>Activa los días en que puedes entrenar y elige un intervalo.</span>
-      </div>}
-
-      <div className="availability-day-list">
-        {week.map(day => <div className={`availability-day${day.disponible ? ' is-available' : ''}`} key={day.diaSemana}>
-          <label className="availability-toggle" aria-label={`${day.disponible ? 'Desactivar' : 'Activar'} ${day.nombre}`}>
-            <input type="checkbox" checked={day.disponible} disabled={loading || saving}
-              onChange={event => updateDay(day.diaSemana, {
-                disponible: event.target.checked,
-                horaInicio: event.target.checked ? day.horaInicio : '',
-                horaFin: event.target.checked ? day.horaFin : '',
-              })} />
-            <span aria-hidden="true"><i /></span>
-          </label>
-          <strong className="availability-day-name">{day.nombre}</strong>
-          <div className="availability-time-field"><label htmlFor={`start-${day.diaSemana}`}>Desde</label>
-            <span className="availability-time-input"><input id={`start-${day.diaSemana}`} type="time" value={day.horaInicio}
-              disabled={!day.disponible || loading || saving}
-              onClick={event => openTimePicker(event.currentTarget)}
-              onChange={event => updateDay(day.diaSemana, { horaInicio: event.target.value })} />
-              <button type="button" aria-label={`Elegir hora de inicio para ${day.nombre}`} disabled={!day.disponible || loading || saving}
-                onClick={event => openTimePicker(event.currentTarget.parentElement.querySelector('input'))}><Icon name="clock" /></button></span></div>
-          <div className="availability-time-field"><label htmlFor={`end-${day.diaSemana}`}>Hasta</label>
-            <span className="availability-time-input"><input id={`end-${day.diaSemana}`} type="time" value={day.horaFin}
-              disabled={!day.disponible || loading || saving}
-              onClick={event => openTimePicker(event.currentTarget)}
-              onChange={event => updateDay(day.diaSemana, { horaFin: event.target.value })} />
-              <button type="button" aria-label={`Elegir hora final para ${day.nombre}`} disabled={!day.disponible || loading || saving}
-                onClick={event => openTimePicker(event.currentTarget.parentElement.querySelector('input'))}><Icon name="clock" /></button></span></div>
-          <span className={`availability-day-total${day.disponible ? ' active' : ''}`}>
-            {!day.disponible ? 'No disponible' : duration(day) > 0 ? readableDuration(duration(day)) : 'Completa horario'}
-          </span>
-        </div>)}
-        {loading && <div className="availability-loading" role="status">Cargando tus horarios…</div>}
-      </div>
-
-      <footer className="availability-actions">
-        <span className="availability-timezone">La semana empieza el lunes · Horario local</span>
-        <div><button className="availability-reset" type="button" onClick={reset} disabled={!dirty || loading || saving}>Restablecer</button>
-          <button className="availability-save" type="submit" disabled={!dirty || loading || saving}>
-            <Icon name={saving ? 'clock' : 'check'} />{saving ? 'Guardando…' : 'Guardar disponibilidad'}
-          </button></div>
-      </footer>
-    </form>
+      <form className="availability-panel" onSubmit={save} aria-busy={saving}>
+        <header className="availability-panel-heading"><h2>Horarios semanales</h2></header>
+        <div className="availability-day-list">
+          {schedule.map(({ day, minutes, modified, invalid }) => {
+            const errorId = `availability-error-${day.diaSemana}`
+            const disabled = !day.disponible || saving
+            return <div className={`availability-day${day.disponible ? ' is-available' : ''}${invalid ? ' is-invalid' : ''}`} key={day.diaSemana}>
+              <div className="availability-day-title">
+                <label className="availability-toggle">
+                  <input type="checkbox" role="switch" aria-label={`${day.nombre} disponible`} checked={day.disponible} disabled={saving}
+                    onChange={event => updateDay(day.diaSemana, {
+                      disponible: event.target.checked,
+                      horaInicio: event.target.checked ? day.horaInicio : '',
+                      horaFin: event.target.checked ? day.horaFin : '',
+                    })} />
+                  <span aria-hidden="true"><i /></span>
+                </label>
+                <strong className="availability-day-name">{day.nombre}</strong>
+                {modified && <span className="availability-modified">Modificado</span>}
+              </div>
+              <AvailabilityTimeField day={day} start disabled={disabled} invalid={invalid && !day.horaInicio}
+                errorId={errorId} onChange={updateDay} />
+              <AvailabilityTimeField day={day} disabled={disabled} invalid={invalid && (!day.horaFin || Boolean(day.horaInicio))}
+                errorId={errorId} onChange={updateDay} />
+              <span className="availability-day-total">
+                {day.disponible ? (invalid ? '' : readableDuration(minutes)) : 'No disponible'}
+              </span>
+              {invalid && <p className="availability-field-error" id={errorId}>
+                <Icon name="info" />{!day.horaInicio || !day.horaFin
+                  ? 'Completa las horas de inicio y fin.'
+                  : 'La hora de fin debe ser posterior a la de inicio.'}
+              </p>}
+            </div>
+          })}
+        </div>
+        <footer className="availability-actions">
+          <div className="availability-actions-meta">
+            <span className="availability-timezone">La semana empieza el lunes · Horario local</span>
+            <span className="availability-pending" role="status">
+              {pendingCount > 0 && `${pendingCount} ${pendingCount === 1 ? 'cambio' : 'cambios'} sin guardar`}
+            </span>
+          </div>
+          <div className="availability-action-buttons">
+            <button className="availability-reset" type="button" onClick={reset} disabled={!pendingCount || saving}>Restablecer</button>
+            <button className="availability-save" type="submit" disabled={!pendingCount || saving || invalidCount > 0}>
+              <Icon name={saving ? 'clock' : 'check'} />{saving ? 'Guardando.' : 'Guardar disponibilidad'}
+            </button>
+          </div>
+        </footer>
+      </form>
+    </>}
   </section>
 }

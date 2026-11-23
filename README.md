@@ -121,6 +121,8 @@ El panel administrativo tiene un menú lateral azul marino y un área de trabajo
 
 Los títulos utilizan **Barlow Condensed Bold** y los textos y controles usan **IBM Plex Sans**. Las fuentes y sus licencias OFL están en `Frontend-web/react/public/fonts`.
 
+En administración, **Desactivar** se distingue con texto y borde rojos en las tablas de ejercicios y planes de membresía, y con fondo rojo en la confirmación. Se mejoró el contraste del nombre del ejercicio y del plan en sus diálogos.
+
 ![Panel administrativo de YourPeak en la vista Solicitudes, con cuentas de prueba](docs/images/panel-administrativo.png)
 
 ### Catálogos de ejercicios y alimentos
@@ -132,19 +134,30 @@ Para probar los catálogos, ejecuta [`yourpeak_datos_iniciales.sql`](Backend-spr
 
 ### Área web del cliente
 
-Los clientes activos con membresía vigente pueden abrir **Inicio** (`/`), **Mi perfil** (`/mi-perfil`) y **Mi membresía** (`/mi-membresia`). El área usa los datos de la sesión de Django para mostrar la identidad, el correo institucional y la vigencia de la membresía. Desde el menú de cuenta se puede abrir el perfil o cerrar sesión.
+Los clientes activos con membresía vigente cuentan con menú lateral en escritorio y navegación inferior en móvil. **Mi perfil** y **Cerrar sesión** se abren desde el menú de cuenta. La interfaz usa **Barlow Condensed** para los títulos e **IBM Plex Sans** para los textos y controles. Las animaciones respetan la preferencia de movimiento reducido.
 
-En administración, **Desactivar** se distingue con texto y borde rojos en las tablas de ejercicios y planes de membresía, y con fondo rojo en la confirmación. Se mejoró el contraste del nombre del ejercicio y del plan en sus diálogos.
+| Pantalla | Ruta | Funciones |
+|---|---|---|
+| Inicio | `/` | Entrenamiento de hoy o próximo, consumo nutricional de hoy, actividad reciente y última medición de peso. |
+| Mi rutina | `/cliente/mi-rutina` | Planificación semanal con días disponibles y de descanso. Permite agregar o quitar ejercicios, configurar series, repeticiones o tiempo y descanso, guardar y restablecer. |
+| Ejercicios | `/cliente/ejercicios` | Catálogo con búsqueda, filtros por grupo muscular y nivel, y detalle de ejecución. |
+| Disponibilidad | `/cliente/disponibilidad` | Días y horarios semanales, resumen de horas y validación de rangos antes de guardar. |
+| Nutrición | `/cliente/nutricion` | Diario por fecha. Permite registrar alimentos para hoy, editar cantidades y confirmar la eliminación. Muestra calorías y macros consumidos y el avance cuando hay una meta vigente. |
+| Mi progreso | `/cliente/progreso` | Registro de peso, variación desde la primera medición, gráfico de evolución e historial. El gráfico aparece desde la segunda medición. |
+| Mi membresía | `/mi-membresia` | Plan vigente, vencimiento, próxima renovación programada e historial de períodos. |
+| Mi perfil | `/mi-perfil` | Objetivo, experiencia, nivel de actividad, peso y talla. El campo **Sexo** queda fijo tras su primer guardado. |
 
-El cliente puede consultar y guardar sus horarios en **Disponibilidad** y su planificación semanal en **Mi rutina**. La pantalla **Ejercicios** y el selector de **Mi rutina** consultan el mismo catálogo de ejercicios activos mediante `GET /api/web/cliente/rutina/ejercicios/`. El catálogo permite buscar, filtrar por grupo muscular y nivel, y consultar el detalle de cada ejercicio.
+El catálogo **Ejercicios** y el selector de **Mi rutina** consultan los ejercicios activos en `GET /api/web/cliente/rutina/ejercicios/`.
 
-El área cliente utiliza **Barlow Condensed** para los títulos e **IBM Plex Sans** para los textos y controles. Se aumentó el tamaño de los textos de tablas, filtros y formularios y se alinearon los encabezados con el menú de cuenta en escritorio.
+Los 16 ejercicios del catálogo inicial tienen una ilustración en su tarjeta y en **Ver detalle → El movimiento**. Los ejercicios dinámicos muestran las posiciones de inicio y final. La plancha frontal muestra la posición de sostén. Para añadir una ilustración, guarda el archivo JPG en `Frontend-web/react/src/assets/exercises/` y registra su clave y texto alternativo en `ClientExercises.jsx`. El catálogo busca primero una clave en `imagenRuta` y luego la clave formada a partir del nombre del ejercicio. Los ejercicios sin ilustración conservan el ícono de mancuerna y su ficha de detalle.
 
-**Inicio** muestra el entrenamiento de hoy o el próximo de la rutina semanal, la actividad reciente basada en series realizadas y el último peso del cliente.
+#### Comprobar el flujo del cliente en local
 
-**Nutrición** permite consultar el catálogo, registrar alimentos y revisar el diario por fecha. El gráfico de Inicio resume el consumo de hoy y el de Nutrición muestra el día seleccionado. Ambos muestran la meta cuando hay una registrada.
-
-**Mi membresía** muestra el plan, su duración y las fechas del período vigente. El cliente consulta su propio historial en `GET /api/web/cliente/membresias/`.
+1. Inicia sesión con una cuenta de prueba activa y con membresía vigente. Completa **Mi perfil** para registrar la primera medición y permitir el cálculo de la meta nutricional.
+2. Configura un día en **Disponibilidad**, agrega un ejercicio a ese día en **Mi rutina** y guarda. Comprueba que la sesión aparezca en **Inicio** cuando corresponda y abre su detalle desde **Ejercicios**.
+3. En **Nutrición**, registra un alimento para hoy, cambia la cantidad y prueba la confirmación para eliminarlo. Revisa que el consumo de hoy también se refleje en **Inicio**.
+4. En **Mi progreso**, registra otra medición y comprueba el gráfico y el historial. En **Mi membresía**, revisa el plan vigente y, si la cuenta tiene una renovación programada, su fecha de inicio.
+5. Repite la navegación con el ancho de un teléfono y comprueba el acceso a **Mi perfil** desde el menú de cuenta.
 
 ### Requisitos adicionales
 

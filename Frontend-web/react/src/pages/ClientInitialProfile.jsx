@@ -1,32 +1,31 @@
-import ClientToast from '../components/ClientToast'
 import { useEffect, useState } from 'react'
+import ClientToast from '../components/ClientToast'
 import Icon from '../components/Icon'
 import { getClientProfile, saveClientProfile } from '../services/clientProfile'
+import { fullName, initials } from '../utils/format'
 import './ClientInitialProfile.css'
 
-const blankForm = {
-  idTipoObjetivo: '',
-  idNivelExperiencia: '',
-  idNivelActividad: '',
-  pesoKg: '',
-  tallaCm: '',
-}
+const emptyCatalogs = { objetivos: [], nivelesExperiencia: [], nivelesActividad: [] }
+const sexLabels = { HOMBRE: 'Hombre', MUJER: 'Mujer' }
 
 function formFromProfile(profile) {
   return {
-    idTipoObjetivo: profile.idTipoObjetivo ? String(profile.idTipoObjetivo) : '',
-    idNivelExperiencia: profile.idNivelExperiencia ? String(profile.idNivelExperiencia) : '',
-    idNivelActividad: profile.idNivelActividad ? String(profile.idNivelActividad) : '',
+    idTipoObjetivo: String(profile.idTipoObjetivo ?? ''),
+    idNivelExperiencia: String(profile.idNivelExperiencia ?? ''),
+    idNivelActividad: String(profile.idNivelActividad ?? ''),
+    sexo: profile.sexo ?? '',
     pesoKg: profile.pesoKg ?? '',
     tallaCm: profile.tallaCm ?? '',
   }
 }
 
 export default function ClientInitialProfile({ user, onExpired }) {
-  const [catalogs, setCatalogs] = useState({ objetivos: [], nivelesExperiencia: [], nivelesActividad: [] })
-  const [form, setForm] = useState(blankForm)
-  const [sexo, setSexo] = useState('')
+  const [catalogs, setCatalogs] = useState(emptyCatalogs)
+  const [form, setForm] = useState(() => formFromProfile({}))
+  const [savedSex, setSavedSex] = useState('')
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
+  const [loadAttempt, setLoadAttempt] = useState(0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -35,16 +34,22 @@ export default function ClientInitialProfile({ user, onExpired }) {
     let current = true
     getClientProfile().then(profile => {
       if (!current) return
-      setCatalogs(profile.catalogos || { objetivos: [], nivelesExperiencia: [], nivelesActividad: [] })
+      setCatalogs(profile.catalogos || emptyCatalogs)
       setForm(formFromProfile(profile))
-      setSexo(profile.sexo || '')
+      setSavedSex(profile.sexo || '')
     }).catch(err => {
       if (!current) return
       if (err.status === 401) onExpired()
-      else setError(err.message || 'No se pudo cargar tu perfil.')
+      else setLoadError(err.message || 'No se pudo cargar tu perfil.')
     }).finally(() => { if (current) setLoading(false) })
     return () => { current = false }
-  }, [onExpired])
+  }, [onExpired, loadAttempt])
+
+  function retry() {
+    setLoadError('')
+    setLoading(true)
+    setLoadAttempt(value => value + 1)
+  }
 
   function update(event) {
     const { name, value } = event.target
@@ -55,6 +60,7 @@ export default function ClientInitialProfile({ user, onExpired }) {
 
   async function submit(event) {
     event.preventDefault()
+    if (saving) return
     setError('')
     setNotice('')
     setSaving(true)
@@ -63,13 +69,13 @@ export default function ClientInitialProfile({ user, onExpired }) {
         idTipoObjetivo: Number(form.idTipoObjetivo),
         idNivelExperiencia: Number(form.idNivelExperiencia),
         idNivelActividad: Number(form.idNivelActividad),
-        sexo,
+        sexo: savedSex || form.sexo,
         pesoKg: Number(form.pesoKg),
         tallaCm: Number(form.tallaCm),
       })
       setForm(formFromProfile(profile))
-      setSexo(profile.sexo || '')
-      setCatalogs(profile.catalogos || catalogs)
+      setSavedSex(profile.sexo || '')
+      if (profile.catalogos) setCatalogs(profile.catalogos)
       setNotice('Tu perfil se guardó correctamente.')
     } catch (err) {
       if (err.status === 401) onExpired()
@@ -80,74 +86,93 @@ export default function ClientInitialProfile({ user, onExpired }) {
   }
 
   return <section className="client-initial-profile" aria-labelledby="client-page-title">
-    <section className="client-card initial-profile-card">
-      <div className="initial-profile-intro">
-        <span className="client-avatar" aria-hidden="true">
-          {(user?.nombre?.[0] || 'C').toUpperCase()}{(user?.apellido?.[0] || '').toUpperCase()}
-        </span>
-        <div>
-          <h2>{[user?.nombre, user?.apellido].filter(Boolean).join(' ') || 'Datos personales'}</h2>
-          <p>{user?.correo || ''}</p>
-        </div>
+    <div className="initial-profile-intro">
+      <span className="initial-profile-avatar" aria-hidden="true">{initials(user || {}) || 'C'}</span>
+      <div>
+        <h2>{fullName(user || {}) || 'Datos personales'}</h2>
+        {user?.correo && <p>{user.correo}</p>}
       </div>
+    </div>
 
-      {error && <div className="initial-profile-alert" role="alert">{error}</div>}
-      {notice && <ClientToast title="Perfil guardado" message={notice} onClose={() => setNotice('')} />}
-      {loading ? <p className="initial-profile-loading" role="status">Cargando tu perfil…</p> :
-        <form className="initial-profile-form" onSubmit={submit}>
-          <div className="initial-profile-fields">
-            <label>
-              <span>Objetivo</span>
-              <select name="idTipoObjetivo" value={form.idTipoObjetivo} onChange={update} required disabled={saving}>
-                <option value="">Selecciona tu objetivo</option>
-                {catalogs.objetivos.map(option => <option key={option.id} value={option.id}>{option.nombre}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Nivel de experiencia</span>
-              <select name="idNivelExperiencia" value={form.idNivelExperiencia} onChange={update} required disabled={saving}>
-                <option value="">Selecciona tu experiencia</option>
-                {catalogs.nivelesExperiencia.map(option => <option key={option.id} value={option.id}>{option.nombre}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Nivel de actividad</span>
-              <select name="idNivelActividad" value={form.idNivelActividad} onChange={update} required disabled={saving}>
-                <option value="">Selecciona tu actividad</option>
-                {catalogs.nivelesActividad.map(option => <option key={option.id} value={option.id}>{option.nombre}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Sexo</span>
-              {sexo ? <input
-                type="text"
-                value={sexo === 'HOMBRE' ? 'Hombre' : 'Mujer'}
-                readOnly
-                aria-readonly="true"
-              /> : <select value={sexo} onChange={event => setSexo(event.target.value)} required disabled={saving}>
-                <option value="">Selecciona tu sexo</option>
-                <option value="HOMBRE">Hombre</option>
-                <option value="MUJER">Mujer</option>
-              </select>}
-            </label>
-            <label>
-              <span>Peso (kg)</span>
-              <input name="pesoKg" type="number" min="1" max="999.99" step="0.01" value={form.pesoKg}
-                onChange={update} placeholder="Ej. 70.5" required disabled={saving} />
-            </label>
-            <label>
-              <span>Talla (cm)</span>
-              <input name="tallaCm" type="number" min="1" max="999.99" step="0.01" value={form.tallaCm}
-                onChange={update} placeholder="Ej. 175" required disabled={saving} />
-            </label>
-          </div>
-          <p className="initial-profile-help">Tus medidas se guardan como un registro para poder consultar cambios con el tiempo.</p>
-          <div className="initial-profile-actions">
-            <button type="submit" disabled={saving}>
-              <Icon name="check" /> {saving ? 'Guardando…' : 'Guardar perfil'}
-            </button>
-          </div>
-        </form>}
-    </section>
+    {notice && <ClientToast title="Perfil guardado" message={notice} onClose={() => setNotice('')} />}
+
+    {loading ? <p className="initial-profile-loading" role="status">Cargando tu perfil…</p>
+      : loadError ? <div className="initial-profile-alert">
+        <p role="alert">{loadError}</p>
+        <button className="client-text-link" type="button" onClick={retry}>Reintentar</button>
+      </div> : <form className="initial-profile-form" onSubmit={submit}>
+        <div className="initial-profile-panels">
+          <section className="initial-profile-panel" aria-labelledby="initial-profile-training">
+            <h3 id="initial-profile-training">Entrenamiento</h3>
+            <div className="initial-profile-fields">
+              <label>
+                <span>Objetivo</span>
+                <select name="idTipoObjetivo" value={form.idTipoObjetivo} onChange={update} required disabled={saving}>
+                  <option value="">Selecciona tu objetivo</option>
+                  {catalogs.objetivos.map(option => <option key={option.id} value={option.id}>{option.nombre}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Nivel de experiencia</span>
+                <select name="idNivelExperiencia" value={form.idNivelExperiencia} onChange={update} required disabled={saving}>
+                  <option value="">Selecciona tu experiencia</option>
+                  {catalogs.nivelesExperiencia.map(option => <option key={option.id} value={option.id}>{option.nombre}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Nivel de actividad</span>
+                <select name="idNivelActividad" value={form.idNivelActividad} onChange={update} required disabled={saving}>
+                  <option value="">Selecciona tu actividad</option>
+                  {catalogs.nivelesActividad.map(option => <option key={option.id} value={option.id}>{option.nombre}</option>)}
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section className="initial-profile-panel initial-profile-physical" aria-labelledby="initial-profile-measurements">
+            <h3 id="initial-profile-measurements">Datos físicos</h3>
+            <div className="initial-profile-fields initial-profile-measures">
+              <label>
+                <span>Peso<span className="sr-only"> (kg)</span></span>
+                <span className="initial-profile-input">
+                  <input name="pesoKg" type="number" min="1" max="999.99" step="0.01" inputMode="decimal" value={form.pesoKg}
+                    onChange={update} placeholder="Ej. 70.5" required disabled={saving} />
+                  <span aria-hidden="true">kg</span>
+                </span>
+              </label>
+              <label>
+                <span>Talla<span className="sr-only"> (cm)</span></span>
+                <span className="initial-profile-input">
+                  <input name="tallaCm" type="number" min="1" max="999.99" step="0.01" inputMode="decimal" value={form.tallaCm}
+                    onChange={update} placeholder="Ej. 175" required disabled={saving} />
+                  <span aria-hidden="true">cm</span>
+                </span>
+              </label>
+              <div className="initial-profile-sex">
+                <label>
+                  <span>Sexo</span>
+                  {savedSex ? <span className="initial-profile-input">
+                    <input type="text" value={sexLabels[savedSex] ?? savedSex} readOnly aria-describedby="initial-profile-sex-help" />
+                    <span aria-hidden="true"><Icon name="lock" /></span>
+                  </span> : <select name="sexo" value={form.sexo} onChange={update} required disabled={saving}
+                    aria-describedby="initial-profile-sex-help">
+                    <option value="">Selecciona tu sexo</option>
+                    {Object.entries(sexLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                  </select>}
+                </label>
+                <p id="initial-profile-sex-help">{savedSex ? 'Este dato queda fijo después de guardarlo.' : 'Puedes elegirlo antes de guardar. Después quedará fijo.'}</p>
+              </div>
+            </div>
+            <p className="initial-profile-help"><Icon name="activity" /> Si cambias tu peso o talla, se añade una medición a tu historial.</p>
+          </section>
+        </div>
+
+        <div className="initial-profile-actions">
+          {error && <p className="initial-profile-alert" role="alert">{error}</p>}
+          <button type="submit" disabled={saving}>
+            <Icon name="check" /> {saving ? 'Guardando…' : 'Guardar perfil'}
+          </button>
+        </div>
+      </form>}
   </section>
 }
