@@ -1,57 +1,208 @@
+.client-home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: clamp(14px, 1.65vw, 24px);
+}
+
+.client-home-grid > .client-card {
+  padding: clamp(20px, 2.3vw, 32px);
+  border-radius: 16px;
+  box-shadow: 0 4px 18px #172c4d0b;
+}
+
 .client-home-grid .client-card h2 {
-  font-size: 21px;
+  font: 700 clamp(24px, 2vw, 32px)/1.05 'Barlow Condensed', 'IBM Plex Sans', sans-serif;
+  text-transform: uppercase;
 }
 
 .client-home-grid .client-workout-card {
-  min-height: 270px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 282px;
+  background: linear-gradient(115deg, #0b1427 54%, #14294d 54%, #19448e);
+}
+
+.client-workout-athlete {
+  position: absolute;
+  z-index: -1;
+  inset: 0 -8% 0 auto;
+  width: 64%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 55% 30%;
+  opacity: .55;
+  mix-blend-mode: screen;
+  mask-image: linear-gradient(90deg, transparent, #000 35%);
+  pointer-events: none;
 }
 
 .client-home-grid .client-workout-card h2 {
-  margin-top: 15px;
-  font-size: clamp(42px, 5.4vw, 78px);
+  max-width: 13ch;
+  margin-top: 12px;
+  font-size: clamp(40px, 4.55vw, 73px);
+  line-height: .97;
+  text-wrap: balance;
 }
 
-.client-workout-card p,
-.client-workout-card .client-text-link {
-  color: #d7e3f6;
-}
+.client-home-grid .client-workout-card p,
+.client-workout-card .client-text-link { color: #d7e3f6; }
 
-.client-workout-card .client-dashboard-eyebrow {
-  margin-top: 0;
-  color: #9abafd;
-  font-size: 15px;
+.client-workout-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.client-home-grid .client-workout-card .client-dashboard-eyebrow {
+  margin: 0;
+  color: #a8c7ff;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: .09em;
+  letter-spacing: .1em;
   text-transform: uppercase;
+}
+.client-workout-tomorrow {
+  padding: 3px 9px;
+  border: 1px solid #709aeb70;
+  border-radius: 99px;
+  color: #edf4ff;
+  background: #1a3c75;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .client-workout-date::first-letter,
-.client-recent-activity p::first-letter {
-  text-transform: uppercase;
-}
+.client-recent-activity p::first-letter { text-transform: uppercase; }
 
 .client-workout-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 24px;
-  margin-top: 16px;
-  color: #d7e3f6;
-  font-size: 18px;
+  gap: 8px 20px;
+  margin-top: 13px;
+  color: #edf4ff;
+  font-size: 15px;
+}
+.client-workout-meta span { display: inline-flex; align-items: center; gap: 7px; }
+.client-workout-meta svg { color: #a8c7ff; }
+
+.client-home-grid .nutrition-overview:has(.client-nutrition-ring) {
+  grid-template-columns: minmax(78px, .65fr) minmax(0, 1.35fr);
+  gap: 12px 18px;
+  align-content: center;
+}
+.client-home-grid .nutrition-overview:has(.client-nutrition-ring) .client-nutrition-breakdown { display: contents; }
+.client-home-grid .nutrition-overview-heading,
+.client-home-grid .client-home-nutrition-note,
+.client-home-grid .nutrition-overview:has(.client-nutrition-ring) .client-nutrition-breakdown > .client-text-link { grid-column: 1 / -1; }
+.client-home-grid .nutrition-overview-heading { grid-row: 1; }
+.client-home-grid .nutrition-overview .client-nutrition-ring { grid-area: 2 / 1; width: min(100%, 128px); }
+.client-home-grid .client-nutrition-ring strong { font: 700 clamp(23px, 3vw, 37px)/1 'Barlow Condensed', sans-serif; }
+.client-home-grid .client-nutrition-ring span { font-size: clamp(10px, 1vw, 13px); }
+.client-home-grid .nutrition-overview-macros { grid-area: 2 / 2; margin: 0; gap: 10px; font-size: 14px; }
+.client-home-grid .nutrition-overview-macros dt { overflow-wrap: anywhere; }
+.client-home-grid .client-home-nutrition-note {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #1b4788;
+  background: #edf4ff;
+  font-size: 14px;
+}
+.client-home-grid .nutrition-overview:has(.client-nutrition-ring) .client-nutrition-breakdown > .client-text-link { margin-top: 0; justify-self: start; }
+
+.client-recent-activity { margin: 16px 0 0; padding: 0; list-style: none; }
+.client-recent-activity li { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; }
+.client-recent-activity li + li { margin-top: 12px; }
+.client-recent-activity li:not(:last-child)::after {
+  position: absolute;
+  top: 28px;
+  bottom: -16px;
+  left: 17px;
+  width: 1px;
+  background: #d3dfee;
+  content: '';
+}
+.client-recent-activity .client-card-icon {
+  position: relative;
+  z-index: 1;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  color: #18664f;
+  background: #dff2e9;
+}
+.client-recent-activity p { margin-top: 2px; font-size: 14px; }
+
+.client-home-activity-empty { display: flex; align-items: center; gap: 15px; margin-top: 16px; }
+.client-home-activity-empty .client-card-icon { border: 1px dashed #8db5ee; border-radius: 50%; }
+.client-home-activity-empty p { margin: 0; }
+.client-home-activity-empty .client-text-link { margin-top: 8px; }
+
+.client-home-grid .client-home-progress {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff;
+  border-color: #1e55c6;
+  background: linear-gradient(125deg, #2461dc, #1944a3);
+}
+.client-home-progress::after {
+  position: absolute;
+  z-index: -1;
+  right: -76px;
+  bottom: -115px;
+  width: 275px;
+  aspect-ratio: 1;
+  border: 26px solid #b7d1ff22;
+  border-radius: 50%;
+  content: '';
+}
+.client-home-grid .client-home-progress p { color: #f0f5ff; }
+.client-home-grid .client-home-weight { margin-top: 12px; font-size: 20px; }
+.client-home-weight strong { font: 700 clamp(44px, 5vw, 72px)/.92 'Barlow Condensed', sans-serif; }
+.client-home-progress .client-text-link {
+  padding: 9px 13px;
+  border-radius: 8px;
+  background: #fff;
+  color: #174ea8;
 }
 
-.client-workout-meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+@media (max-width: 1040px) {
+  .client-home-grid { grid-template-columns: 1fr; }
 }
 
-.client-workout-meta svg { color: #9abafd; }
+@media (max-width: 400px) {
+  .client-home-grid .nutrition-overview:has(.client-nutrition-ring) { gap: 10px; }
+  .client-home-grid .nutrition-overview-macros { font-size: 13px; }
+  .client-home-grid .client-workout-card { min-height: 250px; }
+  .client-workout-athlete { inset-inline-end: -17%; width: 74%; }
+}
 
-.client-recent-activity { margin: 12px 0 0; padding: 0; list-style: none; }
-.client-recent-activity li { display: flex; align-items: center; gap: 14px; padding: 12px 0; }
-.client-recent-activity li + li { border-top: 1px solid #e4eaf4; }
-.client-recent-activity .client-card-icon { width: 42px; height: 42px; }
-.client-recent-activity p { margin-top: 2px; }
+@property --client-home-ring-reveal {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 100%;
+}
 
-.client-home-weight { font-size: 21px; }
-.client-home-weight strong { color: var(--client-ink); font-size: clamp(36px, 4vw, 50px); }
+@media (prefers-reduced-motion: no-preference) {
+  .client-home-grid > .client-card { animation: client-home-enter .35s ease-out backwards; }
+  .client-home-grid > .client-card:nth-child(2) { animation-delay: .05s; }
+  .client-home-grid > .client-card:nth-child(3) { animation-delay: .1s; }
+  .client-home-grid > .client-card:nth-child(4) { animation-delay: .15s; }
+  .client-home-grid .client-nutrition-ring {
+    background: conic-gradient(transparent 0 var(--client-home-ring-reveal), #e2e7f0 var(--client-home-ring-reveal) 100%), var(--ring);
+    animation: client-home-ring .65s ease-out both;
+  }
+  .client-home-grid .nutrition-overview-track > span {
+    transform-origin: left;
+    animation: client-home-fill .65s ease-out both;
+  }
+  .client-home-grid :is(.client-cta, .client-text-link) { transition: transform .14s ease-out; }
+  .client-home-grid :is(.client-cta, .client-text-link) svg { transition: transform .16s ease-out; }
+  .client-home-grid :is(.client-cta, .client-text-link):hover svg { transform: translateX(3px); }
+  .client-home-grid :is(.client-cta, .client-text-link):active { transform: scale(.98); }
+}
+
+@keyframes client-home-enter { from { opacity: 0; transform: translateY(8px); } }
+@keyframes client-home-ring { from { --client-home-ring-reveal: 0%; } }
+@keyframes client-home-fill { from { transform: scaleX(0); } }

@@ -1,5 +1,5 @@
 import ClientToast from '../components/ClientToast'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import NutritionSummary from '../components/NutritionSummary'
 import {
@@ -20,6 +20,7 @@ const localDate = (date = new Date()) => {
 
 const emptySummary = () => ({ kcal: 0, proteinaG: 0, carbohidratoG: 0, grasaG: 0, ingestas: [] })
 const number = value => Number(value || 0)
+const validQuantity = value => Number(value) >= 0.01 && Number(value) <= 99999
 const amountLabel = value => `${number(value).toLocaleString('es-PE', { maximumFractionDigits: 2 })}`
 const normalizeSummary = result => ({ ...result, ingestas: Array.isArray(result.ingestas) ? result.ingestas : [] })
 const formatDay = value => new Intl.DateTimeFormat('es-PE', {
@@ -31,6 +32,11 @@ const formatTime = value => value
 const limaDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Lima', dateStyle: 'short' })
 
 export default function ClientNutrition({ onExpired }) {
+  const registration = useRef(null)
+  const confirmation = useRef(null)
+  const searchInput = useRef(null)
+  const dayHeading = useRef(null)
+  const [deleting, setDeleting] = useState(null)
   const [today] = useState(() => limaDate.format(new Date()))
   const [selectedDate, setSelectedDate] = useState(today)
   const [foods, setFoods] = useState([])
@@ -79,17 +85,25 @@ export default function ClientNutrition({ onExpired }) {
     return () => { current = false }
   }, [selectedDate, dayRevision, onExpired])
 
+  useEffect(() => {
+    if (showRegister && registration.current && !registration.current.open) {
+      registration.current.showModal()
+      searchInput.current?.focus()
+    }
+    if (deleting && confirmation.current && !confirmation.current.open) confirmation.current.showModal()
+  }, [showRegister, deleting])
+
   const visibleFoods = useMemo(() => {
     const query = foodSearch.trim().toLocaleLowerCase('es')
     return foods.filter(food => !query || food.nombre.toLocaleLowerCase('es').includes(query))
   }, [foods, foodSearch])
   const selectedFood = foods.find(food => String(food.idAlimento) === foodId)
-  const preview = selectedFood && number(quantity) > 0
+  const preview = selectedFood && validQuantity(quantity) && number(selectedFood.porcionBaseG) > 0
     ? ['kcal', 'proteinaG', 'carbohidratoG', 'grasaG'].map(key =>
       number(selectedFood[key]) * number(quantity) / number(selectedFood.porcionBaseG))
     : null
   const isToday = selectedDate === today
-  const canSubmit = Boolean(selectedFood && number(quantity) > 0 && !saving && !loadingFoods && !loadingDay && !dayError)
+  const canSubmit = Boolean(selectedFood && validQuantity(quantity) && !saving && !loadingFoods && !loadingDay && !dayError)
   const goal = Number(summary.meta?.kcal ?? 0)
   const difference = goal - number(summary.kcal)
   let summaryDescription = 'Sin meta diaria asignada'
@@ -134,7 +148,7 @@ export default function ClientNutrition({ onExpired }) {
       setFoodId('')
       setFoodSearch('')
       setQuantity('100')
-      setShowRegister(false)
+      registration.current?.close()
       setNotice('Alimento agregado al registro de hoy.')
       refreshDay()
     } catch (err) {
@@ -144,8 +158,8 @@ export default function ClientNutrition({ onExpired }) {
   }
 
   async function saveEdit(item) {
-    if (number(editingQuantity) <= 0) {
-      setError('La cantidad debe ser mayor que cero.')
+    if (saving || loadingDay || !validQuantity(editingQuantity)) {
+      setError('Ingresa una cantidad entre 0.01 y 99,999 g.')
       return
     }
     setSaving(true)
@@ -165,13 +179,15 @@ export default function ClientNutrition({ onExpired }) {
     } finally { setSaving(false) }
   }
 
-  async function removeItem(item) {
-    if (!window.confirm(`¿Eliminar ${item.alimento} del registro?`)) return
+  async function removeItem() {
+    if (!deleting || saving || loadingDay) return
     setSaving(true)
     setError('')
     setNotice('')
     try {
-      await deleteIntake(item.idIngesta)
+      await deleteIntake(deleting.idIngesta)
+      confirmation.current?.close()
+      dayHeading.current?.focus()
       setNotice('Se eliminó el consumo del registro.')
       refreshDay()
     } catch (err) {
@@ -182,7 +198,7 @@ export default function ClientNutrition({ onExpired }) {
 
   return <section className="client-nutrition" aria-labelledby="client-page-title">
     {notice && <ClientToast title="Registro actualizado" message={notice} onClose={() => setNotice('')} />}
-    {(error || dayError || (showRegister && catalogError)) && <p className="nutrition-error" role="alert">{error || dayError || catalogError}</p>}
+    {(dayError || (error && !showRegister && !deleting)) && <p className="nutrition-error" role="alert">{dayError || error}</p>}
 
     <div className="nutrition-toolbar">
       <div className="nutrition-date-control">
@@ -191,59 +207,79 @@ export default function ClientNutrition({ onExpired }) {
         <input id="nutrition-date" type="date" value={selectedDate} max={today} disabled={saving || loadingDay}
           onChange={event => selectDate(event.target.value)} />
         <label htmlFor="nutrition-date">{formatDay(selectedDate)}</label>
-        {!isToday && <button className="nutrition-today" type="button" disabled={saving || loadingDay} onClick={() => selectDate(today)}>Hoy</button>}
+        {isToday ? <span className="nutrition-today-badge">Hoy</span> : <button className="nutrition-today" type="button" disabled={saving || loadingDay} onClick={() => selectDate(today)}>Hoy</button>}
       </div>
-      {isToday && <button className="nutrition-add-button" type="button" aria-expanded={showRegister}
-        onClick={() => setShowRegister(value => !value)} disabled={saving}>
-        <Icon name={showRegister ? 'close' : 'plus'} />{showRegister ? 'Cerrar formulario' : 'Registrar alimento'}
+      {isToday && <button className="nutrition-add-button" type="button" aria-haspopup="dialog"
+        onClick={() => { setError(''); setShowRegister(true) }} disabled={saving || loadingDay || Boolean(dayError)}>
+        <Icon name="plus" />Registrar alimento
       </button>}
     </div>
 
-    <NutritionSummary summary={loadingDay || dayError ? null : summary} id="nutrition-day-summary" title="Resumen del día"
+    <NutritionSummary daily summary={loadingDay || dayError ? null : summary} id="nutrition-day-summary" title="Resumen del día"
       description={!loadingDay && !dayError && summaryDescription}>
       {loadingDay && <p role="status">Cargando resumen…</p>}
     </NutritionSummary>
 
-    {isToday && showRegister && <form className="nutrition-panel nutrition-add-form" onSubmit={addFood}>
-        <div className="nutrition-add-title"><div><h3>Agregar alimento</h3><p>Indica el alimento y la cantidad que consumiste.</p></div>
-          <span>{loadingFoods ? 'Cargando catálogo...' : `${foods.length} alimentos disponibles`}</span></div>
-        <div className="nutrition-add-fields">
-          <label className="nutrition-food-search" htmlFor="nutrition-food-search">
-            <span>Buscar alimento</span>
-            <span className="nutrition-search-box"><Icon name="search" />
-              <input id="nutrition-food-search" type="search" placeholder="Filtrar alimentos..."
-                value={foodSearch} onChange={event => { setFoodSearch(event.target.value); setFoodId('') }} disabled={loadingFoods || saving} />
-            </span>
+    {isToday && showRegister && <dialog className="nutrition-dialog" ref={registration} aria-labelledby="nutrition-register-title"
+      onClose={() => { setShowRegister(false); setError('') }}
+      onCancel={event => { if (saving) event.preventDefault() }}>
+      <header className="nutrition-dialog-heading">
+        <div><span className="nutrition-dialog-date">{formatDay(selectedDate)} · Hoy</span>
+          <h2 id="nutrition-register-title">Registrar alimento</h2>
+          <p>Busca un alimento e indica cuánto consumiste.</p></div>
+        <button type="button" className="nutrition-dialog-close" aria-label="Cerrar registro" disabled={saving}
+          onClick={() => registration.current.close()}><Icon name="close" /></button>
+      </header>
+      <form onSubmit={addFood}>
+        <div className="nutrition-add-form">
+          {error && <p className="nutrition-error" role="alert">{error}</p>}
+          <label className="nutrition-search-box"><Icon name="search" />
+            <input ref={searchInput} type="search" placeholder="Buscar alimento" aria-label="Buscar alimento"
+              value={foodSearch} onChange={event => { setFoodSearch(event.target.value); setFoodId('') }}
+              onKeyDown={event => { if (event.key === 'Enter') event.preventDefault() }} disabled={saving} />
           </label>
-          <label className="nutrition-food-select" htmlFor="nutrition-food">
-            <span>Alimento</span>
-            <select id="nutrition-food" value={foodId} onChange={event => setFoodId(event.target.value)} disabled={loadingFoods || saving} required>
-              <option value="">{loadingFoods ? 'Cargando catálogo...' : visibleFoods.length === 0
-                ? (foodSearch ? 'No hay coincidencias' : 'El catálogo está vacío')
-                : 'Selecciona un alimento'}</option>
-              {visibleFoods.map(food => <option key={food.idAlimento} value={food.idAlimento}>{food.nombre}</option>)}
-            </select>
-          </label>
-          <label className="nutrition-quantity" htmlFor="nutrition-quantity">
-            <span>Cantidad (g)</span>
-            <input id="nutrition-quantity" type="number" min="0.01" max="99999" step="0.01" value={quantity}
-              onChange={event => setQuantity(event.target.value)} disabled={saving} required />
-          </label>
-          <button className="nutrition-add-button" type="submit" disabled={!canSubmit}>
-            <Icon name="plus" />{saving ? 'Guardando…' : 'Guardar registro'}
-          </button>
+          {loadingFoods ? <p className="nutrition-food-note" role="status">Cargando catálogo.</p> : catalogError ? <div>
+            <p className="nutrition-error" role="alert">{catalogError}</p>
+            <button className="nutrition-refresh" type="button" onClick={() => { setLoadingFoods(true); setCatalogRetry(value => value + 1) }}>
+              <Icon name="refresh" />Reintentar
+            </button>
+          </div> : <fieldset className="nutrition-food-list" disabled={saving}>
+            <legend className="sr-only">Alimento</legend>
+            {visibleFoods.map(food => <label className="nutrition-food-option" key={food.idAlimento}>
+              <input type="radio" className="sr-only" name="nutrition-food" value={food.idAlimento}
+                checked={foodId === String(food.idAlimento)} onChange={event => setFoodId(event.target.value)} required />
+              <span className="nutrition-food-option-main"><Icon name={foodId === String(food.idAlimento) ? 'check' : 'food'} />
+                <strong>{food.nombre}</strong></span>
+              <small>{amountLabel(food.kcal)} kcal / {amountLabel(food.porcionBaseG)} g</small>
+            </label>)}
+            {visibleFoods.length === 0 && <p className="nutrition-food-note" role="status">
+              {foodSearch.trim() ? 'No hay coincidencias.' : 'El catálogo está vacío.'}
+            </p>}
+          </fieldset>}
+          <div className="nutrition-portion">
+            <label className="nutrition-quantity" htmlFor="nutrition-quantity">
+              <span>Cantidad (g)</span>
+              <input id="nutrition-quantity" type="number" min="0.01" max="99999" step="0.01" value={quantity}
+                onChange={event => setQuantity(event.target.value)} disabled={saving} required />
+            </label>
+            {preview && <div className="nutrition-preview"><small>Estimado para esta cantidad</small>
+              <strong>{amountLabel(preview[0])} kcal</strong>
+              <span>{amountLabel(preview[1])} g prot. · {amountLabel(preview[2])} g carb. · {amountLabel(preview[3])} g grasa</span>
+            </div>}
+          </div>
         </div>
-        {catalogError && <button className="nutrition-retry-catalog" type="button" disabled={loadingFoods}
-          onClick={() => { setError(''); setLoadingFoods(true); setCatalogRetry(value => value + 1) }}>
-          <Icon name="refresh" />{loadingFoods ? 'Cargando...' : 'Reintentar carga del catálogo'}
-        </button>}
-        {preview && <p className="nutrition-preview">Aproximado para esta cantidad: {amountLabel(preview[0])} kcal · {amountLabel(preview[1])} g proteína · {amountLabel(preview[2])} g carbohidratos · {amountLabel(preview[3])} g grasas</p>}
-    </form>}
+        <footer className="nutrition-dialog-footer">
+          <button className="nutrition-secondary" type="button" onClick={() => registration.current.close()} disabled={saving}>Cancelar</button>
+          <button className="nutrition-add-button" type="submit" disabled={!canSubmit}>
+            <Icon name="plus" />{saving ? 'Guardando.' : 'Guardar registro'}
+          </button>
+        </footer>
+      </form>
+    </dialog>}
 
     <section className="nutrition-panel" aria-labelledby="nutrition-entries-title">
-
       <div className="nutrition-entry-heading">
-        <h2 id="nutrition-entries-title">Registros del día</h2>
+        <h2 id="nutrition-entries-title" tabIndex={-1} ref={dayHeading}>Registros del día</h2>
         {!loadingDay && !dayError && <span>{summary.ingestas.length} {summary.ingestas.length === 1 ? 'registro' : 'registros'}</span>}
       </div>
       {loadingDay ? <div className="nutrition-loading" role="status">Cargando registro...</div>
@@ -260,15 +296,17 @@ export default function ClientNutrition({ onExpired }) {
               <span>{amountLabel(item.proteinaG)} g prot. · {amountLabel(item.carbohidratoG)} g carb. · {amountLabel(item.grasaG)} g grasa</span>
             </div>
             <div className="nutrition-entry-actions">
-              {editingId === item.idIngesta ? <>
-                <label className="sr-only" htmlFor={`edit-intake-${item.idIngesta}`}>Cantidad en gramos</label>
+              {editingId === item.idIngesta ? <form className="nutrition-entry-edit"
+                onSubmit={event => { event.preventDefault(); saveEdit(item) }}>
+                <label htmlFor={`edit-intake-${item.idIngesta}`}>Cantidad (g)</label>
                 <input id={`edit-intake-${item.idIngesta}`} type="number" min="0.01" max="99999" step="0.01"
-                  value={editingQuantity} onChange={event => setEditingQuantity(event.target.value)} disabled={saving} />
-                <button type="button" className="nutrition-action-save" onClick={() => saveEdit(item)} disabled={saving}>Guardar</button>
-                <button type="button" onClick={() => setEditingId(null)} disabled={saving}>Cancelar</button>
-              </> : <>
-                <button type="button" onClick={() => { setEditingId(item.idIngesta); setEditingQuantity(String(item.cantidadG)) }} disabled={saving}>Editar</button>
-                <button type="button" className="nutrition-action-delete" onClick={() => removeItem(item)} disabled={saving}>Eliminar</button>
+                  value={editingQuantity} onChange={event => setEditingQuantity(event.target.value)} disabled={saving} required />
+                <button type="submit" className="nutrition-action-save" disabled={saving}>Guardar</button>
+                <button type="button" onClick={() => { setEditingId(null); setError('') }} disabled={saving}>Cancelar</button>
+              </form> : <>
+                <button type="button" onClick={() => { setError(''); setEditingId(item.idIngesta); setEditingQuantity(String(item.cantidadG)) }} disabled={saving}>Editar</button>
+                <button type="button" className="nutrition-action-delete" aria-haspopup="dialog"
+                  onClick={() => { setError(''); setDeleting(item) }} disabled={saving}>Eliminar</button>
               </>}
             </div>
           </article>)}
@@ -278,5 +316,19 @@ export default function ClientNutrition({ onExpired }) {
           disabled={loadingDay || saving}><Icon name="refresh" />Actualizar</button>
       </footer>
     </section>
+    {deleting && <dialog className="nutrition-dialog nutrition-delete-dialog" ref={confirmation}
+      aria-labelledby="nutrition-delete-title" aria-describedby="nutrition-delete-description"
+      onClose={() => { setDeleting(null); setError('') }}
+      onCancel={event => { if (saving) event.preventDefault() }}>
+      <header className="nutrition-dialog-heading"><div>
+        <h2 id="nutrition-delete-title">Eliminar registro</h2>
+        <p id="nutrition-delete-description">Se eliminará {deleting.alimento} ({amountLabel(deleting.cantidadG)} g) del registro de ese día.</p>
+      </div></header>
+      {error && <div className="nutrition-delete-error"><p className="nutrition-error" role="alert">{error}</p></div>}
+      <footer className="nutrition-dialog-footer">
+        <button type="button" className="nutrition-secondary" onClick={() => confirmation.current.close()} disabled={saving}>Cancelar</button>
+        <button type="button" className="nutrition-danger" onClick={removeItem} disabled={saving}>{saving ? 'Eliminando.' : 'Eliminar registro'}</button>
+      </footer>
+    </dialog>}
   </section>
 }
