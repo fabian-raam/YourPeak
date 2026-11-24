@@ -18,6 +18,13 @@ export async function getRoutineExercises() {
   return data
 }
 
+/** Pide una propuesta de rutina con IA; no se guarda hasta llamar a saveRoutine. */
+export async function generateRoutine() {
+  const data = await request(`${routinePath}generar/`, {})
+  if (!Array.isArray(data.dias)) throw new Error('No se pudo interpretar la rutina propuesta.')
+  return data
+}
+
 export async function saveRoutine(dias) {
   const data = await request(routinePath, { dias }, { method: 'PUT' })
   if (!Array.isArray(data.dias)) throw new Error('No se pudo interpretar la rutina guardada.')

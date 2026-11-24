@@ -1,12 +1,14 @@
 package com.yourpeak.backend.controller;
 
 import com.yourpeak.backend.dto.RutinaRequest;
+import com.yourpeak.backend.service.GeneradorRutinaService;
 import com.yourpeak.backend.service.RutinaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -26,9 +28,11 @@ public class RutinaController {
     private String internalApiKey;
 
     private final RutinaService rutinaService;
+    private final GeneradorRutinaService generadorRutinaService;
 
-    public RutinaController(RutinaService rutinaService) {
+    public RutinaController(RutinaService rutinaService, GeneradorRutinaService generadorRutinaService) {
         this.rutinaService = rutinaService;
+        this.generadorRutinaService = generadorRutinaService;
     }
 
     @GetMapping
@@ -60,6 +64,16 @@ public class RutinaController {
     ) {
         ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idUsuario);
         return error != null ? error : ResponseEntity.ok(rutinaService.actualizar(idUsuario, request));
+    }
+
+    /** Propone una rutina con IA (o con reglas si la IA no está disponible); no guarda nada. */
+    @PostMapping("/generar")
+    public ResponseEntity<?> generar(
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String apiKey,
+            @RequestHeader(value = "X-Client-User-Id", required = false) Long idUsuario
+    ) {
+        ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idUsuario);
+        return error != null ? error : ResponseEntity.ok(generadorRutinaService.generar(idUsuario));
     }
 
     private ResponseEntity<Map<String, String>> validarSolicitud(String apiKey, Long idUsuario) {

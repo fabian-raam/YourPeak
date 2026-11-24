@@ -585,3 +585,24 @@ El resultado debe mostrar ACTIVO. No es necesario borrar la base ni volver a imp
 - Prueba manual contra MySQL local: registro de cliente, espera, aprobación administrativa y acceso posterior como cliente activo.
 
 Las pruebas automáticas de Spring utilizan H2 y las de Django utilizan una base de pruebas; no cambian las cuentas reales de MySQL. En un equipo con poca memoria se verificó Spring con memoria limitada y `-DforkCount=0`.
+
+## HU-11: generador de rutina con IA
+
+En **Mi rutina**, el botón **Generar con IA** propone una rutina semanal según el perfil del cliente (objetivo, nivel, actividad, sexo, peso y talla), sus días disponibles y los ejercicios activos de su nivel. La propuesta solo se muestra en el editor: no se guarda hasta pulsar **Guardar rutina**, y los ejercicios generados quedan con origen `IA`.
+
+El generador es híbrido:
+
+- **Gemini:** si Spring tiene una clave, pide la rutina a la API de Gemini. El prompt no incluye nombre, correo ni fecha de nacimiento, y Spring descarta ejercicios fuera del catálogo, días no disponibles y valores fuera de rango.
+- **Reglas:** si no hay clave, Gemini falla, responde algo inválido o se alcanza el límite diario, Spring arma la rutina con reglas (cuerpo completo, empuje/tirón/pierna o torso/pierna según los días) y ajusta los ejercicios a la duración de cada día.
+
+La respuesta indica en `fuente` si se usó `GEMINI` o `REGLAS`. Para activar Gemini, crea una clave gratuita en Google AI Studio y define estas variables antes de arrancar Spring (nunca escribas la clave en el repositorio):
+
+```powershell
+$env:GEMINI_API_KEY = "tu_clave"
+$env:GEMINI_MODEL = "gemini-2.5-flash"   # opcional
+$env:IA_LIMITE_DIARIO = "5"              # opcional, generaciones con Gemini por cliente y día
+```
+
+Antes de usarlo, comprueba en la documentación de Google el nombre del modelo, la cuota gratuita y sus condiciones de uso de datos.
+
+Rutas: React llama a `POST /api/web/cliente/rutina/generar/` (Django, con sesión y CSRF) y Django llama a `POST /api/cliente/rutina/generar` en Spring con la clave interna.

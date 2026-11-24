@@ -14,6 +14,7 @@ urlpatterns = [
     path('api/web/cliente/membresias/', api.mis_membresias, name='mis-membresias'),
     # Rutina personal: solo permite asignar ejercicios a los días disponibles del cliente.
     path('api/web/cliente/rutina/', api.rutina_cliente, name='rutina-cliente'),
+    path('api/web/cliente/rutina/generar/', api.generar_rutina_cliente, name='generar-rutina-cliente'),
     path(
         'api/web/cliente/rutina/ejercicios/',
         api.ejercicios_disponibles_rutina,
