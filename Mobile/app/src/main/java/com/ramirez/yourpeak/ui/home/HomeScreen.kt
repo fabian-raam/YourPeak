@@ -126,21 +126,24 @@ fun HomeScreen(
                             if (estado.seccionSeleccionada in seccionesEntrenamiento) {
                                 append("ENTRENAMIENTO")
                                 withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
+                            } else if (estado.seccionSeleccionada == SeccionCliente.NUTRICION) {
+                                append("NUTRICIÓN")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
                             } else {
                                 append(estado.seccionSeleccionada.titulo.uppercase())
                             }
                         },
-                        style = if (estado.seccionSeleccionada in seccionesEntrenamiento) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge,
-                        color = if (estado.seccionSeleccionada in seccionesEntrenamiento) Color.White else MaterialTheme.colorScheme.tertiary,
+                        style = if (estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge,
+                        color = if (estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION) Color.White else MaterialTheme.colorScheme.tertiary,
                         fontFamily = FontFamily.SansSerif,
-                        fontSize = if (estado.seccionSeleccionada in seccionesEntrenamiento) 42.sp else 14.sp,
-                        lineHeight = if (estado.seccionSeleccionada in seccionesEntrenamiento) 46.sp else 18.sp,
+                        fontSize = if (estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION) 42.sp else 14.sp,
+                        lineHeight = if (estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION) 46.sp else 18.sp,
                         fontWeight = FontWeight.Black,
-                        letterSpacing = if (estado.seccionSeleccionada in seccionesEntrenamiento) (-1.4).sp else 0.sp,
+                        letterSpacing = if (estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION) (-1.4).sp else 0.sp,
                         maxLines = 1
                     )
                     Spacer(Modifier.height(8.dp))
-                    if (estado.seccionSeleccionada !in seccionesEntrenamiento) {
+                    if (estado.seccionSeleccionada !in seccionesEntrenamiento && estado.seccionSeleccionada != SeccionCliente.NUTRICION) {
                         Text(
                             text = "Hola, ${usuario.nombre.orEmpty()}${usuario.apellido?.let { " $it" }.orEmpty()}",
                             style = MaterialTheme.typography.headlineMedium,
@@ -180,7 +183,7 @@ fun HomeScreen(
                             }
                         )
                     }
-                    if (estado.seccionSeleccionada in seccionesEntrenamiento) {
+                    if (estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION) {
                         contenidoSeccion()
                     } else {
                         TarjetaAuth { contenidoSeccion() }
