@@ -8,6 +8,7 @@ import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.data.repository.RutinaRepository
 import com.ramirez.yourpeak.data.repository.NutricionRepository
 import com.ramirez.yourpeak.data.repository.MembresiaClienteRepository
+import com.ramirez.yourpeak.data.repository.PerfilRepository
 import com.ramirez.yourpeak.data.repository.ProgresoRepository
 import com.ramirez.yourpeak.data.session.SessionManager
 
@@ -28,6 +29,8 @@ class YourPeakApp : Application() {
         private set
     lateinit var progresoRepository: ProgresoRepository
         private set
+    lateinit var perfilRepository: PerfilRepository
+        private set
     lateinit var sessionManager: SessionManager
         private set
 
@@ -41,6 +44,7 @@ class YourPeakApp : Application() {
         nutricionRepository = NutricionRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         membresiaClienteRepository = MembresiaClienteRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         progresoRepository = ProgresoRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
+        perfilRepository = PerfilRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         sessionManager = SessionManager(this, RetrofitClient.gson)
     }
 }

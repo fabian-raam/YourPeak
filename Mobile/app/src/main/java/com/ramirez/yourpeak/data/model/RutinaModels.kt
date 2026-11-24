@@ -33,6 +33,13 @@ data class EjercicioRutinaResponse(
     val origen: String?
 )
 
+/** Propuesta de rutina generada por Spring (Gemini o reglas); no se guarda hasta llamar a guardar. */
+data class RutinaGeneradaResponse(
+    val fuente: String?,
+    val mensaje: String?,
+    val dias: List<DiaRutinaResponse>?
+)
+
 data class RutinaRequest(
     val dias: List<DiaRutinaRequest>
 )
@@ -47,5 +54,6 @@ data class EjercicioRutinaRequest(
     val series: Int,
     val repeticiones: Int?,
     val segundos: Int?,
-    val descansoSegundos: Int
+    val descansoSegundos: Int,
+    val origen: String? = null
 )

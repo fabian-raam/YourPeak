@@ -97,6 +97,14 @@ fun MiRutinaScreen(
                 TextButton(onClick = viewModel::reintentar) { Text("Reintentar") }
             }
             else -> {
+                TarjetaRutinaIa(
+                    propuesta = estado.propuesta,
+                    generando = estado.generando,
+                    habilitado = estado.puedeGenerar,
+                    hayDiasDisponibles = estado.dias.any { it.disponible },
+                    generar = viewModel::generar
+                )
+                Spacer(Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -208,7 +216,7 @@ fun MiRutinaScreen(
                             Spacer(Modifier.height(12.dp))
                             Button(
                                 onClick = { mostrarSelector = true },
-                                enabled = estado.catalogo.isNotEmpty(),
+                                enabled = estado.catalogo.isNotEmpty() && !estado.generando,
                                 modifier = Modifier.height(50.dp),
                                 shape = RoundedCornerShape(22.dp)
                             ) {
@@ -262,7 +270,7 @@ fun MiRutinaScreen(
                 ) {
                     OutlinedButton(
                         onClick = viewModel::restablecer,
-                        enabled = estado.hayCambios && !estado.guardando,
+                        enabled = estado.hayCambios && !estado.guardando && !estado.generando,
                         modifier = Modifier.weight(1f).height(50.dp),
                         shape = RoundedCornerShape(18.dp)
                     ) {
@@ -270,7 +278,7 @@ fun MiRutinaScreen(
                     }
                     Button(
                         onClick = viewModel::guardar,
-                        enabled = estado.hayCambios && !estado.guardando,
+                        enabled = estado.hayCambios && !estado.guardando && !estado.generando,
                         modifier = Modifier.weight(1f).height(50.dp),
                         shape = RoundedCornerShape(18.dp)
                     ) {
@@ -339,6 +347,10 @@ private fun EjercicioAsignadoFila(ejercicio: EjercicioRutinaUi, quitar: () -> Un
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     )
+                    if (ejercicio.origen == ORIGEN_IA) {
+                        Spacer(Modifier.height(6.dp))
+                        EtiquetaIa()
+                    }
                     Spacer(Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Spacer(
@@ -367,6 +379,102 @@ private fun EjercicioAsignadoFila(ejercicio: EjercicioRutinaUi, quitar: () -> Un
                 EtiquetaDatoRutina("Descanso ${ejercicio.descansoSegundos} s")
             }
         }
+    }
+}
+
+/** Tarjeta para pedir una rutina al generador con IA; la propuesta no se guarda hasta pulsar «Guardar». */
+@Composable
+private fun TarjetaRutinaIa(
+    propuesta: PropuestaIa?,
+    generando: Boolean,
+    habilitado: Boolean,
+    hayDiasDisponibles: Boolean,
+    generar: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(26.dp),
+        color = Color(0xFF141414),
+        border = BorderStroke(1.dp, if (propuesta != null) MaterialTheme.colorScheme.primary else Color(0xFF383838))
+    ) {
+        Column(Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(modifier = Modifier.size(34.dp), shape = CircleShape, color = Color(0xFF29360A)) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("✦", fontSize = 17.sp, fontWeight = FontWeight.Black, color = Color(0xFFB7F34A))
+                    }
+                }
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    when {
+                        propuesta == null -> "Rutina con IA"
+                        propuesta.conGemini -> "Propuesta generada con IA"
+                        else -> "Propuesta generada por reglas"
+                    },
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                when {
+                    propuesta != null -> propuesta.mensaje
+                    hayDiasDisponibles -> "Te proponemos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio. Podrás revisarla antes de guardarla."
+                    else -> "Marca al menos un día en tu disponibilidad para generar una rutina."
+                },
+                fontSize = 15.sp,
+                lineHeight = 20.sp,
+                color = Color(0xFFBFC3CC)
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Rutina orientativa. Si tienes lesiones o dudas de salud, consulta con un entrenador.",
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(14.dp))
+            Button(
+                onClick = generar,
+                enabled = habilitado,
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(22.dp)
+            ) {
+                if (generando) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.height(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(Modifier.width(8.dp))
+                }
+                Text(
+                    when {
+                        generando -> "GENERANDO"
+                        propuesta != null -> "GENERAR OTRA"
+                        else -> "GENERAR CON IA"
+                    },
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Black,
+                    letterSpacing = 0.5.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EtiquetaIa() {
+    Surface(shape = RoundedCornerShape(8.dp), color = Color(0xFF29360A)) {
+        Text(
+            "IA",
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 0.6.sp,
+            color = Color(0xFFB7F34A)
+        )
     }
 }
 
@@ -668,8 +776,16 @@ private fun MiRutinaPreview() {
                     introduccion = "Organiza tus ejercicios en los días que puedes entrenar."
                 )
                 Spacer(Modifier.height(12.dp))
+                TarjetaRutinaIa(
+                    propuesta = PropuestaIa("GEMINI", "Rutina propuesta con IA a partir de tu perfil y tus horarios."),
+                    generando = false,
+                    habilitado = true,
+                    hayDiasDisponibles = true,
+                    generar = {}
+                )
+                Spacer(Modifier.height(12.dp))
                 EjercicioAsignadoFila(
-                    EjercicioRutinaUi(1, "Press de banca plano", "Pecho", "REPETICIONES", 4, 8, null, 90),
+                    EjercicioRutinaUi(1, "Press de banca plano", "Pecho", "REPETICIONES", 4, 8, null, 90, ORIGEN_IA),
                     quitar = {}
                 )
             }
