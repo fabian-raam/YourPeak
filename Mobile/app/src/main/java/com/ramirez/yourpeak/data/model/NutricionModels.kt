@@ -33,7 +33,16 @@ data class ResumenNutricionalResponse(
     val proteinaG: BigDecimal?,
     val carbohidratoG: BigDecimal?,
     val grasaG: BigDecimal?,
-    val ingestas: List<IngestaNutricionResponse>?
+    val ingestas: List<IngestaNutricionResponse>?,
+    val meta: MetaNutricionalResponse? = null
+)
+
+/** Metas diarias calculadas por Spring a partir del perfil del cliente. */
+data class MetaNutricionalResponse(
+    val kcal: BigDecimal?,
+    val proteinaG: BigDecimal?,
+    val carbohidratoG: BigDecimal?,
+    val grasaG: BigDecimal?
 )
 
 /** Datos que el backend necesita para crear o actualizar un consumo. */
