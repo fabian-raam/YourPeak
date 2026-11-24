@@ -1,15 +1,20 @@
 package com.ramirez.yourpeak.ui.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -25,21 +30,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramirez.yourpeak.data.model.RegistroProgresoResponse
 import com.ramirez.yourpeak.data.repository.ProgresoRepository
-import com.ramirez.yourpeak.ui.components.EncabezadoTarjeta
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+private val FondoProgreso = Color.Black
+private val FondoTarjetaProgreso = Color(0xFF101010)
+private val BordeProgreso = Color(0xFF363636)
+private val TextoSecundarioProgreso = Color(0xFFB8BCC6)
+private val AzulProgreso = Color(0xFF2878FF)
+private val VerdeProgreso = Color(0xFFB7F34A)
+private val NaranjaProgreso = Color(0xFFFF6B35)
 
 @Composable
 fun ProgresoScreen(idUsuario: Long?, repository: ProgresoRepository) {
@@ -48,195 +62,255 @@ fun ProgresoScreen(idUsuario: Long?, repository: ProgresoRepository) {
         factory = ProgresoViewModel.factory(repository, idUsuario)
     )
     val estado by viewModel.estado.collectAsStateWithLifecycle()
-    val variacion = estado.variacion
 
-    Column {
-        EncabezadoTarjeta(
-            etiqueta = "SEGUIMIENTO PERSONAL",
-            titulo = "Mi progreso",
-            introduccion = "Registra tu peso y observa cómo cambia con el tiempo."
-        )
-        estado.error?.let { MensajeProgreso(it, true, viewModel::cerrarMensajes) }
-        estado.aviso?.let { MensajeProgreso(it, false, viewModel::cerrarMensajes) }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
-            ResumenProgreso(
-                titulo = "Peso actual",
-                valor = estado.pesoActual?.let { "${formatearPeso(it)} kg" } ?: "—",
-                modifier = Modifier.weight(1f)
-            )
-            ResumenProgreso(
-                titulo = "Variación desde el inicio",
-                valor = variacion?.let(::variacionTexto) ?: "—",
-                modifier = Modifier.weight(1f)
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (estado.error != null || estado.aviso != null) {
+            MensajeProgreso(
+                texto = estado.error ?: estado.aviso.orEmpty(),
+                esError = estado.error != null,
+                cerrar = viewModel::cerrarMensajes
             )
         }
-        Spacer(Modifier.height(10.dp))
-        ResumenProgreso(
-            titulo = "Mediciones registradas",
-            valor = estado.registros.size.toString(),
-            modifier = Modifier.fillMaxWidth()
+
+        EstadisticasProgreso(
+            pesoActual = estado.pesoActual,
+            variacion = estado.variacion,
+            mediciones = estado.registros.size,
+            cargando = estado.cargando
         )
-        Spacer(Modifier.height(14.dp))
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Evolución del peso", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("Tus mediciones guardadas por fecha.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Spacer(Modifier.height(12.dp))
-                when {
-                    estado.cargando && estado.registros.isEmpty() -> Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 28.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
-                        Text("  Cargando historial…", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    estado.registros.isEmpty() -> Text(
-                        "Aún no hay mediciones. Completa primero tu perfil para guardar tu peso inicial.",
-                        modifier = Modifier.padding(vertical = 18.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    else -> GraficoPeso(estado.registros)
-                }
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Text("Registrar peso", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Cada registro se guarda con la fecha y hora actuales.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(12.dp))
-                OutlinedTextField(
-                    value = estado.pesoIngresado,
-                    onValueChange = viewModel::cambiarPeso,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Peso (kg)") },
-                    placeholder = { Text("Ejemplo: 72.5") },
-                    singleLine = true,
-                    enabled = !estado.guardando,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                Spacer(Modifier.height(10.dp))
-                Button(
-                    onClick = viewModel::registrar,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !estado.guardando && !estado.cargando && estado.registros.isNotEmpty(),
-                    shape = RoundedCornerShape(12.dp)
+        SeccionProgreso(titulo = "EVOLUCIÓN DEL PESO") {
+            when {
+                estado.cargando && estado.registros.isEmpty() -> Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (estado.guardando) {
-                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
-                        Text("  Guardando…")
-                    } else Text("Registrar peso")
+                    CircularProgressIndicator(Modifier.size(22.dp), color = AzulProgreso, strokeWidth = 2.dp)
+                    Text("  Cargando historial…", color = TextoSecundarioProgreso, fontSize = 15.sp)
                 }
-                if (estado.registros.isEmpty() && !estado.cargando) {
-                    Text(
-                        "Primero completa tu perfil para registrar la medición inicial.",
-                        modifier = Modifier.padding(top = 8.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                estado.registros.isEmpty() -> Text(
+                    "Registra tu primer peso para ver cómo evoluciona con el tiempo.",
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    color = TextoSecundarioProgreso,
+                    fontSize = 15.sp,
+                    lineHeight = 21.sp
+                )
+                else -> GraficoEvolucionPeso(estado.registros)
             }
         }
 
-        if (estado.registros.isNotEmpty()) {
-            Spacer(Modifier.height(12.dp))
-            Surface(
+        SeccionProgreso(titulo = "REGISTRAR PESO") {
+            Text(
+                "Anota una nueva medición para actualizar tu progreso.",
+                color = TextoSecundarioProgreso,
+                fontSize = 15.sp,
+                lineHeight = 20.sp
+            )
+            Spacer(Modifier.height(10.dp))
+            OutlinedTextField(
+                value = estado.pesoIngresado,
+                onValueChange = viewModel::cambiarPeso,
                 modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                label = { Text("Peso (kg)", fontSize = 15.sp) },
+                placeholder = { Text("Ejemplo: 72.5", fontSize = 15.sp) },
+                singleLine = true,
+                enabled = !estado.guardando,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                shape = RoundedCornerShape(16.dp)
+            )
+            Spacer(Modifier.height(10.dp))
+            Button(
+                onClick = viewModel::registrar,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                enabled = !estado.guardando && !estado.cargando && estado.registros.isNotEmpty(),
+                shape = RoundedCornerShape(18.dp)
             ) {
-                Column(Modifier.padding(16.dp)) {
-                    Text("Historial", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(6.dp))
-                    estado.registros.take(10).forEach { FilaRegistroPeso(it) }
-                    if (estado.registros.size > 10) {
-                        Text("Se muestran las 10 mediciones más recientes.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+                if (estado.guardando) {
+                    CircularProgressIndicator(Modifier.size(19.dp), strokeWidth = 2.dp, color = Color.White)
+                    Text("  GUARDANDO…", fontSize = 15.sp, fontWeight = FontWeight.Black, letterSpacing = 0.3.sp)
+                } else {
+                    Text("REGISTRAR PESO", fontSize = 15.sp, fontWeight = FontWeight.Black, letterSpacing = 0.3.sp)
+                }
+            }
+            if (estado.registros.isEmpty() && !estado.cargando) {
+                Text(
+                    "Completa primero tu perfil para registrar la medición inicial.",
+                    modifier = Modifier.padding(top = 9.dp),
+                    color = TextoSecundarioProgreso,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp
+                )
+            }
+        }
+
+        SeccionProgreso(titulo = "HISTORIAL", trailing = "${estado.registros.size} MEDICIONES") {
+            if (estado.registros.isEmpty()) {
+                Text("Tus mediciones aparecerán aquí.", color = TextoSecundarioProgreso, fontSize = 15.sp)
+            } else {
+                estado.registros.take(10).forEach { FilaRegistroPeso(it) }
+                if (estado.registros.size > 10) {
+                    Text("Se muestran las 10 mediciones más recientes.", color = TextoSecundarioProgreso, fontSize = 14.sp)
                 }
             }
         }
+
         if (!estado.cargando) {
-            TextButton(onClick = viewModel::actualizar, modifier = Modifier.align(Alignment.End)) {
-                Text("Actualizar historial")
+            TextButton(onClick = viewModel::actualizar, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                Text("ACTUALIZAR HISTORIAL", color = AzulProgreso, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
 
+/** Tres bloques compactos con acentos de color, siguiendo la cuadrícula de Nutrición. */
 @Composable
-private fun ResumenProgreso(titulo: String, valor: String, modifier: Modifier = Modifier) {
+private fun EstadisticasProgreso(
+    pesoActual: BigDecimal?,
+    variacion: BigDecimal?,
+    mediciones: Int,
+    cargando: Boolean
+) {
+    val guion = if (cargando) "…" else "—"
     Surface(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        color = FondoProgreso,
+        border = BorderStroke(1.dp, BordeProgreso)
     ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 14.dp)) {
-            Text(titulo, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(valor, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        Row(Modifier.height(IntrinsicSize.Min)) {
+            CeldaEstadisticaProgreso(
+                titulo = "Peso actual",
+                valor = pesoActual?.let(::formatearPeso) ?: guion,
+                unidad = if (pesoActual != null) "kg" else "",
+                acento = AzulProgreso,
+                modifier = Modifier.weight(1f)
+            )
+            SeparadorProgreso()
+            CeldaEstadisticaProgreso(
+                titulo = "Variación",
+                valor = variacion?.let(::variacionCorta) ?: guion,
+                unidad = if (variacion != null) "kg" else "",
+                acento = VerdeProgreso,
+                modifier = Modifier.weight(1f)
+            )
+            SeparadorProgreso()
+            CeldaEstadisticaProgreso(
+                titulo = "Mediciones",
+                valor = if (cargando) guion else mediciones.toString(),
+                unidad = "",
+                acento = NaranjaProgreso,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
 
 @Composable
-private fun GraficoPeso(registrosDescendentes: List<RegistroProgresoResponse>) {
+private fun CeldaEstadisticaProgreso(
+    titulo: String,
+    valor: String,
+    unidad: String,
+    acento: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier) {
+        Spacer(Modifier.fillMaxWidth().height(2.dp).background(acento))
+        Column(Modifier.padding(horizontal = 11.dp, vertical = 15.dp)) {
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(valor, color = Color.White, fontSize = 30.sp, lineHeight = 34.sp, fontWeight = FontWeight.Black, maxLines = 1)
+                if (unidad.isNotEmpty()) {
+                    Spacer(Modifier.width(2.dp))
+                    Text(unidad, color = TextoSecundarioProgreso, fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+            Text(titulo, color = TextoSecundarioProgreso, fontSize = 13.sp, lineHeight = 17.sp, maxLines = 1)
+        }
+    }
+}
+
+@Composable
+private fun SeparadorProgreso() {
+    Spacer(Modifier.fillMaxHeight().width(1.dp).background(BordeProgreso))
+}
+
+@Composable
+private fun SeccionProgreso(titulo: String, trailing: String? = null, contenido: @Composable () -> Unit) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(titulo, modifier = Modifier.weight(1f), color = Color.White, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.Black, letterSpacing = 0.35.sp)
+            trailing?.let { Text(it, color = TextoSecundarioProgreso, fontSize = 12.sp, fontWeight = FontWeight.Medium) }
+        }
+        HorizontalDivider(color = BordeProgreso)
+        Spacer(Modifier.height(10.dp))
+        contenido()
+    }
+}
+
+/** El trazado se escala a partir de los pesos reales guardados, del más antiguo al más reciente. */
+@Composable
+private fun GraficoEvolucionPeso(registrosDescendentes: List<RegistroProgresoResponse>) {
     val puntos = registrosDescendentes.asReversed().mapNotNull { registro ->
-        registro.pesoKg?.toFloat()?.let { peso -> registro to peso }
+        registro.pesoKg?.toFloat()?.let { registro to it }
     }
     if (puntos.isEmpty()) return
-    val azul = MaterialTheme.colorScheme.tertiary
-    val texto = MaterialTheme.colorScheme.onSurfaceVariant
-    val pesos = puntos.map { it.second }
-    val rangoMin = pesos.minOrNull() ?: 0f
-    val rangoMax = pesos.maxOrNull() ?: rangoMin
-    val margen = ((rangoMax - rangoMin) * 0.2f).coerceAtLeast(1f)
-    val bajo = rangoMin - margen
-    val alto = rangoMax + margen
 
-    Column {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("${formatearPeso(BigDecimal.valueOf(alto.toDouble()))} kg", style = MaterialTheme.typography.labelSmall, color = texto)
-            Text("${formatearPeso(BigDecimal.valueOf(bajo.toDouble()))} kg", style = MaterialTheme.typography.labelSmall, color = texto)
-        }
-        Canvas(Modifier.fillMaxWidth().height(150.dp).padding(horizontal = 8.dp, vertical = 8.dp)) {
-            val xStep = if (puntos.size <= 1) 0f else size.width / (puntos.size - 1)
-            val path = Path()
-            val coords = puntos.mapIndexed { index, pair ->
-                val x = index * xStep
-                val y = size.height - ((pair.second - bajo) / (alto - bajo)) * size.height
-                x to y
+    val pesos = puntos.map { it.second }
+    val minimo = pesos.minOrNull() ?: 0f
+    val maximo = pesos.maxOrNull() ?: minimo
+    val rango = (maximo - minimo).coerceAtLeast(1f)
+    val base = (minimo - rango * 0.18f).coerceAtLeast(0f)
+    val techo = maximo + rango * 0.18f
+    val divisor = (techo - base).coerceAtLeast(1f)
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(17.dp),
+        color = FondoTarjetaProgreso,
+        border = BorderStroke(1.dp, BordeProgreso)
+    ) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(formatearPeso(puntos.first().second) + " kg", color = TextoSecundarioProgreso, fontSize = 12.sp)
+                Text(formatearPeso(puntos.last().second) + " kg", color = VerdeProgreso, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
-            coords.forEachIndexed { index, (x, y) ->
-                if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            Canvas(Modifier.fillMaxWidth().height(94.dp).padding(horizontal = 5.dp, vertical = 7.dp)) {
+                val left = 8.dp.toPx()
+                val right = size.width - 8.dp.toPx()
+                val top = 7.dp.toPx()
+                val bottom = size.height - 7.dp.toPx()
+                repeat(3) { index ->
+                    val y = top + (bottom - top) * index / 2f
+                    drawLine(BordeProgreso, Offset(left, y), Offset(right, y), strokeWidth = 1.dp.toPx())
+                }
+                val coords = puntos.mapIndexed { index, pair ->
+                    val fractionX = if (puntos.size == 1) 0.5f else index.toFloat() / (puntos.size - 1)
+                    val x = left + (right - left) * fractionX
+                    val fractionY = ((pair.second - base) / divisor).coerceIn(0f, 1f)
+                    val y = bottom - (bottom - top) * fractionY
+                    Offset(x, y)
+                }
+                if (coords.size > 1) {
+                    val path = Path().apply {
+                        moveTo(coords.first().x, coords.first().y)
+                        coords.drop(1).forEach { lineTo(it.x, it.y) }
+                    }
+                    drawPath(path, AzulProgreso, style = Stroke(width = 3.dp.toPx()))
+                }
+                coords.forEachIndexed { index, punto ->
+                    val color = if (index == coords.lastIndex) VerdeProgreso else AzulProgreso
+                    drawCircle(color, radius = if (index == coords.lastIndex) 4.dp.toPx() else 3.dp.toPx(), center = punto)
+                }
             }
-            drawPath(path, azul, style = Stroke(width = 4.dp.toPx()))
-            coords.forEach { (x, y) -> drawCircle(azul, radius = 5.dp.toPx(), center = Offset(x, y)) }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatearFecha(puntos.first().first.fechaRegistro), style = MaterialTheme.typography.labelSmall, color = texto)
-            if (puntos.size > 1) Text(formatearFecha(puntos.last().first.fechaRegistro), style = MaterialTheme.typography.labelSmall, color = texto)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(formatearFechaCorta(puntos.first().first.fechaRegistro), color = TextoSecundarioProgreso, fontSize = 12.sp)
+                if (puntos.size > 1) {
+                    Text(formatearFechaCorta(puntos.last().first.fechaRegistro), color = TextoSecundarioProgreso, fontSize = 12.sp)
+                }
+            }
         }
     }
 }
@@ -244,38 +318,48 @@ private fun GraficoPeso(registrosDescendentes: List<RegistroProgresoResponse>) {
 @Composable
 private fun FilaRegistroPeso(registro: RegistroProgresoResponse) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 9.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(formatearFecha(registro.fechaRegistro), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(registro.pesoKg?.let { "${formatearPeso(it)} kg" } ?: "—", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text(formatearFecha(registro.fechaRegistro), color = TextoSecundarioProgreso, fontSize = 14.sp)
+        Text(
+            registro.pesoKg?.let { "${formatearPeso(it)} kg" } ?: "—",
+            color = Color.White,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold
+        )
     }
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+    HorizontalDivider(color = BordeProgreso)
 }
 
 @Composable
-private fun MensajeProgreso(texto: String, error: Boolean, cerrar: () -> Unit) {
-    val color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
+private fun MensajeProgreso(texto: String, esError: Boolean, cerrar: () -> Unit) {
+    val acento = if (esError) Color(0xFFFF6B6B) else VerdeProgreso
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-        color = color.copy(alpha = 0.12f),
-        shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(1.dp, color.copy(alpha = 0.45f))
+        modifier = Modifier.fillMaxWidth(),
+        color = Color(0xFF11130A),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, acento.copy(alpha = 0.55f))
     ) {
-        Row(Modifier.padding(start = 12.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(texto, modifier = Modifier.weight(1f).padding(vertical = 10.dp), color = color, style = MaterialTheme.typography.bodySmall)
-            TextButton(onClick = cerrar) { Text("×", color = color) }
+        Row(
+            modifier = Modifier.padding(start = 13.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("●", color = acento, fontSize = 16.sp)
+            Text(texto, modifier = Modifier.weight(1f).padding(horizontal = 9.dp, vertical = 12.dp), color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+            TextButton(onClick = cerrar) { Text("Cerrar", color = AzulProgreso, fontSize = 13.sp, fontWeight = FontWeight.Bold) }
         }
     }
 }
 
 private fun formatearPeso(peso: BigDecimal): String = peso.stripTrailingZeros().toPlainString()
+private fun formatearPeso(peso: Float): String = BigDecimal.valueOf(peso.toDouble()).stripTrailingZeros().toPlainString()
 
-private fun variacionTexto(variacion: BigDecimal): String {
-    if (variacion.compareTo(BigDecimal.ZERO) == 0) return "0 kg"
+private fun variacionCorta(variacion: BigDecimal): String {
+    if (variacion.compareTo(BigDecimal.ZERO) == 0) return "0"
     val prefijo = if (variacion > BigDecimal.ZERO) "+" else ""
-    return "$prefijo${formatearPeso(variacion)} kg"
+    return prefijo + formatearPeso(variacion)
 }
 
 private fun formatearFecha(fecha: String?): String {
@@ -284,4 +368,12 @@ private fun formatearFecha(fecha: String?): String {
         .recoverCatching { LocalDate.parse(fecha.take(10)) }
         .getOrNull() ?: return fecha.take(10)
     return fechaLocal.format(DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.forLanguageTag("es-PE")))
+}
+
+private fun formatearFechaCorta(fecha: String?): String {
+    if (fecha.isNullOrBlank()) return "—"
+    val fechaLocal = runCatching { LocalDateTime.parse(fecha).toLocalDate() }
+        .recoverCatching { LocalDate.parse(fecha.take(10)) }
+        .getOrNull() ?: return fecha.take(10)
+    return fechaLocal.format(DateTimeFormatter.ofPattern("dd MMM", Locale.forLanguageTag("es-PE")))
 }
