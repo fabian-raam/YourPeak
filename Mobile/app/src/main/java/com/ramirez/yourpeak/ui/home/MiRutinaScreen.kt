@@ -61,6 +61,7 @@ import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.data.repository.RutinaRepository
 import com.ramirez.yourpeak.ui.components.EncabezadoTarjeta
 import com.ramirez.yourpeak.ui.components.BotonIconoEliminar
+import com.ramirez.yourpeak.ui.components.colorGrupoMuscular
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
 
 @Composable
@@ -606,14 +607,6 @@ private fun SelectorEjercicioBottomSheet(
             Spacer(Modifier.height(12.dp))
         }
     }
-}
-
-private fun colorGrupoMuscular(grupoMuscular: String?): Color = when (grupoMuscular.orEmpty().lowercase()) {
-    "pecho" -> Color(0xFF2677FF)
-    "brazos" -> Color(0xFFFF5A36)
-    "piernas" -> Color(0xFFB7F34A)
-    "espalda" -> Color.White
-    else -> Color(0xFFB7F34A)
 }
 
 @Composable
