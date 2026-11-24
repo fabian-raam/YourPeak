@@ -1,7 +1,6 @@
 package com.ramirez.yourpeak.ui.home
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -28,10 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -41,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramirez.yourpeak.data.model.EjercicioResponse
 import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.ui.components.colorGrupoMuscular
+import com.ramirez.yourpeak.ui.components.IconoBuscar
 
 @Composable
 fun EjerciciosScreen(idUsuario: Long?, repository: EjercicioRepository) {
@@ -242,17 +239,3 @@ private fun EjercicioTarjeta(ejercicio: EjercicioResponse, expandido: Boolean, a
     }
 }
 
-@Composable
-private fun IconoBuscar() {
-    Canvas(Modifier.size(22.dp)) {
-        val centro = Offset(size.width * 0.43f, size.height * 0.43f)
-        drawCircle(Color(0xFFB8BCC6), radius = size.minDimension * 0.25f, center = centro, style = Stroke(width = 1.8.dp.toPx()))
-        drawLine(
-            Color(0xFFB8BCC6),
-            Offset(size.width * 0.62f, size.height * 0.62f),
-            Offset(size.width * 0.83f, size.height * 0.83f),
-            strokeWidth = 1.8.dp.toPx(),
-            cap = StrokeCap.Round
-        )
-    }
-}

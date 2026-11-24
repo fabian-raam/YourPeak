@@ -89,7 +89,7 @@ class NutricionViewModel(
                     it.copy(cargandoCatalogo = false, errorCatalogo = resultado.mensaje)
                 }
             }
-            cargarDia(id, _estado.value.fecha)
+            cargarDia(id, null)
         }
     }
 
@@ -220,11 +220,17 @@ class NutricionViewModel(
 
     fun cerrarMensajes() = _estado.update { it.copy(error = null, errorCatalogo = null, aviso = null) }
 
-    private suspend fun cargarDia(id: Long, fecha: String) {
+    private suspend fun cargarDia(id: Long, fecha: String?) {
         _estado.update { it.copy(cargandoDia = true) }
         when (val resultado = repository.consultarDia(id, fecha)) {
             is ResultadoNutricion.Exito -> _estado.update {
-                it.copy(cargandoDia = false, error = null).aplicarResumen(resultado.dato)
+                val fechaRespuesta = resultado.dato.fecha ?: fecha ?: it.fecha
+                it.copy(
+                    fecha = if (fecha == null) fechaRespuesta else it.fecha,
+                    hoy = if (fecha == null) fechaRespuesta else it.hoy,
+                    cargandoDia = false,
+                    error = null
+                ).aplicarResumen(resultado.dato)
             }
             is ResultadoNutricion.Error -> _estado.update {
                 it.copy(cargandoDia = false, error = resultado.mensaje)

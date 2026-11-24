@@ -26,7 +26,7 @@ class NutricionRepository(
         api.listarAlimentosNutricion(apiKey, idUsuario)
     }
 
-    suspend fun consultarDia(idUsuario: Long, fecha: String) = ejecutar {
+    suspend fun consultarDia(idUsuario: Long, fecha: String?) = ejecutar {
         api.consultarNutricionDia(apiKey, idUsuario, fecha)
     }
 

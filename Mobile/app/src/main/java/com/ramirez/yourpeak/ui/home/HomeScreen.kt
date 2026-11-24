@@ -121,26 +121,43 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Column(Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
+                    val esInicio = estado.seccionSeleccionada == SeccionCliente.INICIO
+                    val esTituloGrande = estado.seccionSeleccionada in seccionesEntrenamiento ||
+                        estado.seccionSeleccionada == SeccionCliente.NUTRICION ||
+                        estado.seccionSeleccionada == SeccionCliente.PROGRESO ||
+                        estado.seccionSeleccionada == SeccionCliente.MEMBRESIA || esInicio
                     Text(
                         text = buildAnnotatedString {
-                            if (estado.seccionSeleccionada in seccionesEntrenamiento) {
+                            if (esInicio) {
+                                append("HOLA, ${usuario.nombre.orEmpty().uppercase()}")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
+                            } else if (estado.seccionSeleccionada in seccionesEntrenamiento) {
                                 append("ENTRENAMIENTO")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
+                            } else if (estado.seccionSeleccionada == SeccionCliente.NUTRICION) {
+                                append("NUTRICIÓN")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
+                            } else if (estado.seccionSeleccionada == SeccionCliente.PROGRESO) {
+                                append("MI PROGRESO")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
+                            } else if (estado.seccionSeleccionada == SeccionCliente.MEMBRESIA) {
+                                append("MI MEMBRESÍA")
                                 withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
                             } else {
                                 append(estado.seccionSeleccionada.titulo.uppercase())
                             }
                         },
-                        style = if (estado.seccionSeleccionada in seccionesEntrenamiento) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge,
-                        color = if (estado.seccionSeleccionada in seccionesEntrenamiento) Color.White else MaterialTheme.colorScheme.tertiary,
+                        style = if (esTituloGrande) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge,
+                        color = if (esTituloGrande) Color.White else MaterialTheme.colorScheme.tertiary,
                         fontFamily = FontFamily.SansSerif,
-                        fontSize = if (estado.seccionSeleccionada in seccionesEntrenamiento) 42.sp else 14.sp,
-                        lineHeight = if (estado.seccionSeleccionada in seccionesEntrenamiento) 46.sp else 18.sp,
+                        fontSize = if (esInicio) 36.sp else if (esTituloGrande) 42.sp else 14.sp,
+                        lineHeight = if (esInicio) 40.sp else if (esTituloGrande) 46.sp else 18.sp,
                         fontWeight = FontWeight.Black,
-                        letterSpacing = if (estado.seccionSeleccionada in seccionesEntrenamiento) (-1.4).sp else 0.sp,
-                        maxLines = 1
+                        letterSpacing = if (esTituloGrande) (-1.4).sp else 0.sp,
+                        maxLines = 2
                     )
-                    Spacer(Modifier.height(8.dp))
-                    if (estado.seccionSeleccionada !in seccionesEntrenamiento) {
+                    Spacer(Modifier.height(if (esInicio) 1.dp else 8.dp))
+                    if (!esInicio && estado.seccionSeleccionada !in seccionesEntrenamiento && estado.seccionSeleccionada != SeccionCliente.NUTRICION && estado.seccionSeleccionada != SeccionCliente.PROGRESO && estado.seccionSeleccionada != SeccionCliente.MEMBRESIA) {
                         Text(
                             text = "Hola, ${usuario.nombre.orEmpty()}${usuario.apellido?.let { " $it" }.orEmpty()}",
                             style = MaterialTheme.typography.headlineMedium,
@@ -175,13 +192,14 @@ fun HomeScreen(
                             membresiaClienteRepository = app?.membresiaClienteRepository,
                             progresoRepository = app?.progresoRepository,
                             perfilRepository = app?.perfilRepository,
+                            alIrASeccion = viewModel::seleccionarSeccion,
                             alCerrarSesion = alCerrarSesion,
                             alIrADisponibilidad = {
                                 viewModel.seleccionarSeccion(SeccionCliente.DISPONIBILIDAD)
                             }
                         )
                     }
-                    if (estado.seccionSeleccionada in seccionesEntrenamiento) {
+                    if (estado.seccionSeleccionada == SeccionCliente.INICIO || estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION || estado.seccionSeleccionada == SeccionCliente.PROGRESO || estado.seccionSeleccionada == SeccionCliente.MEMBRESIA) {
                         contenidoSeccion()
                     } else {
                         TarjetaAuth { contenidoSeccion() }
@@ -316,18 +334,23 @@ private fun ContenidoSeccion(
     membresiaClienteRepository: com.ramirez.yourpeak.data.repository.MembresiaClienteRepository?,
     progresoRepository: com.ramirez.yourpeak.data.repository.ProgresoRepository?,
     perfilRepository: com.ramirez.yourpeak.data.repository.PerfilRepository?,
+    alIrASeccion: (SeccionCliente) -> Unit,
     alCerrarSesion: () -> Unit,
     alIrADisponibilidad: () -> Unit
 ) {
     when (seccion) {
         SeccionCliente.INICIO -> {
-            EncabezadoTarjeta(
-                etiqueta = "INICIO DEL CLIENTE",
-                titulo = "Bienvenido a Your Peak",
-                introduccion = "Desde aquí podrás acceder a las herramientas de tu cuenta."
-            )
-            DatoPerfil("Correo", usuario.correo.orEmpty())
-            DatoPerfil("Estado de cuenta", "Activo")
+            if (rutinaRepository != null && nutricionRepository != null && progresoRepository != null) {
+                InicioScreen(
+                    idUsuario = usuario.idUsuario,
+                    rutinaRepository = rutinaRepository,
+                    nutricionRepository = nutricionRepository,
+                    progresoRepository = progresoRepository,
+                    alIrARutina = { alIrASeccion(SeccionCliente.MI_RUTINA) },
+                    alIrANutricion = { alIrASeccion(SeccionCliente.NUTRICION) },
+                    alIrAProgreso = { alIrASeccion(SeccionCliente.PROGRESO) }
+                )
+            } else SeccionProximamente("Inicio", "No se pudieron preparar los resúmenes de tu cuenta.")
         }
         SeccionCliente.MI_RUTINA -> if (
             rutinaRepository != null && ejercicioRepository != null

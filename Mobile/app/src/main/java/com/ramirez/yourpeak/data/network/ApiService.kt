@@ -115,7 +115,7 @@ interface ApiService {
     suspend fun consultarNutricionDia(
         @Header("X-Internal-Api-Key") apiKey: String,
         @Header("X-Client-User-Id") idUsuario: Long,
-        @Query("fecha") fecha: String
+        @Query("fecha") fecha: String?
     ): Response<ResumenNutricionalResponse>
 
     /** Registra un alimento consumido en la fecha actual. */

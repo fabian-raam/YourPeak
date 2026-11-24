@@ -132,17 +132,63 @@ fun IconoPerfil(color: Color, modifier: Modifier = Modifier) {
 
 /** Botón circular con el tacho usado para quitar un ejercicio de la rutina. */
 @Composable
-fun BotonIconoEliminar(onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun BotonIconoEliminar(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    descripcion: String = "Quitar ejercicio",
+    habilitado: Boolean = true
+) {
     val colorTacho = Color(0xFFFF5A63)
     IconButton(
         onClick = onClick,
+        enabled = habilitado,
         modifier = modifier
             .size(40.dp)
             .background(Color(0xFF261819), CircleShape)
             .border(1.dp, Color(0xFF713B3E), CircleShape)
-            .semantics { contentDescription = "Quitar ejercicio" }
+            .semantics { contentDescription = descripcion }
     ) {
         IconoTacho(color = colorTacho, modifier = Modifier.size(20.dp))
+    }
+}
+
+/** BotÃ³n circular para iniciar la ediciÃ³n de un elemento. */
+@Composable
+fun BotonIconoEditar(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    descripcion: String = "Editar elemento",
+    habilitado: Boolean = true
+) {
+    val colorEditar = Color(0xFF2878FF)
+    IconButton(
+        onClick = onClick,
+        enabled = habilitado,
+        modifier = modifier
+            .size(40.dp)
+            .background(Color(0xFF151D2C), CircleShape)
+            .border(1.dp, Color(0xFF344C70), CircleShape)
+            .semantics { contentDescription = descripcion }
+    ) {
+        IconoEditar(color = colorEditar, modifier = Modifier.size(20.dp))
+    }
+}
+
+@Composable
+fun IconoEditar(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val escala = size.width / 24f
+        val trazo = 1.8.dp.toPx()
+        val lapiz = Path().apply {
+            moveTo(4f * escala, 17.5f * escala)
+            lineTo(16.8f * escala, 4.7f * escala)
+            lineTo(20f * escala, 7.9f * escala)
+            lineTo(7.2f * escala, 20.7f * escala)
+            lineTo(3.5f * escala, 21.5f * escala)
+            close()
+        }
+        drawPath(lapiz, color, style = estiloTrazo(trazo))
+        drawLine(color, Offset(14.8f * escala, 6.7f * escala), Offset(18f * escala, 9.9f * escala), trazo)
     }
 }
 
@@ -160,5 +206,20 @@ fun IconoTacho(color: Color, modifier: Modifier = Modifier) {
         drawLine(color, Offset(8f * escala, 20f * escala), Offset(16f * escala, 20f * escala), trazo, StrokeCap.Round)
         drawLine(color, Offset(10.5f * escala, 10f * escala), Offset(11f * escala, 17f * escala), trazo, StrokeCap.Round)
         drawLine(color, Offset(13.5f * escala, 10f * escala), Offset(13f * escala, 17f * escala), trazo, StrokeCap.Round)
+    }
+}
+
+@Composable
+fun IconoBuscar(color: Color = Color(0xFFB8BCC6), modifier: Modifier = Modifier) {
+    Canvas(modifier.size(22.dp)) {
+        val centro = Offset(size.width * 0.43f, size.height * 0.43f)
+        drawCircle(color, radius = size.minDimension * 0.25f, center = centro, style = Stroke(width = 1.8.dp.toPx()))
+        drawLine(
+            color,
+            Offset(size.width * 0.62f, size.height * 0.62f),
+            Offset(size.width * 0.83f, size.height * 0.83f),
+            strokeWidth = 1.8.dp.toPx(),
+            cap = StrokeCap.Round
+        )
     }
 }

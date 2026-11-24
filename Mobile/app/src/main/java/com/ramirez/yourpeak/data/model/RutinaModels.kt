@@ -2,7 +2,14 @@ package com.ramirez.yourpeak.data.model
 
 /** Modelos alineados con los DTO de rutina semanal que expone Spring. */
 data class RutinaResponse(
-    val dias: List<DiaRutinaResponse>?
+    val dias: List<DiaRutinaResponse>?,
+    val actividadReciente: List<ActividadRutinaResponse>? = null
+)
+
+data class ActividadRutinaResponse(
+    val fecha: String?,
+    val titulo: String?,
+    val ejercicios: Int?
 )
 
 data class DiaRutinaResponse(
