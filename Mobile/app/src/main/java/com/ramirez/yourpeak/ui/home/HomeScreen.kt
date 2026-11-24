@@ -71,7 +71,7 @@ fun HomeScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            if (estado.seccionSeleccionada != SeccionCliente.PERFIL) TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
                 title = {
                     Text(
@@ -97,10 +97,12 @@ fun HomeScreen(
             )
         },
         bottomBar = {
-            NavegacionPrincipal(
-                seccionSeleccionada = estado.seccionSeleccionada,
-                alSeleccionar = viewModel::seleccionarSeccion
-            )
+            if (estado.seccionSeleccionada != SeccionCliente.PERFIL) {
+                NavegacionPrincipal(
+                    seccionSeleccionada = estado.seccionSeleccionada,
+                    alSeleccionar = viewModel::seleccionarSeccion
+                )
+            }
         },
         containerColor = Color.Black
     ) { contenidoPadding ->
@@ -109,7 +111,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .then(
-                        if (estado.seccionSeleccionada == SeccionCliente.MI_RUTINA) Modifier
+                        if (estado.seccionSeleccionada == SeccionCliente.MI_RUTINA || estado.seccionSeleccionada == SeccionCliente.PERFIL) Modifier
                         else Modifier.verticalScroll(rememberScrollState())
                     )
                     .padding(
@@ -120,13 +122,17 @@ fun HomeScreen(
                     ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
+                Column(
+                    Modifier.widthIn(max = 560.dp).fillMaxWidth().then(
+                        if (estado.seccionSeleccionada == SeccionCliente.PERFIL) Modifier.weight(1f) else Modifier
+                    )
+                ) {
                     val esInicio = estado.seccionSeleccionada == SeccionCliente.INICIO
                     val esTituloGrande = estado.seccionSeleccionada in seccionesEntrenamiento ||
                         estado.seccionSeleccionada == SeccionCliente.NUTRICION ||
                         estado.seccionSeleccionada == SeccionCliente.PROGRESO ||
                         estado.seccionSeleccionada == SeccionCliente.MEMBRESIA || esInicio
-                    Text(
+                    if (estado.seccionSeleccionada != SeccionCliente.PERFIL) Text(
                         text = buildAnnotatedString {
                             if (esInicio) {
                                 append("HOLA, ${usuario.nombre.orEmpty().uppercase()}")
@@ -156,8 +162,8 @@ fun HomeScreen(
                         letterSpacing = if (esTituloGrande) (-1.4).sp else 0.sp,
                         maxLines = 2
                     )
-                    Spacer(Modifier.height(if (esInicio) 1.dp else 8.dp))
-                    if (!esInicio && estado.seccionSeleccionada !in seccionesEntrenamiento && estado.seccionSeleccionada != SeccionCliente.NUTRICION && estado.seccionSeleccionada != SeccionCliente.PROGRESO && estado.seccionSeleccionada != SeccionCliente.MEMBRESIA) {
+                    if (estado.seccionSeleccionada != SeccionCliente.PERFIL) Spacer(Modifier.height(if (esInicio) 1.dp else 8.dp))
+                    if (!esInicio && estado.seccionSeleccionada != SeccionCliente.PERFIL && estado.seccionSeleccionada !in seccionesEntrenamiento && estado.seccionSeleccionada != SeccionCliente.NUTRICION && estado.seccionSeleccionada != SeccionCliente.PROGRESO && estado.seccionSeleccionada != SeccionCliente.MEMBRESIA) {
                         Text(
                             text = "Hola, ${usuario.nombre.orEmpty()}${usuario.apellido?.let { " $it" }.orEmpty()}",
                             style = MaterialTheme.typography.headlineMedium,
@@ -181,7 +187,7 @@ fun HomeScreen(
                     val contenidoSeccion: @Composable () -> Unit = {
                         ContenidoSeccion(
                             seccion = estado.seccionSeleccionada,
-                            modifier = if (estado.seccionSeleccionada == SeccionCliente.MI_RUTINA) {
+                            modifier = if (estado.seccionSeleccionada == SeccionCliente.MI_RUTINA || estado.seccionSeleccionada == SeccionCliente.PERFIL) {
                                 Modifier.weight(1f)
                             } else Modifier,
                             usuario = usuario,
@@ -199,7 +205,7 @@ fun HomeScreen(
                             }
                         )
                     }
-                    if (estado.seccionSeleccionada == SeccionCliente.INICIO || estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION || estado.seccionSeleccionada == SeccionCliente.PROGRESO || estado.seccionSeleccionada == SeccionCliente.MEMBRESIA) {
+                    if (estado.seccionSeleccionada == SeccionCliente.INICIO || estado.seccionSeleccionada in seccionesEntrenamiento || estado.seccionSeleccionada == SeccionCliente.NUTRICION || estado.seccionSeleccionada == SeccionCliente.PROGRESO || estado.seccionSeleccionada == SeccionCliente.MEMBRESIA || estado.seccionSeleccionada == SeccionCliente.PERFIL) {
                         contenidoSeccion()
                     } else {
                         TarjetaAuth { contenidoSeccion() }
@@ -397,16 +403,21 @@ private fun ContenidoSeccion(
             descripcion = "Aquí podrás consultar el estado y vigencia de tu membresía."
         )
         SeccionCliente.PERFIL -> perfilRepository?.let {
-            PerfilScreen(usuario, it, alCerrarSesion)
+            PerfilScreen(
+                usuario = usuario,
+                repository = it,
+                alCerrarSesion = alCerrarSesion,
+                alVolver = { alIrASeccion(SeccionCliente.INICIO) }
+            )
         } ?: run {
             EncabezadoTarjeta(
                 etiqueta = "CUENTA DEL CLIENTE",
                 titulo = "Mi perfil",
                 introduccion = "Consulta los datos de tu cuenta Your Peak."
             )
-            DatoPerfil("Nombre", "${usuario.nombre.orEmpty()} ${usuario.apellido.orEmpty()}".trim())
-            DatoPerfil("Correo", usuario.correo.orEmpty())
-            DatoPerfil("Estado de cuenta", usuario.estado.orEmpty())
+            Text("Nombre: ${usuario.nombre.orEmpty()} ${usuario.apellido.orEmpty()}".trim())
+            Text("Correo: ${usuario.correo.orEmpty()}")
+            Text("Estado de cuenta: ${usuario.estado.orEmpty()}")
             TextButton(onClick = alCerrarSesion) { Text("Cerrar sesión") }
         }
     }
@@ -424,14 +435,6 @@ private fun SeccionProximamente(titulo: String, descripcion: String) {
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-}
-
-@Composable
-private fun DatoPerfil(etiqueta: String, valor: String) {
-    Column(Modifier.padding(vertical = 8.dp)) {
-        Text(etiqueta, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(valor, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-    }
 }
 
 @Preview(showBackground = true, heightDp = 860)

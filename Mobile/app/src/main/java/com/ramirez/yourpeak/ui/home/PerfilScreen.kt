@@ -1,22 +1,31 @@
 package com.ramirez.yourpeak.ui.home
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -26,13 +35,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramirez.yourpeak.data.model.LoginResponse
 import com.ramirez.yourpeak.data.repository.PerfilRepository
-import com.ramirez.yourpeak.ui.components.EncabezadoTarjeta
+import com.ramirez.yourpeak.ui.components.IconoPerfil
 
 private val SEXOS = listOf("HOMBRE" to "Hombre", "MUJER" to "Mujer")
 
@@ -41,7 +55,8 @@ private val SEXOS = listOf("HOMBRE" to "Hombre", "MUJER" to "Mujer")
 fun PerfilScreen(
     usuario: LoginResponse,
     repository: PerfilRepository,
-    alCerrarSesion: () -> Unit
+    alCerrarSesion: () -> Unit,
+    alVolver: () -> Unit
 ) {
     val viewModel: PerfilViewModel = viewModel(
         key = "perfil-${usuario.idUsuario}",
@@ -49,29 +64,85 @@ fun PerfilScreen(
     )
     val estado by viewModel.estado.collectAsStateWithLifecycle()
 
-    Column {
-        EncabezadoTarjeta(
-            etiqueta = "CUENTA DEL CLIENTE",
-            titulo = "Mi perfil",
-            introduccion = "Tus datos de entrenamiento ajustan tu rutina con IA y tu meta nutricional."
-        )
-        TarjetaPerfil {
+    Column(Modifier.fillMaxSize()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "${usuario.nombre.orEmpty()} ${usuario.apellido.orEmpty()}".trim().ifEmpty { "Cliente" },
+                text = "‹",
+                modifier = Modifier.clickable(onClick = alVolver).padding(end = 10.dp),
+                color = Color.White,
+                fontSize = 34.sp,
+                lineHeight = 36.sp,
+                fontWeight = FontWeight.Light
+            )
+            Text(
+                text = "YOUR PEAK",
+                color = Color.White,
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.5.sp
+            )
+        }
+        Spacer(Modifier.height(26.dp))
+        Text(
+            text = buildAnnotatedString {
+                append("PERFIL")
+                withStyle(SpanStyle(color = Color(0xFF2878FF))) { append(".") }
+            },
+            color = Color.White,
+            fontSize = 40.sp,
+            lineHeight = 44.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = (-1.2).sp
+        )
+        Spacer(Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(62.dp)
+                    .background(Color(0xFF141414), CircleShape)
+                    .border(1.dp, Color(0xFF333333), CircleShape),
+                contentAlignment = Alignment.Center
+            ) { IconoPerfil(Color.White, Modifier.size(27.dp)) }
+            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                Text(
+                    "${usuario.nombre.orEmpty()} ${usuario.apellido.orEmpty()}".trim().ifEmpty { "Cliente" },
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    lineHeight = 21.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    usuario.correo.orEmpty(),
+                    color = Color(0xFF83AEFF),
+                    fontSize = 14.sp,
+                    lineHeight = 18.sp
+                )
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        Column(
+            modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())
+        ) {
+            TarjetaPerfil {
+            Text(
+                if (estado.completado) "Perfil completo" else "Completa tu perfil",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Text(usuario.correo.orEmpty(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(6.dp))
             Text(
-                if (estado.completado) "Perfil completo" else "Completa tu perfil para personalizar tu rutina y tu meta nutricional.",
+                "Tus datos de entrenamiento ajustan tu rutina con IA y tu meta nutricional.",
                 style = MaterialTheme.typography.bodySmall,
-                color = if (estado.completado) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        }
-        Spacer(Modifier.height(12.dp))
+            }
+            Spacer(Modifier.height(12.dp))
 
-        when {
+            when {
             estado.cargando -> Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
                 horizontalArrangement = Arrangement.Center,
@@ -84,11 +155,26 @@ fun PerfilScreen(
                 MensajePerfil(estado.errorCarga.orEmpty(), error = true)
                 TextButton(onClick = viewModel::cargar) { Text("Reintentar") }
             }
-            else -> FormularioPerfil(estado, viewModel)
+                else -> FormularioPerfil(estado, viewModel)
+            }
         }
 
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = alCerrarSesion) { Text("Cerrar sesión") }
+        OutlinedButton(
+            onClick = alCerrarSesion,
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            shape = RoundedCornerShape(28.dp),
+            border = BorderStroke(1.dp, Color(0xFF713B3E))
+        ) {
+            Text(
+                "CERRAR SESIÓN",
+                color = Color(0xFFFF5A63),
+                fontSize = 15.sp,
+                lineHeight = 19.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 0.45.sp
+            )
+        }
     }
 }
 
