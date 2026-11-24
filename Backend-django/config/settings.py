@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-from django.core.management.utils import get_random_secret_key
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in {"true", "1", "yes"}
@@ -12,7 +10,9 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     if not DEBUG:
         raise RuntimeError("Set the DJANGO_SECRET_KEY environment variable.")
-    SECRET_KEY = get_random_secret_key()
+    # Clave fija solo para desarrollo local: evita invalidar la sesión al reiniciar Django.
+    # En producción se debe configurar DJANGO_SECRET_KEY desde el entorno.
+    SECRET_KEY = "django-insecure-yourpeak-local-development-only-key"
 
 ALLOWED_HOSTS = [
     host.strip()
