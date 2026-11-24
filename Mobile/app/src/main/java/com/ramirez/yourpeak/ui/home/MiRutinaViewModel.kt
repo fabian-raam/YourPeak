@@ -9,6 +9,7 @@ import com.ramirez.yourpeak.data.model.EjercicioResponse
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.data.repository.ResultadoEjercicios
+import com.ramirez.yourpeak.data.repository.ResultadoGeneracion
 import com.ramirez.yourpeak.data.repository.ResultadoRutina
 import com.ramirez.yourpeak.data.repository.RutinaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,12 +49,19 @@ data class DiaRutinaUi(
     val ejercicios: List<EjercicioRutinaUi> = emptyList()
 )
 
+/** Propuesta mostrada en pantalla; fuente es GEMINI o REGLAS. */
+data class PropuestaIa(val fuente: String, val mensaje: String) {
+    val conGemini: Boolean get() = fuente == "GEMINI"
+}
+
 data class MiRutinaUiState(
     val dias: List<DiaRutinaUi> = diasRutinaVacios(),
     val diasGuardados: List<DiaRutinaUi> = diasRutinaVacios(),
     val catalogo: List<EjercicioResponse> = emptyList(),
     val cargando: Boolean = true,
     val guardando: Boolean = false,
+    val generando: Boolean = false,
+    val propuesta: PropuestaIa? = null,
     val error: String? = null,
     val mensaje: String? = null,
     val diaSeleccionado: Int = 1,
@@ -64,6 +72,7 @@ data class MiRutinaUiState(
 ) {
     val diaActual: DiaRutinaUi? get() = dias.firstOrNull { it.numero == diaSeleccionado }
     val hayCambios: Boolean get() = dias != diasGuardados
+    val puedeGenerar: Boolean get() = !cargando && !guardando && !generando && dias.any { it.disponible }
 }
 
 class MiRutinaViewModel(
@@ -210,7 +219,39 @@ class MiRutinaViewModel(
     }
 
     fun restablecer() = _estado.update {
-        it.copy(dias = it.diasGuardados, error = null, mensaje = null)
+        it.copy(dias = it.diasGuardados, propuesta = null, error = null, mensaje = null)
+    }
+
+    /** La propuesta reemplaza el borrador en pantalla; solo se guarda con «Guardar». */
+    fun generar() {
+        val id = idUsuario ?: run {
+            _estado.update { it.copy(error = "No se identificó la cuenta.") }
+            return
+        }
+        if (!_estado.value.puedeGenerar) return
+        _estado.update { it.copy(generando = true, error = null, mensaje = null, idEjercicioSeleccionado = null) }
+        viewModelScope.launch {
+            when (val resultado = rutinaRepository.generar(id)) {
+                is ResultadoGeneracion.Exito -> {
+                    val dias = convertirDias(resultado.propuesta.dias.orEmpty())
+                    _estado.update { actual ->
+                        actual.copy(
+                            dias = dias,
+                            generando = false,
+                            propuesta = PropuestaIa(
+                                fuente = resultado.propuesta.fuente.orEmpty(),
+                                mensaje = resultado.propuesta.mensaje.orEmpty()
+                            ),
+                            diaSeleccionado = dias.firstOrNull { it.ejercicios.isNotEmpty() }?.numero
+                                ?: actual.diaSeleccionado
+                        )
+                    }
+                }
+                is ResultadoGeneracion.Error -> _estado.update {
+                    it.copy(generando = false, error = resultado.mensaje)
+                }
+            }
+        }
     }
 
     fun cerrarMensaje() = _estado.update { it.copy(mensaje = null) }
@@ -221,6 +262,7 @@ class MiRutinaViewModel(
             return
         }
         val estado = _estado.value
+        if (estado.guardando || estado.generando) return
         if (estado.dias.any { !it.disponible && it.ejercicios.isNotEmpty() }) {
             _estado.update { it.copy(error = "Solo puedes asignar ejercicios a días disponibles.") }
             return
@@ -252,6 +294,7 @@ class MiRutinaViewModel(
                             dias = dias,
                             diasGuardados = dias,
                             guardando = false,
+                            propuesta = null,
                             mensaje = "Rutina guardada correctamente.",
                             error = null
                         )

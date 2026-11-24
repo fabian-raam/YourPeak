@@ -9,6 +9,7 @@ import com.ramirez.yourpeak.data.model.AlimentoNutricionResponse
 import com.ramirez.yourpeak.data.model.IngestaNutricionResponse
 import com.ramirez.yourpeak.data.model.RegistrarIngestaRequest
 import com.ramirez.yourpeak.data.model.ResumenNutricionalResponse
+import com.ramirez.yourpeak.data.model.RutinaGeneradaResponse
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.model.RutinaResponse
 import com.ramirez.yourpeak.data.model.RegistroProgresoRequest
@@ -69,6 +70,13 @@ interface ApiService {
         @Header("X-Internal-Api-Key") apiKey: String,
         @Header("X-Client-User-Id") idUsuario: Long
     ): Response<RutinaResponse>
+
+    /** Pide a Spring una propuesta de rutina con IA (Gemini o reglas); no la guarda. */
+    @POST("api/cliente/rutina/generar")
+    suspend fun generarRutina(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long
+    ): Response<RutinaGeneradaResponse>
 
     /** Reemplaza la planificación semanal completa. */
     @PUT("api/cliente/rutina")

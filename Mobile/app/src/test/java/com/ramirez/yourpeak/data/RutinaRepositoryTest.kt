@@ -4,6 +4,7 @@ import com.ramirez.yourpeak.data.model.DiaRutinaRequest
 import com.ramirez.yourpeak.data.model.EjercicioRutinaRequest
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.network.RetrofitClient
+import com.ramirez.yourpeak.data.repository.ResultadoGeneracion
 import com.ramirez.yourpeak.data.repository.ResultadoRutina
 import com.ramirez.yourpeak.data.repository.RutinaRepository
 import kotlinx.coroutines.runBlocking
@@ -72,5 +73,29 @@ class RutinaRepositoryTest {
         val resultado = repository.guardar(7, RutinaRequest(emptyList()))
 
         assertEquals("Solo puedes asignar ejercicios a días disponibles.", (resultado as ResultadoRutina.Error).mensaje)
+    }
+
+    @Test
+    fun generarPideLaPropuestaYLeeSuFuente() = runBlocking {
+        servidor.enqueue(json(200, """{"fuente":"REGLAS","mensaje":"La IA no está configurada.",""" + rutinaConIa.removePrefix("{")))
+
+        val resultado = repository.generar(7)
+
+        val peticion = servidor.takeRequest()
+        assertEquals("POST", peticion.method)
+        assertEquals("/api/cliente/rutina/generar", peticion.path)
+        assertEquals("7", peticion.getHeader("X-Client-User-Id"))
+        val propuesta = (resultado as ResultadoGeneracion.Exito).propuesta
+        assertEquals("REGLAS", propuesta.fuente)
+        assertEquals("IA", propuesta.dias!!.first().ejercicios!!.first().origen)
+    }
+
+    @Test
+    fun generarSinDisponibilidadMuestraElMotivoDeSpring() = runBlocking {
+        servidor.enqueue(json(409, """{"detail":"Marca al menos un día disponible antes de generar tu rutina.","status":409,"title":"Conflict"}"""))
+
+        val resultado = repository.generar(7)
+
+        assertEquals("Marca al menos un día disponible antes de generar tu rutina.", (resultado as ResultadoGeneracion.Error).mensaje)
     }
 }
