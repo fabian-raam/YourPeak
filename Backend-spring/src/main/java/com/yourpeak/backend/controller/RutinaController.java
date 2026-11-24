@@ -1,6 +1,8 @@
 package com.yourpeak.backend.controller;
 
 import com.yourpeak.backend.dto.RutinaRequest;
+import com.yourpeak.backend.dto.RegistrarEjercicioRealizadoRequest;
+import com.yourpeak.backend.service.EjecucionRutinaService;
 import com.yourpeak.backend.service.GeneradorRutinaService;
 import com.yourpeak.backend.service.RutinaService;
 import jakarta.validation.Valid;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -29,10 +32,13 @@ public class RutinaController {
 
     private final RutinaService rutinaService;
     private final GeneradorRutinaService generadorRutinaService;
+    private final EjecucionRutinaService ejecucionRutinaService;
 
-    public RutinaController(RutinaService rutinaService, GeneradorRutinaService generadorRutinaService) {
+    public RutinaController(RutinaService rutinaService, GeneradorRutinaService generadorRutinaService,
+                            EjecucionRutinaService ejecucionRutinaService) {
         this.rutinaService = rutinaService;
         this.generadorRutinaService = generadorRutinaService;
+        this.ejecucionRutinaService = ejecucionRutinaService;
     }
 
     @GetMapping
@@ -74,6 +80,19 @@ public class RutinaController {
     ) {
         ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idUsuario);
         return error != null ? error : ResponseEntity.ok(generadorRutinaService.generar(idUsuario));
+    }
+
+    /** Registra las series completadas hoy para un ejercicio programado en la rutina del cliente. */
+    @PostMapping("/ejercicios/{idPlanEjercicio}/completar")
+    public ResponseEntity<?> completarEjercicio(
+            @PathVariable Long idPlanEjercicio,
+            @Valid @RequestBody RegistrarEjercicioRealizadoRequest request,
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String apiKey,
+            @RequestHeader(value = "X-Client-User-Id", required = false) Long idUsuario
+    ) {
+        ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idUsuario);
+        return error != null ? error : ResponseEntity.status(HttpStatus.CREATED)
+                .body(ejecucionRutinaService.registrar(idUsuario, idPlanEjercicio, request));
     }
 
     private ResponseEntity<Map<String, String>> validarSolicitud(String apiKey, Long idUsuario) {

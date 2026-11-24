@@ -82,6 +82,8 @@ public class SecurityConfig {
                 .matcher(HttpMethod.GET, "/api/cliente/rutina/ejercicios");
         var generarRutinaCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.POST, "/api/cliente/rutina/generar");
+        var completarEjercicioCliente = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.POST, "/api/cliente/rutina/ejercicios/{idPlanEjercicio}/completar");
         var consultarNutricionCliente = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/cliente/nutricion");
         var listarAlimentosCliente = PathPatternRequestMatcher.withDefaults()
@@ -147,6 +149,7 @@ public class SecurityConfig {
                                 actualizarRutinaCliente,
                                 listarEjerciciosRutinaCliente,
                                 generarRutinaCliente,
+                                completarEjercicioCliente,
                                 consultarNutricionCliente,
                                 listarAlimentosCliente,
                                 registrarIngestaCliente,

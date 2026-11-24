@@ -54,5 +54,7 @@ public class PlanEntrenamiento {
 
     public void cambiarEstado(TipoEstado estado) { this.tipoEstado = estado; }
     public Long getIdPlanEntrenamiento() { return idPlanEntrenamiento; }
+    public Cliente getCliente() { return cliente; }
+    public TipoEstado getTipoEstado() { return tipoEstado; }
     public LocalDateTime getFechaGeneracion() { return fechaGeneracion; }
 }

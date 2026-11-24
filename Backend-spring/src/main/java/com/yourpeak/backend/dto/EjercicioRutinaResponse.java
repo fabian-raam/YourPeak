@@ -1,6 +1,7 @@
 package com.yourpeak.backend.dto;
 
 public record EjercicioRutinaResponse(
+        Long idPlanEjercicio,
         Integer idEjercicio,
         String nombre,
         String grupoMuscular,

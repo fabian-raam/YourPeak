@@ -48,6 +48,7 @@ public class PlanEntrenamientoDia {
     }
 
     public Long getIdPlanDia() { return idPlanDia; }
+    public PlanEntrenamiento getPlanEntrenamiento() { return planEntrenamiento; }
     public Integer getDiaSemana() { return diaSemana.intValue(); }
     public LocalTime getHoraInicio() { return horaInicio; }
     public LocalTime getHoraFin() { return horaFin; }

@@ -285,7 +285,7 @@ public class RutinaService {
 
     private EjercicioRutinaResponse respuestaEjercicio(PlanEntrenamientoEjercicio fila) {
         return new EjercicioRutinaResponse(
-                fila.getEjercicio().getIdEjercicio(), fila.getEjercicio().getNombre(),
+                fila.getIdPlanEjercicio(), fila.getEjercicio().getIdEjercicio(), fila.getEjercicio().getNombre(),
                 fila.getEjercicio().getGrupoMuscular().getNombre(), fila.getEjercicio().getTipoMedicion().getNombre(),
                 fila.getOrden(), fila.getSeries(), fila.getRepeticiones(), fila.getSegundos(),
                 fila.getDescansoSegundos(), fila.getTipoOrigen().getNombre()

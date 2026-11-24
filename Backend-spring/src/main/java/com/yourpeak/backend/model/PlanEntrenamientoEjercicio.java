@@ -69,6 +69,7 @@ public class PlanEntrenamientoEjercicio {
     }
 
     public Long getIdPlanEjercicio() { return idPlanEjercicio; }
+    public PlanEntrenamientoDia getPlanDia() { return planDia; }
     public Ejercicio getEjercicio() { return ejercicio; }
     public Integer getOrden() { return orden.intValue(); }
     public Integer getSeries() { return series.intValue(); }
