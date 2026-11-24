@@ -9,6 +9,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -97,6 +98,16 @@ public class ApiExceptionHandler {
         }
 
         return errorInterno();
+    }
+
+    /** Conserva el motivo de los errores de los servicios para que Django y React lo muestren. */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ProblemDetail manejarEstado(ResponseStatusException exception) {
+        String motivo = exception.getReason();
+        return ProblemDetail.forStatusAndDetail(
+                exception.getStatusCode(),
+                motivo == null || motivo.isBlank() ? "No se pudo completar la solicitud." : motivo
+        );
     }
 
     @ExceptionHandler({
