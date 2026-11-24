@@ -174,6 +174,7 @@ fun HomeScreen(
                             nutricionRepository = app?.nutricionRepository,
                             membresiaClienteRepository = app?.membresiaClienteRepository,
                             progresoRepository = app?.progresoRepository,
+                            perfilRepository = app?.perfilRepository,
                             alCerrarSesion = alCerrarSesion,
                             alIrADisponibilidad = {
                                 viewModel.seleccionarSeccion(SeccionCliente.DISPONIBILIDAD)
@@ -314,6 +315,7 @@ private fun ContenidoSeccion(
     nutricionRepository: com.ramirez.yourpeak.data.repository.NutricionRepository?,
     membresiaClienteRepository: com.ramirez.yourpeak.data.repository.MembresiaClienteRepository?,
     progresoRepository: com.ramirez.yourpeak.data.repository.ProgresoRepository?,
+    perfilRepository: com.ramirez.yourpeak.data.repository.PerfilRepository?,
     alCerrarSesion: () -> Unit,
     alIrADisponibilidad: () -> Unit
 ) {
@@ -371,7 +373,9 @@ private fun ContenidoSeccion(
             titulo = "Mi membresía",
             descripcion = "Aquí podrás consultar el estado y vigencia de tu membresía."
         )
-        SeccionCliente.PERFIL -> {
+        SeccionCliente.PERFIL -> perfilRepository?.let {
+            PerfilScreen(usuario, it, alCerrarSesion)
+        } ?: run {
             EncabezadoTarjeta(
                 etiqueta = "CUENTA DEL CLIENTE",
                 titulo = "Mi perfil",

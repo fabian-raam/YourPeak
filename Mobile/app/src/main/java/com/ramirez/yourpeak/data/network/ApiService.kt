@@ -9,6 +9,8 @@ import com.ramirez.yourpeak.data.model.AlimentoNutricionResponse
 import com.ramirez.yourpeak.data.model.IngestaNutricionResponse
 import com.ramirez.yourpeak.data.model.RegistrarIngestaRequest
 import com.ramirez.yourpeak.data.model.ResumenNutricionalResponse
+import com.ramirez.yourpeak.data.model.PerfilInicialRequest
+import com.ramirez.yourpeak.data.model.PerfilInicialResponse
 import com.ramirez.yourpeak.data.model.RutinaGeneradaResponse
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.model.RutinaResponse
@@ -63,6 +65,21 @@ interface ApiService {
         @Header("X-Client-User-Id") idUsuario: Long,
         @Body request: DisponibilidadRequest
     ): Response<DisponibilidadResponse>
+
+    /** Consulta el perfil inicial del cliente junto con los catálogos para el formulario. */
+    @GET("api/cliente/perfil")
+    suspend fun consultarPerfil(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long
+    ): Response<PerfilInicialResponse>
+
+    /** Guarda objetivo, niveles, sexo y medidas del cliente. */
+    @PUT("api/cliente/perfil")
+    suspend fun guardarPerfil(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Body request: PerfilInicialRequest
+    ): Response<PerfilInicialResponse>
 
     /** Consulta los siete días de la rutina semanal del cliente. */
     @GET("api/cliente/rutina")
