@@ -8,7 +8,7 @@ from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_http_methods
 
 
-def _spring_request(path, payload=None, headers=None, method=None):
+def _spring_request(path, payload=None, headers=None, method=None, timeout=5):
     """Envia una solicitud JSON a Spring y devuelve la respuesta parseada."""
     request_headers = {"Accept": "application/json"}
     request_headers.update(headers or {})
@@ -24,7 +24,7 @@ def _spring_request(path, payload=None, headers=None, method=None):
         # Algunos POST, como aprobar un cliente, no necesitan enviar cuerpo JSON.
         method=method or ("POST" if body is not None else "GET"),
     )
-    with urlopen(request, timeout=5) as response:
+    with urlopen(request, timeout=timeout) as response:
         contenido = response.read().decode("utf-8")
         # Algunas operaciones REST contestan 204 y, por contrato, no envían JSON.
         return json.loads(contenido) if contenido else None

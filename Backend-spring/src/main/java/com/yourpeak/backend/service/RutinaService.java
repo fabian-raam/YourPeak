@@ -161,10 +161,8 @@ public class RutinaService {
         PlanEntrenamiento plan = planRepository.save(
                 new PlanEntrenamiento(cliente, nivel, buscarEstado("ACTIVO"))
         );
-        TipoOrigenEjercicio origenUsuario = origenRepository.findByNombreIgnoreCase("USUARIO")
-                .orElseThrow(() -> new IllegalStateException(
-                        "Falta configurar USUARIO en tipo_origen_ejercicio."
-                ));
+        TipoOrigenEjercicio origenUsuario = buscarOrigen("USUARIO");
+        TipoOrigenEjercicio origenIa = buscarOrigen("IA");
         TipoEstado activo = buscarEstado("ACTIVO");
 
         for (Map.Entry<Integer, List<Prescripcion>> entrada : prescripciones.entrySet()) {
@@ -179,7 +177,8 @@ public class RutinaService {
                 EjercicioRutinaRequest datos = prescripcion.datos();
                 filas.add(new PlanEntrenamientoEjercicio(
                         dia, prescripcion.ejercicio(), orden++, datos.series(), datos.repeticiones(),
-                        datos.segundos(), datos.descansoSegundos(), origenUsuario, activo
+                        datos.segundos(), datos.descansoSegundos(),
+                        "IA".equals(datos.origen()) ? origenIa : origenUsuario, activo
                 ));
             }
             planEjercicioRepository.saveAll(filas);
@@ -187,7 +186,13 @@ public class RutinaService {
         return new RutinaResponse(consultarDias(cliente));
     }
 
-    private Map<Integer, DisponibilidadCliente> cargarDisponibilidad(Cliente cliente) {
+    private TipoOrigenEjercicio buscarOrigen(String nombre) {
+        return origenRepository.findByNombreIgnoreCase(nombre).orElseThrow(() -> new IllegalStateException(
+                "Falta configurar " + nombre + " en tipo_origen_ejercicio."
+        ));
+    }
+
+    Map<Integer, DisponibilidadCliente> cargarDisponibilidad(Cliente cliente) {
         Map<Integer, DisponibilidadCliente> disponibilidad = new HashMap<>();
         disponibilidadRepository.findAllByCliente_IdClienteOrderByDiaSemanaAsc(cliente.getIdCliente())
                 .forEach(dia -> disponibilidad.put(dia.getDiaSemana(), dia));
@@ -252,7 +257,7 @@ public class RutinaService {
         }
     }
 
-    private NivelExperiencia resolverNivel(Cliente cliente) {
+    NivelExperiencia resolverNivel(Cliente cliente) {
         if (cliente.getIdNivelExperiencia() != null) {
             return nivelRepository.findById(cliente.getIdNivelExperiencia())
                     .orElseThrow(() -> error(HttpStatus.CONFLICT, "El nivel de experiencia del perfil no existe."));
@@ -262,7 +267,7 @@ public class RutinaService {
     }
 
     /** La identidad recibida por el header debe corresponder a una cuenta cliente activa. */
-    private Cliente buscarClienteActivo(Long idUsuario) {
+    Cliente buscarClienteActivo(Long idUsuario) {
         if (idUsuario == null || administradorRepository.existsByUsuario_IdUsuario(idUsuario)) {
             throw accesoDenegado();
         }

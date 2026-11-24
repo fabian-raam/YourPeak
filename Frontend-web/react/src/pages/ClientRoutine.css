@@ -176,3 +176,21 @@
 @keyframes routine-reveal { from { opacity: 0; transform: translateY(5px); } }
 @keyframes routine-backdrop { from { opacity: 0; } }
 @keyframes routine-highlight { from { background: #e2eeff; } to { background: transparent; } }
+
+/* Propuesta de rutina con IA (HU-11). */
+.routine-ai { display: flex; align-items: center; gap: 16px; padding: 16px 18px; margin-bottom: 16px; border: 1px solid #cfdcf3; border-radius: 9px; background: linear-gradient(135deg, #f3f7ff, #fff); }
+.routine-ai.has-proposal { border-color: #8db5ef; }
+.routine-ai-icon { width: 42px; height: 42px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 10px; color: #2166e8; background: #e4edfd; }
+.routine-ai > div { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.routine-ai strong { color: #263650; font-size: 15px; font-weight: 600; }
+.routine-ai p { margin: 0; color: #4d5d77; font-size: 14px; line-height: 1.45; }
+.routine-ai small { color: #7a889d; font-size: 12px; }
+.routine-ai-button { min-height: 40px; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; border: 1px solid #2166e8; border-radius: 8px; color: #fff; background: #2166e8; font: 600 14px 'IBM Plex Sans', Arial, sans-serif; white-space: nowrap; cursor: pointer; }
+.routine-ai-button:hover:not(:disabled) { border-color: #1854c7; background: #1854c7; }
+.routine-ai-button:disabled { opacity: .55; cursor: not-allowed; }
+.routine-ai-button svg { width: 16px; height: 16px; }
+.routine-ai-tag { display: inline-block; margin-left: 7px; line-height: 1.5; padding: 1px 6px; border-radius: 5px; color: #1f5ccc; background: #e4edfd; font-size: 11px; font-weight: 700; letter-spacing: .04em; vertical-align: 1px; }
+@media (max-width: 640px) {
+  .routine-ai { flex-wrap: wrap; }
+  .routine-ai-button { width: 100%; justify-content: center; }
+}

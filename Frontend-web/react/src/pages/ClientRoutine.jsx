@@ -1,7 +1,7 @@
 import ClientToast from '../components/ClientToast'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { getRoutine, getRoutineExercises, saveRoutine } from '../services/routine'
+import { generateRoutine, getRoutine, getRoutineExercises, saveRoutine } from '../services/routine'
 import { normalizeSearch } from '../utils/format'
 import './ClientRoutine.css'
 
@@ -23,6 +23,7 @@ const normalizeExercise = item => ({
   repeticiones: item.repeticiones,
   segundos: item.segundos,
   descansoSegundos: item.descansoSegundos,
+  origen: item.origen === 'IA' ? 'IA' : 'USUARIO',
 })
 const normalizeDay = day => ({
   diaSemana: day.diaSemana,
@@ -63,6 +64,7 @@ function toPayload(days) {
       repeticiones: exercise.tipoMedicion === 'TIEMPO' ? null : exercise.repeticiones,
       segundos: exercise.tipoMedicion === 'TIEMPO' ? exercise.segundos : null,
       descansoSegundos: exercise.descansoSegundos,
+      origen: exercise.origen,
     })),
   }))
 }
@@ -90,6 +92,8 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
   const [loadAttempt, setLoadAttempt] = useState(0)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [proposal, setProposal] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
 
@@ -202,6 +206,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
       repeticiones: isTimed ? null : Number(draft.repeticiones),
       segundos: isTimed ? Number(draft.segundos) : null,
       descansoSegundos: Number(draft.descansoSegundos),
+      origen: 'USUARIO',
     }
     const dayIndex = selectedDayNumber - 1
     setDays(current => current.map((day, index) => index === dayIndex
@@ -237,6 +242,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
       setDays(saved)
       setSavedDays(saved)
       setAddedId(null)
+      setProposal(null)
       setNotice('Tu rutina semanal quedó guardada.')
     } catch (err) {
       if (err.status === 401) onExpired()
@@ -249,8 +255,27 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
   function reset() {
     setAddedId(null)
     setDays(savedDays.map(day => ({ ...day, ejercicios: day.ejercicios.map(item => ({ ...item })) })))
+    setProposal(null)
     setError('')
     setNotice('')
+  }
+
+  // La propuesta reemplaza el borrador en pantalla; solo se guarda con «Guardar rutina».
+  async function generate() {
+    setGenerating(true)
+    setError('')
+    setNotice('')
+    try {
+      const result = await generateRoutine()
+      setDays(normalizeWeek(result.dias))
+      setProposal({ fuente: result.fuente, mensaje: result.mensaje })
+      setAddedId(null)
+    } catch (err) {
+      if (err.status === 401) onExpired()
+      else setError(err.message || 'No se pudo generar la rutina.')
+    } finally {
+      setGenerating(false)
+    }
   }
 
   const dateLabel = formatDate(selectedDate, { weekday: 'long', day: 'numeric', month: 'long' })
@@ -266,6 +291,20 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
     {error && <p className="routine-error" role="alert">{error}</p>}
     {loadFailed && <button className="client-text-link" type="button" onClick={retry}>Reintentar</button>}
     {notice && <ClientToast title="Rutina guardada" message={notice} onClose={() => setNotice('')} />}
+
+    <section className={`routine-ai${proposal ? ' has-proposal' : ''}`} aria-live="polite">
+      <span className="routine-ai-icon"><Icon name="sparkles" /></span>
+      <div>
+        <strong>{proposal ? (proposal.fuente === 'GEMINI' ? 'Propuesta generada con IA' : 'Propuesta generada por reglas') : 'Rutina con IA'}</strong>
+        <p>{proposal ? proposal.mensaje : 'Te proponemos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio. Podrás revisarla antes de guardarla.'}</p>
+        <small>Rutina orientativa. Si tienes lesiones o dudas de salud, consulta con un entrenador.</small>
+      </div>
+      <button type="button" className="routine-ai-button" onClick={generate}
+        disabled={loading || loadFailed || saving || generating || availableCount === 0}
+        title={availableCount === 0 ? 'Configura tu disponibilidad para generar una rutina' : undefined}>
+        <Icon name={generating ? 'clock' : 'sparkles'} />{generating ? 'Generando…' : proposal ? 'Generar otra' : 'Generar con IA'}
+      </button>
+    </section>
 
     <section className="routine-week" aria-label="Calendario semanal" aria-busy={loading}>
       <div className="routine-week-navigation">
@@ -305,7 +344,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
         <section className="routine-exercise-panel" aria-labelledby="routine-exercises-heading">
           <div className="routine-exercise-heading">
             <h3 id="routine-exercises-heading">Ejercicios del día</h3>
-            <button type="button" ref={addTrigger} className="routine-add-button" onClick={openPicker} disabled={saving}>
+            <button type="button" ref={addTrigger} className="routine-add-button" onClick={openPicker} disabled={saving || generating}>
               <Icon name="plus" />Agregar ejercicio
             </button>
           </div>
@@ -314,7 +353,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
               className={addedId === exercise.idEjercicio ? 'routine-exercise-added' : undefined}>
               <span className="routine-exercise-index" aria-hidden="true">{index + 1}</span>
               <div className="routine-exercise-description">
-                <strong>{exercise.nombre}</strong>
+                <strong>{exercise.nombre}{exercise.origen === 'IA' && <span className="routine-ai-tag" title="Propuesto por el generador de rutinas">IA</span>}</strong>
                 <small>{exercise.series} {exercise.series === 1 ? 'serie' : 'series'} × {exercise.tipoMedicion === 'TIEMPO' ? `${exercise.segundos} s` : `${exercise.repeticiones} rep.`}
                   {' · '}{exercise.descansoSegundos === 0 ? 'Sin descanso' : `Descanso ${exercise.descansoSegundos} s`}</small>
               </div>
@@ -397,8 +436,8 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
 
     <footer className="routine-actions">
       <span>{availableCount} {availableCount === 1 ? 'día disponible' : 'días disponibles'} · La rutina se repite cada semana</span>
-      <div><button type="button" className="routine-reset" disabled={!dirty || loading || saving} onClick={reset}>Restablecer</button>
-        <button type="button" className="routine-save" disabled={!dirty || loading || saving} onClick={save}>
+      <div><button type="button" className="routine-reset" disabled={!dirty || loading || saving || generating} onClick={reset}>Restablecer</button>
+        <button type="button" className="routine-save" disabled={!dirty || loading || saving || generating} onClick={save}>
           <Icon name={saving ? 'clock' : 'check'} />{saving ? 'Guardando…' : 'Guardar rutina'}
         </button></div>
     </footer>

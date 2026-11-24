@@ -226,6 +226,29 @@ def rutina_cliente(request):
     return _respuesta_spring_json(resultado)
 
 
+@require_POST
+def generar_rutina_cliente(request):
+    """Pide a Spring una propuesta de rutina con IA; no se guarda hasta que el cliente la confirme."""
+    id_usuario, respuesta_error = _validar_cliente_activo(request)
+    if respuesta_error:
+        return respuesta_error
+
+    try:
+        resultado = _spring_request(
+            "/api/cliente/rutina/generar",
+            headers=_headers_cliente(id_usuario),
+            method="POST",
+            # La IA puede tardar varios segundos más que una consulta normal.
+            timeout=45,
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo generar la rutina. Inténtalo de nuevo.", 503)
+
+    return _respuesta_spring_json(resultado)
+
+
 @require_GET
 def ejercicios_disponibles_rutina(request):
     """Lista los ejercicios activos que un cliente puede agregar a su rutina."""
