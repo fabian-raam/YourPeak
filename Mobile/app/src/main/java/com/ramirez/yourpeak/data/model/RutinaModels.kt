@@ -40,5 +40,6 @@ data class EjercicioRutinaRequest(
     val series: Int,
     val repeticiones: Int?,
     val segundos: Int?,
-    val descansoSegundos: Int
+    val descansoSegundos: Int,
+    val origen: String? = null
 )

@@ -31,8 +31,13 @@ data class EjercicioRutinaUi(
     val series: Int,
     val repeticiones: Int?,
     val segundos: Int?,
-    val descansoSegundos: Int
+    val descansoSegundos: Int,
+    /** IA si lo propuso el generador de rutinas; se conserva al guardar desde el móvil. */
+    val origen: String = ORIGEN_USUARIO
 )
+
+const val ORIGEN_USUARIO = "USUARIO"
+const val ORIGEN_IA = "IA"
 
 data class DiaRutinaUi(
     val numero: Int,
@@ -230,7 +235,8 @@ class MiRutinaViewModel(
                             series = ejercicio.series,
                             repeticiones = ejercicio.repeticiones,
                             segundos = ejercicio.segundos,
-                            descansoSegundos = ejercicio.descansoSegundos
+                            descansoSegundos = ejercicio.descansoSegundos,
+                            origen = ejercicio.origen
                         )
                     }
                 )
@@ -277,7 +283,8 @@ class MiRutinaViewModel(
                         series = ejercicio.series ?: 3,
                         repeticiones = ejercicio.repeticiones,
                         segundos = ejercicio.segundos,
-                        descansoSegundos = ejercicio.descansoSegundos ?: 0
+                        descansoSegundos = ejercicio.descansoSegundos ?: 0,
+                        origen = if (ejercicio.origen == ORIGEN_IA) ORIGEN_IA else ORIGEN_USUARIO
                     )
                 }
             )
