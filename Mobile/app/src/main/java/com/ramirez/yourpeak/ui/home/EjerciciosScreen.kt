@@ -1,6 +1,7 @@
 package com.ramirez.yourpeak.ui.home
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -20,13 +22,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramirez.yourpeak.data.model.EjercicioResponse
 import com.ramirez.yourpeak.data.repository.EjercicioRepository
-import com.ramirez.yourpeak.ui.components.EncabezadoTarjeta
 
 @Composable
 fun EjerciciosScreen(idUsuario: Long?, repository: EjercicioRepository) {
@@ -37,12 +39,7 @@ fun EjerciciosScreen(idUsuario: Long?, repository: EjercicioRepository) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
 
     Column {
-        EncabezadoTarjeta(
-            etiqueta = "ENTRENAMIENTO",
-            titulo = "Ejercicios",
-            introduccion = "Explora los ejercicios activos del gimnasio."
-        )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
         OutlinedTextField(
             value = estado.busqueda,
@@ -146,9 +143,9 @@ private fun FiltrosHorizontales(
 private fun EjercicioTarjeta(ejercicio: EjercicioResponse, expandido: Boolean, alPulsar: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth().clickable(onClick = alPulsar),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF090909),
+        border = BorderStroke(1.dp, Color(0xFF292929))
     ) {
         Column(Modifier.padding(14.dp)) {
             Text(

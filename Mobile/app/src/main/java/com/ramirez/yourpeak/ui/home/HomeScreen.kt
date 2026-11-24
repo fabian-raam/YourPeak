@@ -1,6 +1,5 @@
 package com.ramirez.yourpeak.ui.home
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,7 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,7 +47,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramirez.yourpeak.data.model.LoginResponse
 import com.ramirez.yourpeak.YourPeakApp
 import com.ramirez.yourpeak.ui.components.EncabezadoTarjeta
-import com.ramirez.yourpeak.ui.components.FondoMarca
 import com.ramirez.yourpeak.ui.components.IconoEntrenamiento
 import com.ramirez.yourpeak.ui.components.IconoInicio
 import com.ramirez.yourpeak.ui.components.IconoMembresia
@@ -69,6 +72,7 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black),
                 title = {
                     Text(
                         text = "YOUR PEAK",
@@ -98,36 +102,58 @@ fun HomeScreen(
                 alSeleccionar = viewModel::seleccionarSeccion
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = Color.Black
     ) { contenidoPadding ->
-        FondoMarca(Modifier.fillMaxSize().padding(contenidoPadding)) {
+        Box(Modifier.fillMaxSize().background(Color.Black).padding(contenidoPadding)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                    .then(
+                        if (estado.seccionSeleccionada == SeccionCliente.MI_RUTINA) Modifier
+                        else Modifier.verticalScroll(rememberScrollState())
+                    )
+                    .padding(
+                        start = 20.dp,
+                        top = 24.dp,
+                        end = 20.dp,
+                        bottom = if (estado.seccionSeleccionada == SeccionCliente.MI_RUTINA) 0.dp else 24.dp
+                    ),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(Modifier.widthIn(max = 560.dp)) {
+                Column(Modifier.widthIn(max = 560.dp).fillMaxWidth()) {
                     Text(
-                        text = estado.seccionSeleccionada.titulo.uppercase(),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        fontWeight = FontWeight.Bold
+                        text = buildAnnotatedString {
+                            if (estado.seccionSeleccionada in seccionesEntrenamiento) {
+                                append("ENTRENAMIENTO")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) { append(".") }
+                            } else {
+                                append(estado.seccionSeleccionada.titulo.uppercase())
+                            }
+                        },
+                        style = if (estado.seccionSeleccionada in seccionesEntrenamiento) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge,
+                        color = if (estado.seccionSeleccionada in seccionesEntrenamiento) Color.White else MaterialTheme.colorScheme.tertiary,
+                        fontFamily = FontFamily.SansSerif,
+                        fontSize = if (estado.seccionSeleccionada in seccionesEntrenamiento) 42.sp else 14.sp,
+                        lineHeight = if (estado.seccionSeleccionada in seccionesEntrenamiento) 46.sp else 18.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = if (estado.seccionSeleccionada in seccionesEntrenamiento) (-1.4).sp else 0.sp,
+                        maxLines = 1
                     )
                     Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = "Hola, ${usuario.nombre.orEmpty()}${usuario.apellido?.let { " $it" }.orEmpty()}",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Tu cuenta está activa.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
-                    )
+                    if (estado.seccionSeleccionada !in seccionesEntrenamiento) {
+                        Text(
+                            text = "Hola, ${usuario.nombre.orEmpty()}${usuario.apellido?.let { " $it" }.orEmpty()}",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "Tu cuenta está activa.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 6.dp, bottom = 16.dp)
+                        )
+                    }
                     if ((estado.seccionSeleccionada in seccionesEntrenamiento)) {
                         NavegacionEntrenamiento(
                             seccionSeleccionada = estado.seccionSeleccionada,
@@ -135,9 +161,12 @@ fun HomeScreen(
                         )
                         Spacer(Modifier.height(12.dp))
                     }
-                    TarjetaAuth {
+                    val contenidoSeccion: @Composable () -> Unit = {
                         ContenidoSeccion(
                             seccion = estado.seccionSeleccionada,
+                            modifier = if (estado.seccionSeleccionada == SeccionCliente.MI_RUTINA) {
+                                Modifier.weight(1f)
+                            } else Modifier,
                             usuario = usuario,
                             ejercicioRepository = app?.ejercicioRepository,
                             disponibilidadRepository = app?.disponibilidadRepository,
@@ -151,7 +180,12 @@ fun HomeScreen(
                             }
                         )
                     }
-                    NotaPie()
+                    if (estado.seccionSeleccionada in seccionesEntrenamiento) {
+                        contenidoSeccion()
+                    } else {
+                        TarjetaAuth { contenidoSeccion() }
+                        NotaPie()
+                    }
                 }
             }
         }
@@ -232,18 +266,39 @@ private fun NavegacionEntrenamiento(
     seccionSeleccionada: SeccionCliente,
     alSeleccionar: (SeccionCliente) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = Color(0xFF111111),
+        border = BorderStroke(1.dp, Color(0xFF292929))
     ) {
-        seccionesEntrenamiento.forEach { seccion ->
-            TextButton(onClick = { alSeleccionar(seccion) }) {
-                Text(
-                    text = seccion.titulo,
-                    color = if (seccion == seccionSeleccionada) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = if (seccion == seccionSeleccionada) FontWeight.Bold else FontWeight.Normal
-                )
+        Row(
+            modifier = Modifier.fillMaxWidth().height(46.dp).padding(3.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            seccionesEntrenamiento.forEach { seccion ->
+                val seleccionado = seccion == seccionSeleccionada
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (seleccionado) MaterialTheme.colorScheme.primary else Color.Transparent)
+                        .clickable { alSeleccionar(seccion) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = when (seccion) {
+                            SeccionCliente.MI_RUTINA -> "Mi rutina"
+                            SeccionCliente.EJERCICIOS -> "Ejercicios"
+                            else -> "Disponibilidad"
+                        },
+                        color = if (seleccionado) Color.White else Color(0xFFB8BCC6),
+                        fontSize = 14.sp,
+                        fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium,
+                        maxLines = 1
+                    )
+                }
             }
         }
     }
@@ -251,6 +306,7 @@ private fun NavegacionEntrenamiento(
 @Composable
 private fun ContenidoSeccion(
     seccion: SeccionCliente,
+    modifier: Modifier = Modifier,
     usuario: LoginResponse,
     ejercicioRepository: com.ramirez.yourpeak.data.repository.EjercicioRepository?,
     disponibilidadRepository: com.ramirez.yourpeak.data.repository.DisponibilidadRepository?,
@@ -275,6 +331,7 @@ private fun ContenidoSeccion(
             rutinaRepository != null && ejercicioRepository != null
         ) {
             MiRutinaScreen(
+                modifier = modifier,
                 idUsuario = usuario.idUsuario,
                 rutinaRepository = rutinaRepository,
                 ejercicioRepository = ejercicioRepository,

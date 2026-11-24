@@ -1,7 +1,12 @@
 package com.ramirez.yourpeak.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -11,6 +16,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 
 private fun estiloTrazo(grosor: Float) = Stroke(width = grosor, cap = StrokeCap.Round, join = StrokeJoin.Round)
@@ -120,5 +127,38 @@ fun IconoPerfil(color: Color, modifier: Modifier = Modifier) {
             cubicTo(16f * escala, 13f * escala, 18.5f * escala, 15.5f * escala, 19f * escala, 20f * escala)
         }
         drawPath(busto, color, style = estiloTrazo(1.8.dp.toPx()))
+    }
+}
+
+/** Botón circular con el tacho usado para quitar un ejercicio de la rutina. */
+@Composable
+fun BotonIconoEliminar(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val colorTacho = Color(0xFFFF5A63)
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(40.dp)
+            .background(Color(0xFF261819), CircleShape)
+            .border(1.dp, Color(0xFF713B3E), CircleShape)
+            .semantics { contentDescription = "Quitar ejercicio" }
+    ) {
+        IconoTacho(color = colorTacho, modifier = Modifier.size(20.dp))
+    }
+}
+
+@Composable
+fun IconoTacho(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val escala = size.width / 24f
+        val trazo = 1.8.dp.toPx()
+        drawLine(color, Offset(5f * escala, 7f * escala), Offset(19f * escala, 7f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(9f * escala, 4.5f * escala), Offset(15f * escala, 4.5f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(10f * escala, 4.5f * escala), Offset(10f * escala, 3f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(14f * escala, 4.5f * escala), Offset(14f * escala, 3f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(7f * escala, 8f * escala), Offset(8f * escala, 20f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(17f * escala, 8f * escala), Offset(16f * escala, 20f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(8f * escala, 20f * escala), Offset(16f * escala, 20f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(10.5f * escala, 10f * escala), Offset(11f * escala, 17f * escala), trazo, StrokeCap.Round)
+        drawLine(color, Offset(13.5f * escala, 10f * escala), Offset(13f * escala, 17f * escala), trazo, StrokeCap.Round)
     }
 }

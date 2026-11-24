@@ -46,12 +46,7 @@ fun DisponibilidadScreen(idUsuario: Long?, repository: DisponibilidadRepository)
     val resumenHoras = "${minutos / 60} h ${minutos % 60} min por semana"
 
     Column {
-        EncabezadoTarjeta(
-            etiqueta = "ENTRENAMIENTO",
-            titulo = "Disponibilidad",
-            introduccion = "Indica los días y horarios en que puedes entrenar."
-        )
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
