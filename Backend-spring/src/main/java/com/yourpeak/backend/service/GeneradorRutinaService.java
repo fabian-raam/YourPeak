@@ -327,7 +327,8 @@ public class GeneradorRutinaService {
                 int orden = 1;
                 for (Item item : propuesta.getOrDefault(numeroDia, List.of())) {
                     Ejercicio e = item.ejercicio();
-                    ejercicios.add(new EjercicioRutinaResponse(e.getIdEjercicio(), e.getNombre(),
+                    // La propuesta aún no está guardada, así que no tiene idPlanEjercicio.
+                    ejercicios.add(new EjercicioRutinaResponse(null, e.getIdEjercicio(), e.getNombre(),
                             e.getGrupoMuscular().getNombre(), e.getTipoMedicion().getNombre(), orden++,
                             item.series(), item.repeticiones(), item.segundos(), item.descanso(), "IA"));
                 }
