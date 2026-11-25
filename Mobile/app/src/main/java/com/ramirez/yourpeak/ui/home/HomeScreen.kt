@@ -87,17 +87,13 @@ fun HomeScreen(
                 },
                 actions = {
                     IconButton(onClick = { viewModel.seleccionarSeccion(SeccionCliente.PERFIL) }) {
-                        val iniciales = listOfNotNull(usuario.nombre, usuario.apellido)
-                            .mapNotNull { it.trim().firstOrNull()?.uppercaseChar() }.joinToString("")
                         Surface(
                             modifier = Modifier.size(42.dp),
                             shape = CircleShape,
                             color = MaterialTheme.colorScheme.primary
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                if (iniciales.isNotEmpty()) {
-                                    Text(iniciales, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                } else IconoPerfil(Color.White, Modifier.size(23.dp))
+                                IconoPerfil(Color.White, Modifier.size(23.dp))
                             }
                         }
                     }
@@ -259,7 +255,7 @@ private fun NavegacionPrincipal(
                     val seleccionado = if (seccion == SeccionCliente.MI_RUTINA) {
                         entrenamientoSeleccionado
                     } else seccionSeleccionada == seccion
-                    val colorContenido = if (seleccionado) MaterialTheme.colorScheme.primary else Color(0xFF9AA1AD)
+                    val colorContenido = if (seleccionado) Color.White else Color(0xFF9AA1AD)
                     Column(
                         modifier = Modifier
                             .weight(1f)

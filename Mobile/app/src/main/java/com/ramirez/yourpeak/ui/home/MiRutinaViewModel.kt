@@ -6,10 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.ramirez.yourpeak.data.model.DiaRutinaRequest
 import com.ramirez.yourpeak.data.model.EjercicioRutinaRequest
 import com.ramirez.yourpeak.data.model.EjercicioResponse
+import com.ramirez.yourpeak.data.model.RegistrarEjercicioRealizadoRequest
+import com.ramirez.yourpeak.data.model.SerieEjercicioRealizadoRequest
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.data.repository.ResultadoEjercicios
 import com.ramirez.yourpeak.data.repository.ResultadoGeneracion
+import com.ramirez.yourpeak.data.repository.ResultadoEjercicioRealizado
 import com.ramirez.yourpeak.data.repository.ResultadoRutina
 import com.ramirez.yourpeak.data.repository.RutinaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 private val NOMBRES_DIAS = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
@@ -34,7 +38,9 @@ data class EjercicioRutinaUi(
     val segundos: Int?,
     val descansoSegundos: Int,
     /** IA si lo propuso el generador de rutinas; se conserva al guardar desde el móvil. */
-    val origen: String = ORIGEN_USUARIO
+    val origen: String = ORIGEN_USUARIO,
+    val idPlanEjercicio: Long? = null,
+    val imagenRuta: String? = null
 )
 
 const val ORIGEN_USUARIO = "USUARIO"
@@ -56,10 +62,11 @@ data class PropuestaIa(val fuente: String, val mensaje: String) {
 
 data class MiRutinaUiState(
     val dias: List<DiaRutinaUi> = diasRutinaVacios(),
-    val diasGuardados: List<DiaRutinaUi> = diasRutinaVacios(),
     val catalogo: List<EjercicioResponse> = emptyList(),
     val cargando: Boolean = true,
     val guardando: Boolean = false,
+    val registrandoRealizado: Boolean = false,
+    val ejerciciosCompletados: Set<Long> = emptySet(),
     val generando: Boolean = false,
     val propuesta: PropuestaIa? = null,
     val error: String? = null,
@@ -71,7 +78,6 @@ data class MiRutinaUiState(
     val descanso: String = "60"
 ) {
     val diaActual: DiaRutinaUi? get() = dias.firstOrNull { it.numero == diaSeleccionado }
-    val hayCambios: Boolean get() = dias != diasGuardados
     val puedeGenerar: Boolean get() = !cargando && !guardando && !generando && dias.any { it.disponible }
 }
 
@@ -107,7 +113,6 @@ class MiRutinaViewModel(
             _estado.update {
                 it.copy(
                     dias = dias,
-                    diasGuardados = dias,
                     catalogo = catalogo,
                     cargando = false,
                     error = error,
@@ -149,6 +154,7 @@ class MiRutinaViewModel(
 
     fun agregarEjercicio() {
         val estado = _estado.value
+        if (estado.guardando || estado.generando) return
         val dia = estado.diaActual
         if (dia == null || !dia.disponible) {
             _estado.update { it.copy(error = "Selecciona un día disponible para asignar ejercicios.") }
@@ -189,40 +195,72 @@ class MiRutinaViewModel(
             series = series,
             repeticiones = if (esTiempo) null else valor,
             segundos = if (esTiempo) valor else null,
-            descansoSegundos = descanso
+            descansoSegundos = descanso,
+            imagenRuta = ejercicio.imagenRuta
         )
-        _estado.update { actual ->
-            actual.copy(
-                dias = actual.dias.map { item ->
-                    if (item.numero == dia.numero) item.copy(ejercicios = item.ejercicios + nuevo) else item
-                },
-                idEjercicioSeleccionado = null,
-                series = "3",
-                valorMedicion = "10",
-                descanso = "60",
-                error = null,
-                mensaje = null
-            )
+        val diasActualizados = estado.dias.map { item ->
+            if (item.numero == dia.numero) item.copy(ejercicios = item.ejercicios + nuevo) else item
+        }
+        guardarDias(diasActualizados, "Ejercicio agregado y rutina guardada.") { actual ->
+            actual.copy(idEjercicioSeleccionado = null, series = "3", valorMedicion = "10", descanso = "60")
         }
     }
 
-    fun quitarEjercicio(idEjercicio: Int) = _estado.update { estado ->
-        estado.copy(
-            dias = estado.dias.map { dia ->
-                if (dia.numero == estado.diaSeleccionado) {
-                    dia.copy(ejercicios = dia.ejercicios.filterNot { it.idEjercicio == idEjercicio })
-                } else dia
-            },
-            error = null,
-            mensaje = null
+    fun quitarEjercicio(idEjercicio: Int) {
+        val estado = _estado.value
+        if (estado.guardando || estado.generando) return
+        val diasActualizados = estado.dias.map { dia ->
+            if (dia.numero == estado.diaSeleccionado) {
+                dia.copy(ejercicios = dia.ejercicios.filterNot { it.idEjercicio == idEjercicio })
+            } else dia
+        }
+        guardarDias(diasActualizados, "Ejercicio eliminado y rutina guardada.")
+    }
+
+    /** EnvÃ­a al backend todas las series prescritas para marcar el ejercicio como realizado hoy. */
+    fun marcarEjercicioRealizado(ejercicio: EjercicioRutinaUi) {
+        val id = idUsuario
+        val idPlan = ejercicio.idPlanEjercicio
+        val estado = _estado.value
+        if (id == null || idPlan == null || estado.registrandoRealizado || estado.guardando || estado.generando) {
+            _estado.update { it.copy(error = "No se pudo identificar el ejercicio de la rutina. Actualiza la rutina e intÃ©ntalo otra vez.") }
+            return
+        }
+        val diaHoy = ((Calendar.getInstance(java.util.TimeZone.getTimeZone("America/Lima")).get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1
+        if (estado.diaSeleccionado != diaHoy) {
+            _estado.update { it.copy(error = "Solo puedes marcar como realizado el entrenamiento de hoy.") }
+            return
+        }
+        if (idPlan in estado.ejerciciosCompletados) return
+
+        val esTiempo = ejercicio.tipoMedicion.equals("TIEMPO", ignoreCase = true)
+        val request = RegistrarEjercicioRealizadoRequest(
+            series = (1..ejercicio.series).map { numero ->
+                SerieEjercicioRealizadoRequest(
+                    numeroSerie = numero,
+                    repeticiones = if (esTiempo) null else ejercicio.repeticiones,
+                    segundos = if (esTiempo) ejercicio.segundos else null
+                )
+            }
         )
+        _estado.update { it.copy(registrandoRealizado = true, error = null, mensaje = null) }
+        viewModelScope.launch {
+            when (val resultado = rutinaRepository.completarEjercicio(id, idPlan, request)) {
+                is ResultadoEjercicioRealizado.Exito -> _estado.update {
+                    if (resultado.ejercicio.completado == true) it.copy(
+                        registrandoRealizado = false,
+                        ejerciciosCompletados = it.ejerciciosCompletados + idPlan,
+                        mensaje = "Ejercicio marcado como realizado."
+                    ) else it.copy(registrandoRealizado = false, error = "No se pudo confirmar el ejercicio.")
+                }
+                is ResultadoEjercicioRealizado.Error -> _estado.update {
+                    it.copy(registrandoRealizado = false, error = resultado.mensaje)
+                }
+            }
+        }
     }
 
-    fun restablecer() = _estado.update {
-        it.copy(dias = it.diasGuardados, propuesta = null, error = null, mensaje = null)
-    }
-
-    /** La propuesta reemplaza el borrador en pantalla; solo se guarda con «Guardar». */
+    /** Genera y guarda la propuesta directamente para que la rutina quede disponible de inmediato. */
     fun generar() {
         val id = idUsuario ?: run {
             _estado.update { it.copy(error = "No se identificó la cuenta.") }
@@ -234,14 +272,13 @@ class MiRutinaViewModel(
             when (val resultado = rutinaRepository.generar(id)) {
                 is ResultadoGeneracion.Exito -> {
                     val dias = convertirDias(resultado.propuesta.dias.orEmpty())
-                    _estado.update { actual ->
+                    val propuesta = PropuestaIa(
+                        fuente = resultado.propuesta.fuente.orEmpty(),
+                        mensaje = resultado.propuesta.mensaje.orEmpty()
+                    )
+                    _estado.update { it.copy(generando = false) }
+                    guardarDias(dias, "Rutina generada y guardada.", propuesta) { actual ->
                         actual.copy(
-                            dias = dias,
-                            generando = false,
-                            propuesta = PropuestaIa(
-                                fuente = resultado.propuesta.fuente.orEmpty(),
-                                mensaje = resultado.propuesta.mensaje.orEmpty()
-                            ),
                             diaSeleccionado = dias.firstOrNull { it.ejercicios.isNotEmpty() }?.numero
                                 ?: actual.diaSeleccionado
                         )
@@ -256,19 +293,24 @@ class MiRutinaViewModel(
 
     fun cerrarMensaje() = _estado.update { it.copy(mensaje = null) }
 
-    fun guardar() {
+    private fun guardarDias(
+        dias: List<DiaRutinaUi>,
+        mensajeExito: String,
+        propuesta: PropuestaIa? = null,
+        alGuardar: (MiRutinaUiState) -> MiRutinaUiState = { it }
+    ) {
         val id = idUsuario ?: run {
             _estado.update { it.copy(error = "No se identificó la cuenta.") }
             return
         }
         val estado = _estado.value
         if (estado.guardando || estado.generando) return
-        if (estado.dias.any { !it.disponible && it.ejercicios.isNotEmpty() }) {
+        if (dias.any { !it.disponible && it.ejercicios.isNotEmpty() }) {
             _estado.update { it.copy(error = "Solo puedes asignar ejercicios a días disponibles.") }
             return
         }
         val request = RutinaRequest(
-            dias = estado.dias.map { dia ->
+            dias = dias.map { dia ->
                 DiaRutinaRequest(
                     diaSemana = dia.numero,
                     ejercicios = dia.ejercicios.map { ejercicio ->
@@ -288,16 +330,15 @@ class MiRutinaViewModel(
         viewModelScope.launch {
             when (val resultado = rutinaRepository.guardar(id, request)) {
                 is ResultadoRutina.Exito -> {
-                    val dias = convertirDias(resultado.rutina.dias.orEmpty())
+                    val diasGuardados = convertirDias(resultado.rutina.dias.orEmpty())
                     _estado.update {
-                        it.copy(
-                            dias = dias,
-                            diasGuardados = dias,
+                        alGuardar(it.copy(
+                            dias = diasGuardados,
                             guardando = false,
-                            propuesta = null,
-                            mensaje = "Rutina guardada correctamente.",
+                            propuesta = propuesta,
+                            mensaje = mensajeExito,
                             error = null
-                        )
+                        ))
                     }
                 }
                 is ResultadoRutina.Error -> _estado.update {
@@ -322,7 +363,9 @@ class MiRutinaViewModel(
                         idEjercicio = id,
                         nombre = ejercicio.nombre.orEmpty(),
                         grupoMuscular = ejercicio.grupoMuscular.orEmpty(),
+                        imagenRuta = ejercicio.imagenRuta,
                         tipoMedicion = ejercicio.tipoMedicion.orEmpty(),
+                        idPlanEjercicio = ejercicio.idPlanEjercicio,
                         series = ejercicio.series ?: 3,
                         repeticiones = ejercicio.repeticiones,
                         segundos = ejercicio.segundos,

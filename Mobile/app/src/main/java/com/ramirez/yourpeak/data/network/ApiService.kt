@@ -15,6 +15,8 @@ import com.ramirez.yourpeak.data.model.PerfilInicialResponse
 import com.ramirez.yourpeak.data.model.RutinaGeneradaResponse
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.model.RutinaResponse
+import com.ramirez.yourpeak.data.model.RegistrarEjercicioRealizadoRequest
+import com.ramirez.yourpeak.data.model.EjercicioRealizadoResponse
 import com.ramirez.yourpeak.data.model.RegistroProgresoRequest
 import com.ramirez.yourpeak.data.model.RegistroProgresoResponse
 import com.ramirez.yourpeak.data.model.RegistroRequest
@@ -110,6 +112,15 @@ interface ApiService {
         @Header("X-Client-User-Id") idUsuario: Long,
         @Body request: RutinaRequest
     ): Response<RutinaResponse>
+
+    /** Registra que el cliente completÃ³ hoy todas las series de un ejercicio de su rutina. */
+    @POST("api/cliente/rutina/ejercicios/{idPlanEjercicio}/completar")
+    suspend fun completarEjercicioRutina(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Path("idPlanEjercicio") idPlanEjercicio: Long,
+        @Body request: RegistrarEjercicioRealizadoRequest
+    ): Response<EjercicioRealizadoResponse>
 
     /** Lista los alimentos del catálogo que puede registrar un cliente activo. */
     @GET("api/cliente/nutricion/alimentos")

@@ -1,10 +1,7 @@
 package com.ramirez.yourpeak.ui.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -130,7 +127,7 @@ fun IconoPerfil(color: Color, modifier: Modifier = Modifier) {
     }
 }
 
-/** Botón circular con el tacho usado para quitar un ejercicio de la rutina. */
+/** Acción para quitar un ejercicio; muestra únicamente el icono del tacho. */
 @Composable
 fun BotonIconoEliminar(
     onClick: () -> Unit,
@@ -144,15 +141,13 @@ fun BotonIconoEliminar(
         enabled = habilitado,
         modifier = modifier
             .size(40.dp)
-            .background(Color(0xFF261819), CircleShape)
-            .border(1.dp, Color(0xFF713B3E), CircleShape)
             .semantics { contentDescription = descripcion }
     ) {
-        IconoTacho(color = colorTacho, modifier = Modifier.size(20.dp))
+        IconoTacho(color = colorTacho, modifier = Modifier.size(24.dp))
     }
 }
 
-/** BotÃ³n circular para iniciar la ediciÃ³n de un elemento. */
+/** Acción para editar un elemento; muestra únicamente el icono del lápiz. */
 @Composable
 fun BotonIconoEditar(
     onClick: () -> Unit,
@@ -166,30 +161,98 @@ fun BotonIconoEditar(
         enabled = habilitado,
         modifier = modifier
             .size(40.dp)
-            .background(Color(0xFF151D2C), CircleShape)
-            .border(1.dp, Color(0xFF344C70), CircleShape)
             .semantics { contentDescription = descripcion }
     ) {
-        IconoEditar(color = colorEditar, modifier = Modifier.size(20.dp))
+        IconoEditar(color = colorEditar, modifier = Modifier.size(24.dp))
     }
 }
 
-/** Botón circular de información para abrir el detalle de un ejercicio. */
+/** Acción para abrir el detalle de un ejercicio; muestra únicamente la flecha. */
 @Composable
 fun BotonIconoDetalle(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     descripcion: String = "Ver detalle del ejercicio"
 ) {
+    val verdeDetalle = Color(0xFFB7F34A)
     IconButton(
         onClick = onClick,
         modifier = modifier
             .size(40.dp)
-            .background(Color(0xFF151515), CircleShape)
-            .border(1.dp, Color(0xFF454545), CircleShape)
             .semantics { contentDescription = descripcion }
     ) {
-        IconoDetalle(color = Color.White, modifier = Modifier.size(22.dp))
+        IconoFlechaDetalle(color = verdeDetalle, modifier = Modifier.size(24.dp))
+    }
+}
+
+/** Acción para marcar el ejercicio como realizado; muestra únicamente el check. */
+@Composable
+fun BotonIconoRealizado(
+    onClick: () -> Unit,
+    realizado: Boolean,
+    habilitado: Boolean = true,
+    modifier: Modifier = Modifier,
+    descripcion: String = if (realizado) "Ejercicio realizado" else "Marcar ejercicio como realizado"
+) {
+    val lima = Color(0xFFB7F34A)
+    IconButton(
+        onClick = onClick,
+        enabled = habilitado && !realizado,
+        modifier = modifier
+            .size(38.dp)
+            .semantics { contentDescription = descripcion }
+    ) {
+        IconoCheck(color = lima, modifier = Modifier.size(24.dp))
+    }
+}
+
+@Composable
+fun IconoCheck(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val escala = size.width / 24f
+        drawLine(
+            color,
+            Offset(5f * escala, 12f * escala),
+            Offset(10f * escala, 17f * escala),
+            2.2.dp.toPx(),
+            StrokeCap.Round
+        )
+        drawLine(
+            color,
+            Offset(10f * escala, 17f * escala),
+            Offset(19f * escala, 7f * escala),
+            2.2.dp.toPx(),
+            StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+fun IconoFlechaDetalle(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val escala = size.width / 24f
+        val trazo = 2.dp.toPx()
+        drawLine(
+            color,
+            Offset(4f * escala, 12f * escala),
+            Offset(19f * escala, 12f * escala),
+            trazo,
+            StrokeCap.Round
+        )
+        drawLine(
+            color,
+            Offset(13f * escala, 6f * escala),
+            Offset(19f * escala, 12f * escala),
+            trazo,
+            StrokeCap.Round
+        )
+        drawLine(
+            color,
+            Offset(19f * escala, 12f * escala),
+            Offset(13f * escala, 18f * escala),
+            trazo,
+            StrokeCap.Round
+        )
     }
 }
 

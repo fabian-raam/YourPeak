@@ -21,6 +21,7 @@ data class DiaRutinaResponse(
 )
 
 data class EjercicioRutinaResponse(
+    val idPlanEjercicio: Long?,
     val idEjercicio: Int?,
     val nombre: String?,
     val grupoMuscular: String?,
@@ -30,7 +31,8 @@ data class EjercicioRutinaResponse(
     val repeticiones: Int?,
     val segundos: Int?,
     val descansoSegundos: Int?,
-    val origen: String?
+    val origen: String?,
+    val imagenRuta: String? = null
 )
 
 /** Propuesta de rutina generada por Spring (Gemini o reglas); no se guarda hasta llamar a guardar. */
@@ -56,4 +58,23 @@ data class EjercicioRutinaRequest(
     val segundos: Int?,
     val descansoSegundos: Int,
     val origen: String? = null
+)
+
+data class RegistrarEjercicioRealizadoRequest(
+    val series: List<SerieEjercicioRealizadoRequest>
+)
+
+data class SerieEjercicioRealizadoRequest(
+    val numeroSerie: Int,
+    val repeticiones: Int? = null,
+    val segundos: Int? = null
+)
+
+data class EjercicioRealizadoResponse(
+    val idPlanEjercicio: Long?,
+    val ejercicio: String?,
+    val fecha: String?,
+    val seriesCompletadas: Int?,
+    val completado: Boolean?,
+    val detail: String?
 )

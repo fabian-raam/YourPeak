@@ -6,6 +6,8 @@ import com.ramirez.yourpeak.data.model.ApiErrorResponse
 import com.ramirez.yourpeak.data.model.RutinaGeneradaResponse
 import com.ramirez.yourpeak.data.model.RutinaRequest
 import com.ramirez.yourpeak.data.model.RutinaResponse
+import com.ramirez.yourpeak.data.model.RegistrarEjercicioRealizadoRequest
+import com.ramirez.yourpeak.data.model.EjercicioRealizadoResponse
 import com.ramirez.yourpeak.data.network.ApiService
 import retrofit2.Response
 import java.io.IOException
@@ -20,6 +22,11 @@ sealed interface ResultadoGeneracion {
     data class Error(val mensaje: String) : ResultadoGeneracion
 }
 
+sealed interface ResultadoEjercicioRealizado {
+    data class Exito(val ejercicio: EjercicioRealizadoResponse) : ResultadoEjercicioRealizado
+    data class Error(val mensaje: String) : ResultadoEjercicioRealizado
+}
+
 /** Aísla del ViewModel las consultas y actualizaciones de la rutina. */
 class RutinaRepository(
     private val api: ApiService,
@@ -32,6 +39,25 @@ class RutinaRepository(
 
     suspend fun guardar(idUsuario: Long, request: RutinaRequest): ResultadoRutina = ejecutar {
         api.guardarRutina(apiKey, idUsuario, request)
+    }
+
+    suspend fun completarEjercicio(
+        idUsuario: Long,
+        idPlanEjercicio: Long,
+        request: RegistrarEjercicioRealizadoRequest
+    ): ResultadoEjercicioRealizado {
+        val respuesta = try {
+            api.completarEjercicioRutina(apiKey, idUsuario, idPlanEjercicio, request)
+        } catch (_: IOException) {
+            return ResultadoEjercicioRealizado.Error("No se pudo conectar con el servidor.")
+        } catch (_: RuntimeException) {
+            return ResultadoEjercicioRealizado.Error("El servidor devolviÃ³ una respuesta invÃ¡lida.")
+        }
+        if (respuesta.isSuccessful) {
+            return respuesta.body()?.let { ResultadoEjercicioRealizado.Exito(it) }
+                ?: ResultadoEjercicioRealizado.Error("El servidor devolviÃ³ una respuesta vacÃ­a.")
+        }
+        return ResultadoEjercicioRealizado.Error(mensajeError(respuesta))
     }
 
     /** Pide una propuesta con IA; Spring usa Gemini o, si no está disponible, el generador por reglas. */

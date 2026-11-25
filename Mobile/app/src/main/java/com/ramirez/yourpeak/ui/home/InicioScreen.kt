@@ -161,7 +161,7 @@ private fun TarjetaProximoEntrenamiento(
     ) {
         ejercicios.firstOrNull()?.let { primero ->
             IlustracionEjercicio(
-                nombre = primero.nombre,
+                imagenRuta = primero.imagenRuta,
                 grupoMuscular = primero.grupoMuscular,
                 forma = RoundedCornerShape(16.dp),
                 modifier = Modifier

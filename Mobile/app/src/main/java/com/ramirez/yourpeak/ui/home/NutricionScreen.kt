@@ -474,7 +474,7 @@ private fun IngestaFila(
                 }
                 if (!editando) {
                     Spacer(Modifier.width(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         BotonIconoEditar(
                             onClick = iniciarEdicion,
                             descripcion = "Editar cantidad de ${ingesta.alimento}",

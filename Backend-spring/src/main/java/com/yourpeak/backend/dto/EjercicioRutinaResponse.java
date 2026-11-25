@@ -11,5 +11,6 @@ public record EjercicioRutinaResponse(
         Integer repeticiones,
         Integer segundos,
         Integer descansoSegundos,
-        String origen
+        String origen,
+        String imagenRuta
 ) { }

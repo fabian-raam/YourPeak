@@ -18,22 +18,17 @@ data class EjerciciosUiState(
     val error: String? = null,
     val busqueda: String = "",
     val grupoSeleccionado: String? = null,
-    val nivelSeleccionado: String? = null,
     val ejercicioSeleccionado: Int? = null
 ) {
     val grupos: List<String>
         get() = ejercicios.mapNotNull { it.grupoMuscular }.distinct().sorted()
-
-    val niveles: List<String>
-        get() = ejercicios.mapNotNull { it.nivelExperiencia }.distinct().sorted()
 
     val ejerciciosFiltrados: List<EjercicioResponse>
         get() = ejercicios.filter { ejercicio ->
             val coincideTexto = listOfNotNull(
                 ejercicio.nombre, ejercicio.grupoMuscular, ejercicio.equipamiento
             ).any { it.contains(busqueda.trim(), ignoreCase = true) }
-            coincideTexto && (grupoSeleccionado == null || ejercicio.grupoMuscular == grupoSeleccionado) &&
-                (nivelSeleccionado == null || ejercicio.nivelExperiencia == nivelSeleccionado)
+            coincideTexto && (grupoSeleccionado == null || ejercicio.grupoMuscular == grupoSeleccionado)
         }
 }
 
@@ -73,7 +68,6 @@ class EjerciciosViewModel(
 
     fun cambiarBusqueda(valor: String) = _estado.update { it.copy(busqueda = valor) }
     fun cambiarGrupo(valor: String?) = _estado.update { it.copy(grupoSeleccionado = valor) }
-    fun cambiarNivel(valor: String?) = _estado.update { it.copy(nivelSeleccionado = valor) }
     fun seleccionarEjercicio(id: Int?) = _estado.update { it.copy(ejercicioSeleccionado = id) }
 
     companion object {

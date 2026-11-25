@@ -330,7 +330,8 @@ public class GeneradorRutinaService {
                     // La propuesta aún no está guardada en la base de datos, por eso no tiene idPlanEjercicio.
                     ejercicios.add(new EjercicioRutinaResponse(null, e.getIdEjercicio(), e.getNombre(),
                             e.getGrupoMuscular().getNombre(), e.getTipoMedicion().getNombre(), orden++,
-                            item.series(), item.repeticiones(), item.segundos(), item.descanso(), "IA"));
+                            item.series(), item.repeticiones(), item.segundos(), item.descanso(), "IA",
+                            e.getImagenRuta()));
                 }
             }
             dias.add(new DiaRutinaResponse(numeroDia, horario != null,

@@ -13,9 +13,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.text.style.TextOverflow
 import com.ramirez.yourpeak.ui.components.IlustracionEjercicio
+import com.ramirez.yourpeak.ui.components.recursoIlustracionEjercicio
+import com.ramirez.yourpeak.ui.components.BotonIconoDetalle
 import com.ramirez.yourpeak.ui.theme.BarlowCondensed
 import com.ramirez.yourpeak.ui.theme.Carbon
 import com.ramirez.yourpeak.ui.theme.CarbonBorde
@@ -102,15 +103,6 @@ fun EjerciciosScreen(idUsuario: Long?, repository: EjercicioRepository) {
                 opciones = estado.grupos,
                 seleccionado = estado.grupoSeleccionado,
                 alSeleccionar = viewModel::cambiarGrupo
-            )
-        }
-
-        if (estado.niveles.isNotEmpty()) {
-            EncabezadoFiltro("Nivel")
-            FiltrosHorizontales(
-                opciones = estado.niveles,
-                seleccionado = estado.nivelSeleccionado,
-                alSeleccionar = viewModel::cambiarNivel
             )
         }
 
@@ -233,14 +225,15 @@ private fun EjercicioTarjeta(
     ) {
         Column {
             IlustracionEjercicio(
-                nombre = ejercicio.nombre,
+                imagenRuta = ejercicio.imagenRuta,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(topStart = 17.dp, topEnd = 17.dp),
                 modifier = Modifier.fillMaxWidth().height(108.dp)
             )
-            Column(Modifier.heightIn(min = 74.dp).padding(horizontal = 11.dp, vertical = 10.dp)) {
+            Column(Modifier.height(110.dp).padding(horizontal = 11.dp, vertical = 7.dp)) {
                 Text(
                     ejercicio.nombre ?: "Ejercicio",
+                    modifier = Modifier.height(36.dp),
                     fontSize = 15.sp,
                     lineHeight = 18.sp,
                     color = Color.White,
@@ -265,7 +258,10 @@ private fun EjercicioTarjeta(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                TextButton(onClick = alVerDetalle) { Text("Ver movimiento y datos") }
+                Spacer(Modifier.weight(1f))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    BotonIconoDetalle(onClick = alVerDetalle)
+                }
             }
         }
     }
@@ -282,7 +278,7 @@ private fun DetalleEjercicio(ejercicio: EjercicioResponse) {
     ) {
         Column {
             IlustracionEjercicio(
-                nombre = ejercicio.nombre,
+                imagenRuta = ejercicio.imagenRuta,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(topStart = 19.dp, topEnd = 19.dp),
                 modifier = Modifier.fillMaxWidth().aspectRatio(1.5f)
@@ -322,7 +318,7 @@ private fun DatoDetalle(texto: String) {
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 private fun DetalleEjercicioDialog(ejercicio: EjercicioResponse, cerrar: () -> Unit) {
     val estadoHoja = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val recursoImagen = recursoImagenEjercicio(ejercicio)
+    val recursoImagen = recursoIlustracionEjercicio(ejercicio.imagenRuta)
     val medicion = when (ejercicio.tipoMedicion?.uppercase()) {
         "REPETICIONES" -> "Repeticiones"
         "TIEMPO" -> "Tiempo"
@@ -458,35 +454,3 @@ private fun DetalleEjercicioCampo(etiqueta: String, valor: String?) {
     }
 }
 
-private fun recursoImagenEjercicio(ejercicio: EjercicioResponse): Int? {
-    fun normalizar(valor: String): String = java.text.Normalizer.normalize(valor, java.text.Normalizer.Form.NFD)
-        .replace("\\p{M}+".toRegex(), "")
-        .lowercase()
-        .replace(Regex("[^a-z0-9]+"), "-")
-        .trim('-')
-
-    val claveRuta = ejercicio.imagenRuta
-        ?.substringAfterLast('/')
-        ?.substringBeforeLast('.')
-        ?.takeIf(String::isNotBlank)
-    val clave = normalizar(claveRuta ?: ejercicio.nombre.orEmpty()).replace('-', '_')
-    return when (clave) {
-        "aperturas_con_mancuernas" -> com.ramirez.yourpeak.R.drawable.exercise_aperturas_con_mancuernas
-        "curl_de_biceps" -> com.ramirez.yourpeak.R.drawable.exercise_curl_de_biceps
-        "elevaciones_laterales" -> com.ramirez.yourpeak.R.drawable.exercise_elevaciones_laterales
-        "extension_de_triceps_en_polea" -> com.ramirez.yourpeak.R.drawable.exercise_extension_de_triceps_en_polea
-        "flexiones_de_pecho" -> com.ramirez.yourpeak.R.drawable.exercise_flexiones_de_pecho
-        "jalon_al_pecho" -> com.ramirez.yourpeak.R.drawable.exercise_jalon_al_pecho
-        "peso_muerto_rumano" -> com.ramirez.yourpeak.R.drawable.exercise_peso_muerto_rumano
-        "plancha_frontal" -> com.ramirez.yourpeak.R.drawable.exercise_plancha_frontal
-        "prensa_de_piernas" -> com.ramirez.yourpeak.R.drawable.exercise_prensa_de_piernas
-        "press_de_banca" -> com.ramirez.yourpeak.R.drawable.exercise_press_de_banca
-        "press_inclinado_con_mancuernas" -> com.ramirez.yourpeak.R.drawable.exercise_press_inclinado_con_mancuernas
-        "press_militar" -> com.ramirez.yourpeak.R.drawable.exercise_press_militar
-        "remo_con_mancuerna" -> com.ramirez.yourpeak.R.drawable.exercise_remo_con_mancuerna
-        "saltos_de_tijera" -> com.ramirez.yourpeak.R.drawable.exercise_saltos_de_tijera
-        "sentadilla_goblet" -> com.ramirez.yourpeak.R.drawable.exercise_sentadilla_goblet
-        "zancadas_caminando" -> com.ramirez.yourpeak.R.drawable.exercise_zancadas_caminando
-        else -> null
-    }
-}

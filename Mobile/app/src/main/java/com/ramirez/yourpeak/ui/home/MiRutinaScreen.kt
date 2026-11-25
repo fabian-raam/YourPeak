@@ -60,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,6 +70,7 @@ import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.data.repository.RutinaRepository
 import com.ramirez.yourpeak.ui.components.EncabezadoTarjeta
 import com.ramirez.yourpeak.ui.components.BotonIconoEliminar
+import com.ramirez.yourpeak.ui.components.BotonIconoRealizado
 import com.ramirez.yourpeak.ui.components.colorGrupoMuscular
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
 
@@ -89,6 +91,8 @@ fun MiRutinaScreen(
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val dia = estado.diaActual
     var mostrarSelector by remember { mutableStateOf(false) }
+    var ejercicioAConfirmar by remember { mutableStateOf<EjercicioRutinaUi?>(null) }
+    val diaHoy = ((Calendar.getInstance(java.util.TimeZone.getTimeZone("America/Lima")).get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1
 
     Column(modifier.fillMaxSize()) {
         Column(
@@ -108,7 +112,7 @@ fun MiRutinaScreen(
                 Spacer(Modifier.width(12.dp))
                 Text("Cargando tu rutina…", fontSize = 15.sp, color = Color(0xFF9AA1AD))
             }
-            estado.error != null && estado.diasGuardados.none { it.disponible } && estado.dias.none { it.disponible } -> {
+            estado.error != null && estado.dias.none { it.disponible } -> {
                 MensajeRutina(estado.error.orEmpty(), error = true)
                 TextButton(onClick = viewModel::reintentar) { Text("Reintentar") }
             }
@@ -146,7 +150,11 @@ fun MiRutinaScreen(
                                 dia.ejercicios.forEach { ejercicio ->
                                     EjercicioAsignadoFila(
                                         ejercicio = ejercicio,
-                                        quitar = { viewModel.quitarEjercicio(ejercicio.idEjercicio) }
+                                        quitar = { viewModel.quitarEjercicio(ejercicio.idEjercicio) },
+                                        marcarRealizado = { ejercicioAConfirmar = ejercicio },
+                                        realizado = ejercicio.idPlanEjercicio?.let { it in estado.ejerciciosCompletados } == true,
+                                        puedeMarcarRealizado = !estado.registrandoRealizado,
+                                        habilitado = !estado.guardando && !estado.generando && !estado.registrandoRealizado
                                     )
                                     Spacer(Modifier.height(8.dp))
                                 }
@@ -155,7 +163,7 @@ fun MiRutinaScreen(
                             Spacer(Modifier.height(12.dp))
                             Button(
                                 onClick = { mostrarSelector = true },
-                                enabled = estado.catalogo.isNotEmpty() && !estado.generando,
+                                enabled = estado.catalogo.isNotEmpty() && !estado.generando && !estado.guardando,
                                 modifier = Modifier.height(50.dp),
                                 shape = RoundedCornerShape(22.dp)
                             ) {
@@ -176,7 +184,8 @@ fun MiRutinaScreen(
                                     cambiarValorMedicion = viewModel::cambiarValorMedicion,
                                     cambiarDescanso = viewModel::cambiarDescanso,
                                     agregar = viewModel::agregarEjercicio,
-                                    cancelar = { viewModel.seleccionarEjercicio(null) }
+                                    cancelar = { viewModel.seleccionarEjercicio(null) },
+                                    habilitado = !estado.guardando
                                 )
                             }
                         }
@@ -191,53 +200,11 @@ fun MiRutinaScreen(
                     Spacer(Modifier.height(10.dp))
                     MensajeRutina(it, error = false) { viewModel.cerrarMensaje() }
                 }
-
-            }
-        }
-        }
-
-        if (!estado.cargando && dia != null) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 0.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedButton(
-                        onClick = viewModel::restablecer,
-                        enabled = estado.hayCambios && !estado.guardando && !estado.generando,
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(18.dp)
-                    ) {
-                        Text("RESTABLECER", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.4.sp)
-                    }
-                    Button(
-                        onClick = viewModel::guardar,
-                        enabled = estado.hayCambios && !estado.guardando && !estado.generando,
-                        modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(18.dp)
-                    ) {
-                        if (estado.guardando) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.height(18.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(
-                            if (estado.guardando) "GUARDANDO" else "GUARDAR",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 0.4.sp
-                        )
-                    }
+                if (estado.guardando) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("Guardando rutina…", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     "La rutina se repite cada semana.",
                     style = MaterialTheme.typography.bodySmall,
@@ -246,7 +213,9 @@ fun MiRutinaScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
+
             }
+        }
         }
     }
 
@@ -262,10 +231,29 @@ fun MiRutinaScreen(
             cerrar = { mostrarSelector = false }
         )
     }
+
+    ejercicioAConfirmar?.let { ejercicio ->
+        ConfirmarEjercicioRealizadoDialog(
+            ejercicio = ejercicio,
+            puedeRegistrarHoy = estado.diaSeleccionado == diaHoy,
+            confirmar = {
+                viewModel.marcarEjercicioRealizado(ejercicio)
+                ejercicioAConfirmar = null
+            },
+            cancelar = { ejercicioAConfirmar = null }
+        )
+    }
 }
 
 @Composable
-private fun EjercicioAsignadoFila(ejercicio: EjercicioRutinaUi, quitar: () -> Unit) {
+private fun EjercicioAsignadoFila(
+    ejercicio: EjercicioRutinaUi,
+    quitar: () -> Unit,
+    marcarRealizado: () -> Unit,
+    realizado: Boolean,
+    puedeMarcarRealizado: Boolean,
+    habilitado: Boolean
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -274,7 +262,7 @@ private fun EjercicioAsignadoFila(ejercicio: EjercicioRutinaUi, quitar: () -> Un
     ) {
         Row(Modifier.padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
             IlustracionEjercicio(
-                nombre = ejercicio.nombre,
+                imagenRuta = ejercicio.imagenRuta,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(12.dp),
                 modifier = Modifier.width(76.dp).height(60.dp)
@@ -312,7 +300,88 @@ private fun EjercicioAsignadoFila(ejercicio: EjercicioRutinaUi, quitar: () -> Un
                     EtiquetaDatoRutina(if (ejercicio.descansoSegundos == 0) "Sin descanso" else "${ejercicio.descansoSegundos} s descanso")
                 }
             }
-            BotonIconoEliminar(onClick = quitar)
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                BotonIconoRealizado(
+                    onClick = marcarRealizado,
+                    realizado = realizado,
+                    habilitado = habilitado && puedeMarcarRealizado
+                )
+                BotonIconoEliminar(onClick = quitar, habilitado = habilitado)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConfirmarEjercicioRealizadoDialog(
+    ejercicio: EjercicioRutinaUi,
+    puedeRegistrarHoy: Boolean,
+    confirmar: () -> Unit,
+    cancelar: () -> Unit
+) {
+    Dialog(onDismissRequest = cancelar) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Color(0xFF151515),
+            border = BorderStroke(1.dp, Color(0xFF383838))
+        ) {
+            Column(Modifier.fillMaxWidth().padding(22.dp)) {
+                Text(
+                    "¿Completaste este ejercicio?",
+                    fontFamily = BarlowCondensed,
+                    fontSize = 25.sp,
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
+                Spacer(Modifier.height(10.dp))
+                Text(
+                    ejercicio.nombre,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Spacer(Modifier.height(6.dp))
+                val detalle = if (ejercicio.tipoMedicion.equals("TIEMPO", ignoreCase = true)) {
+                    "${ejercicio.series} series de ${ejercicio.segundos ?: 0} s"
+                } else {
+                    "${ejercicio.series} series de ${ejercicio.repeticiones ?: 0} repeticiones"
+                }
+                Text(
+                    if (puedeRegistrarHoy) "$detalle. Se registrará como realizado hoy."
+                    else "$detalle. Para registrarlo, selecciona el día de hoy en tu rutina.",
+                    fontSize = 15.sp,
+                    lineHeight = 21.sp,
+                    color = if (puedeRegistrarHoy) Color(0xFFB8BCC6) else Color(0xFFEBD39B)
+                )
+                Spacer(Modifier.height(22.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = cancelar,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color(0xFF454545))
+                    ) {
+                        Text("CANCELAR", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
+                    Button(
+                        onClick = confirmar,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Lima,
+                            contentColor = Color(0xFF101010),
+                            disabledContainerColor = Color(0xFF303326),
+                            disabledContentColor = Color(0xFF777777)
+                        ),
+                        enabled = puedeRegistrarHoy
+                    ) {
+                        Text("CONFIRMAR", fontSize = 14.sp, fontWeight = FontWeight.Black)
+                    }
+                }
+            }
         }
     }
 }
@@ -452,7 +521,7 @@ private fun TarjetaRutinaIa(
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
-                        Text("Revísala y pulsa «Guardar» para conservarla.", fontSize = 12.sp, color = Color(0xFF9AA1AD))
+                        Text("La rutina ya quedó guardada.", fontSize = 12.sp, color = Color(0xFF9AA1AD))
                     }
                     OutlinedButton(
                         onClick = generar,
@@ -495,7 +564,7 @@ private fun TarjetaRutinaIa(
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                if (hayDiasDisponibles) "Te proponemos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio. Podrás revisarla antes de guardarla."
+                if (hayDiasDisponibles) "Generaremos y guardaremos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio."
                 else "Marca al menos un día en tu disponibilidad para generar una rutina.",
                 fontSize = 14.sp,
                 lineHeight = 19.sp,
@@ -577,7 +646,8 @@ private fun FormularioEjercicioRutina(
     cambiarValorMedicion: (String) -> Unit,
     cambiarDescanso: (String) -> Unit,
     agregar: () -> Unit,
-    cancelar: () -> Unit
+    cancelar: () -> Unit,
+    habilitado: Boolean
 ) {
     val esTiempo = ejercicio.tipoMedicion.equals("TIEMPO", ignoreCase = true)
     Surface(
@@ -624,12 +694,14 @@ private fun FormularioEjercicioRutina(
             ) {
                 TextButton(
                     onClick = cancelar,
+                    enabled = habilitado,
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp)
                 ) {
                     Text("CANCELAR", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
                 Button(
                     onClick = agregar,
+                    enabled = habilitado,
                     modifier = Modifier.height(52.dp),
                     shape = RoundedCornerShape(22.dp),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
@@ -857,7 +929,11 @@ private fun MiRutinaPreview() {
                 Spacer(Modifier.height(12.dp))
                 EjercicioAsignadoFila(
                     EjercicioRutinaUi(1, "Press de banca plano", "Pecho", "REPETICIONES", 4, 8, null, 90, ORIGEN_IA),
-                    quitar = {}
+                    quitar = {},
+                    marcarRealizado = {},
+                    realizado = false,
+                    puedeMarcarRealizado = true,
+                    habilitado = true
                 )
             }
         }
