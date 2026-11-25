@@ -37,6 +37,15 @@ data class InicioUiState(
     val progresoError: String? = null
 )
 
+/** Día de la semana actual (lunes a domingo) para la tira de Inicio. */
+data class DiaSemanaInicioUi(
+    val letra: String,
+    val numero: Int,
+    val esHoy: Boolean,
+    val disponible: Boolean,
+    val entrenado: Boolean
+)
+
 data class ProximoEntrenamientoUi(
     val dia: DiaRutinaResponse,
     val fechaIso: String,
@@ -116,6 +125,31 @@ class InicioViewModel(
             if (dia != null) return ProximoEntrenamientoUi(dia, parseFecha.format(calendario.time), offset)
         }
         return null
+    }
+
+    /** Semana actual; un día cuenta como entrenado si tiene actividad registrada en esa fecha. */
+    fun semanaActual(): List<DiaSemanaInicioUi> {
+        val rutina = _estado.value.rutina
+        val fechasEntrenadas = rutina?.actividadReciente.orEmpty().mapNotNull { it.fecha?.take(10) }.toSet()
+        val formato = SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).apply { timeZone = TimeZone.getTimeZone("UTC") }
+        val hoyIso = Fechas.hoyIso()
+        val hoy = formato.parse(hoyIso) ?: return emptyList()
+        val calendario = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.ROOT).apply { time = hoy }
+        val diaHoy = ((calendario.get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1
+        calendario.add(Calendar.DAY_OF_MONTH, 1 - diaHoy)
+        val letras = listOf("L", "M", "X", "J", "V", "S", "D")
+        return (1..7).map { numero ->
+            val iso = formato.format(calendario.time)
+            val dia = DiaSemanaInicioUi(
+                letra = letras[numero - 1],
+                numero = calendario.get(Calendar.DAY_OF_MONTH),
+                esHoy = iso == hoyIso,
+                disponible = rutina?.dias.orEmpty().any { it.diaSemana == numero && it.disponible == true },
+                entrenado = iso in fechasEntrenadas
+            )
+            calendario.add(Calendar.DAY_OF_MONTH, 1)
+            dia
+        }
     }
 
     fun nombreDia(numero: Int): String = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
