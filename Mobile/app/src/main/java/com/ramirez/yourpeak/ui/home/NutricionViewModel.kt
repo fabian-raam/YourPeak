@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.ramirez.yourpeak.data.model.AlimentoNutricionResponse
 import com.ramirez.yourpeak.data.model.IngestaNutricionResponse
+import com.ramirez.yourpeak.data.model.MetaNutricionalResponse
 import com.ramirez.yourpeak.data.model.RegistrarIngestaRequest
 import com.ramirez.yourpeak.data.model.ResumenNutricionalResponse
 import com.ramirez.yourpeak.data.repository.NutricionRepository
@@ -44,6 +45,8 @@ data class NutricionUiState(
     val proteinaG: BigDecimal = BigDecimal.ZERO,
     val carbohidratoG: BigDecimal = BigDecimal.ZERO,
     val grasaG: BigDecimal = BigDecimal.ZERO,
+    /** Meta diaria calculada por Spring a partir del perfil; null si el perfil está incompleto. */
+    val meta: MetaNutricionalResponse? = null,
     val cargandoCatalogo: Boolean = true,
     val cargandoDia: Boolean = true,
     val guardando: Boolean = false,
@@ -254,6 +257,7 @@ class NutricionViewModel(
         proteinaG = resumen.proteinaG ?: BigDecimal.ZERO,
         carbohidratoG = resumen.carbohidratoG ?: BigDecimal.ZERO,
         grasaG = resumen.grasaG ?: BigDecimal.ZERO,
+        meta = resumen.meta ?: meta,
         ingestas = resumen.ingestas.orEmpty().mapNotNull(::convertirIngesta)
     )
 

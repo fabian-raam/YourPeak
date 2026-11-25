@@ -1,8 +1,25 @@
 package com.ramirez.yourpeak.ui.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.text.style.TextOverflow
+import com.ramirez.yourpeak.ui.components.IlustracionEjercicio
+import com.ramirez.yourpeak.ui.theme.BarlowCondensed
+import com.ramirez.yourpeak.ui.theme.Carbon
+import com.ramirez.yourpeak.ui.theme.CarbonBorde
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -10,7 +27,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -19,27 +35,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -50,7 +57,6 @@ import com.ramirez.yourpeak.data.model.EjercicioResponse
 import com.ramirez.yourpeak.data.repository.EjercicioRepository
 import com.ramirez.yourpeak.ui.components.colorGrupoMuscular
 import com.ramirez.yourpeak.ui.components.IconoBuscar
-import com.ramirez.yourpeak.ui.components.BotonIconoDetalle
 
 @Composable
 fun EjerciciosScreen(idUsuario: Long?, repository: EjercicioRepository) {
@@ -73,18 +79,18 @@ fun EjerciciosScreen(idUsuario: Long?, repository: EjercicioRepository) {
             modifier = Modifier.fillMaxWidth().height(58.dp),
             singleLine = true,
             placeholder = {
-                Text("Buscar por ejercicio, grupo o equipo", fontSize = 16.sp, color = Color(0xFFB8BCC6))
+                Text("Buscar por ejercicio, grupo o equipo", fontSize = 16.sp, color = Color(0xFF9AA1AD))
             },
             leadingIcon = { IconoBuscar() },
-            shape = RoundedCornerShape(22.dp),
+            shape = RoundedCornerShape(18.dp),
             textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, color = Color.White),
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.White,
                 unfocusedTextColor = Color.White,
-                focusedContainerColor = Color(0xFF141414),
-                unfocusedContainerColor = Color(0xFF141414),
-                focusedIndicatorColor = Color(0xFF454545),
-                unfocusedIndicatorColor = Color(0xFF303030),
+                focusedContainerColor = Carbon,
+                unfocusedContainerColor = Carbon,
+                focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                unfocusedIndicatorColor = CarbonBorde,
                 cursorColor = MaterialTheme.colorScheme.primary
             ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
@@ -122,32 +128,36 @@ fun EjerciciosScreen(idUsuario: Long?, repository: EjercicioRepository) {
                 fontSize = 16.sp
             )
             else -> {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "${estado.ejerciciosFiltrados.size} EJERCICIOS",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 0.5.sp,
-                        color = Color.White
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    androidx.compose.material3.HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = Color(0xFF292929)
-                    )
-                }
-                Spacer(Modifier.height(8.dp))
-                estado.ejerciciosFiltrados.forEachIndexed { index, ejercicio ->
-                    EjercicioTarjeta(
-                        ejercicio = ejercicio,
-                        alVerDetalle = { ejercicioDetalle = ejercicio }
-                    )
-                    if (index < estado.ejerciciosFiltrados.lastIndex) {
-                        androidx.compose.material3.HorizontalDivider(color = Color(0xFF292929))
+                Text(
+                    "${estado.ejerciciosFiltrados.size} EJERCICIOS",
+                    fontFamily = BarlowCondensed,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = 1.sp,
+                    color = Color(0xFF9AA1AD)
+                )
+                Spacer(Modifier.height(10.dp))
+                // Cuadrícula de dos columnas; el detalle del ejercicio elegido se abre debajo de su fila.
+                estado.ejerciciosFiltrados.chunked(2).forEach { fila ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        fila.forEach { ejercicio ->
+                            EjercicioTarjeta(
+                                ejercicio = ejercicio,
+                                seleccionado = ejercicio.idEjercicio == estado.ejercicioSeleccionado,
+                                alPulsar = {
+                                    viewModel.seleccionarEjercicio(
+                                        if (ejercicio.idEjercicio == estado.ejercicioSeleccionado) null
+                                        else ejercicio.idEjercicio
+                                    )
+                                },
+                                alVerDetalle = { ejercicioDetalle = ejercicio },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (fila.size == 1) Spacer(Modifier.weight(1f))
                     }
+                    fila.firstOrNull { it.idEjercicio == estado.ejercicioSeleccionado }?.let { DetalleEjercicio(it) }
+                    Spacer(Modifier.height(10.dp))
                 }
             }
         }
@@ -188,18 +198,18 @@ private fun FiltrosHorizontales(
 private fun FiltroEjercicio(texto: String, seleccionado: Boolean, alPulsar: () -> Unit) {
     Surface(
         modifier = Modifier.height(38.dp).clickable(onClick = alPulsar),
-        shape = RoundedCornerShape(22.dp),
-        color = if (seleccionado) MaterialTheme.colorScheme.primary else Color.Black,
-        border = BorderStroke(1.dp, if (seleccionado) MaterialTheme.colorScheme.primary else Color(0xFF383838))
+        shape = RoundedCornerShape(20.dp),
+        color = if (seleccionado) MaterialTheme.colorScheme.primary else Carbon,
+        border = BorderStroke(1.dp, if (seleccionado) MaterialTheme.colorScheme.primary else CarbonBorde)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
+            modifier = Modifier.padding(horizontal = 15.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                texto.uppercase(),
+                texto.lowercase().replaceFirstChar { it.uppercase() },
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Black,
+                fontWeight = FontWeight.SemiBold,
                 color = Color.White,
                 maxLines = 1
             )
@@ -208,39 +218,103 @@ private fun FiltroEjercicio(texto: String, seleccionado: Boolean, alPulsar: () -
 }
 
 @Composable
-private fun EjercicioTarjeta(ejercicio: EjercicioResponse, alVerDetalle: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+private fun EjercicioTarjeta(
+    ejercicio: EjercicioResponse,
+    seleccionado: Boolean,
+    alPulsar: () -> Unit,
+    alVerDetalle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.clickable(onClick = alPulsar),
+        shape = RoundedCornerShape(18.dp),
+        color = Carbon,
+        border = BorderStroke(if (seleccionado) 2.dp else 1.dp, if (seleccionado) MaterialTheme.colorScheme.primary else CarbonBorde)
     ) {
-        Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
-            Text(
-                ejercicio.nombre ?: "Ejercicio",
-                fontSize = 18.sp,
-                lineHeight = 22.sp,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+        Column {
+            IlustracionEjercicio(
+                nombre = ejercicio.nombre,
+                grupoMuscular = ejercicio.grupoMuscular,
+                forma = RoundedCornerShape(topStart = 17.dp, topEnd = 17.dp),
+                modifier = Modifier.fillMaxWidth().height(108.dp)
             )
-            Spacer(Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(7.dp),
-                    shape = CircleShape,
-                    color = colorGrupoMuscular(ejercicio.grupoMuscular)
-                ) {}
-                Spacer(Modifier.width(6.dp))
+            Column(Modifier.heightIn(min = 74.dp).padding(horizontal = 11.dp, vertical = 10.dp)) {
                 Text(
-                    listOfNotNull(ejercicio.grupoMuscular, ejercicio.tipoMedicion)
-                        .joinToString(" \u00b7 ").ifBlank { "Sin clasificaci\u00f3n" },
-                    fontSize = 14.sp,
-                    color = Color(0xFFBFC3CC)
+                    ejercicio.nombre ?: "Ejercicio",
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
+                Spacer(Modifier.height(3.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Surface(
+                        modifier = Modifier.size(7.dp),
+                        shape = CircleShape,
+                        color = colorGrupoMuscular(ejercicio.grupoMuscular)
+                    ) {}
+                    Spacer(Modifier.width(5.dp))
+                    Text(
+                        listOfNotNull(ejercicio.grupoMuscular, ejercicio.nivelExperiencia)
+                            .joinToString(" · ").ifBlank { "Sin clasificación" },
+                        fontSize = 12.sp,
+                        color = Color(0xFF9AA1AD),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                TextButton(onClick = alVerDetalle) { Text("Ver movimiento y datos") }
             }
         }
-        BotonIconoDetalle(
-            onClick = alVerDetalle,
-            descripcion = "Ver detalle de ${ejercicio.nombre ?: "ejercicio"}"
-        )
+    }
+}
+
+/** Detalle del ejercicio elegido: ilustración grande, descripción, equipo y medición. */
+@Composable
+private fun DetalleEjercicio(ejercicio: EjercicioResponse) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = Carbon,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    ) {
+        Column {
+            IlustracionEjercicio(
+                nombre = ejercicio.nombre,
+                grupoMuscular = ejercicio.grupoMuscular,
+                forma = RoundedCornerShape(topStart = 19.dp, topEnd = 19.dp),
+                modifier = Modifier.fillMaxWidth().aspectRatio(1.5f)
+            )
+            Column(Modifier.padding(16.dp)) {
+                Text(
+                    ejercicio.nombre ?: "Ejercicio",
+                    fontFamily = BarlowCondensed,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 26.sp,
+                    color = Color.White
+                )
+                ejercicio.descripcion?.takeIf(String::isNotBlank)?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(it, fontSize = 15.sp, lineHeight = 21.sp, color = Color(0xFFE0E2E6))
+                }
+                Spacer(Modifier.height(10.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ejercicio.equipamiento?.takeIf(String::isNotBlank)?.let { DatoDetalle(it) }
+                    ejercicio.tipoMedicion?.takeIf(String::isNotBlank)?.let {
+                        DatoDetalle(if (it.equals("TIEMPO", true)) "Por tiempo" else "Por repeticiones")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DatoDetalle(texto: String) {
+    Surface(shape = RoundedCornerShape(10.dp), color = Color(0xFF1A1C21), border = BorderStroke(1.dp, CarbonBorde)) {
+        Text(texto, modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp), fontSize = 12.sp, color = Color.White, maxLines = 1)
     }
 }
 

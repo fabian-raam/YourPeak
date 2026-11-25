@@ -4,12 +4,18 @@ import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import com.ramirez.yourpeak.data.model.ApiErrorResponse
 import com.ramirez.yourpeak.data.model.LoginResponse
+import com.ramirez.yourpeak.data.model.MembresiaPeriodoResponse
 import com.ramirez.yourpeak.data.network.ApiService
 import java.io.IOException
 
 sealed interface ResultadoMembresiaCliente {
     data class Exito(val usuario: LoginResponse) : ResultadoMembresiaCliente
     data class Error(val mensaje: String) : ResultadoMembresiaCliente
+}
+
+sealed interface ResultadoHistorialMembresia {
+    data class Exito(val periodos: List<MembresiaPeriodoResponse>) : ResultadoHistorialMembresia
+    data class Error(val mensaje: String) : ResultadoHistorialMembresia
 }
 
 /** Actualiza el estado de membresía desde la respuesta vigente de Spring. */
@@ -42,6 +48,32 @@ class MembresiaClienteRepository(
         return ResultadoMembresiaCliente.Error(
             detalle?.takeIf(String::isNotBlank)
                 ?: "No se pudo actualizar el estado de la membresía (${respuesta.code()})."
+        )
+    }
+
+    /** Periodos con plan y fechas; el más reciente primero. */
+    suspend fun historial(idUsuario: Long): ResultadoHistorialMembresia {
+        val respuesta = try {
+            api.consultarMembresias(apiKey, idUsuario)
+        } catch (_: IOException) {
+            return ResultadoHistorialMembresia.Error("No se pudo conectar con el servidor.")
+        } catch (_: RuntimeException) {
+            return ResultadoHistorialMembresia.Error("El servidor devolvió una respuesta inválida.")
+        }
+        if (respuesta.isSuccessful) {
+            val periodos = respuesta.body().orEmpty().sortedByDescending { it.fechaInicio.orEmpty() }
+            return ResultadoHistorialMembresia.Exito(periodos)
+        }
+        val detalle = try {
+            respuesta.errorBody()?.string()
+                ?.let { gson.fromJson(it, ApiErrorResponse::class.java)?.detail }
+        } catch (_: JsonParseException) {
+            null
+        } catch (_: IOException) {
+            null
+        }
+        return ResultadoHistorialMembresia.Error(
+            detalle?.takeIf(String::isNotBlank) ?: "No se pudo consultar tus membresías (${respuesta.code()})."
         )
     }
 }

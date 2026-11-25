@@ -1,5 +1,15 @@
 package com.ramirez.yourpeak.ui.home
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import com.ramirez.yourpeak.ui.components.CarbonCampo
+import com.ramirez.yourpeak.ui.components.TarjetaCarbon
+import com.ramirez.yourpeak.ui.components.TextoSecundario
+import com.ramirez.yourpeak.ui.theme.BarlowCondensed
+import com.ramirez.yourpeak.ui.theme.CarbonBorde
+import com.ramirez.yourpeak.ui.theme.Lima
+import com.ramirez.yourpeak.ui.theme.LimaFondo
 import android.app.TimePickerDialog
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -46,22 +56,18 @@ fun DisponibilidadScreen(idUsuario: Long?, repository: DisponibilidadRepository)
     )
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val minutos = estado.minutosSemanales
-    val resumenHoras = "${minutos / 60} h ${minutos % 60} min por semana"
 
-    Column(Modifier.fillMaxWidth()) {
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "${estado.cantidadDiasDisponibles} ${if (estado.cantidadDiasDisponibles == 1) "día" else "días"} · $resumenHoras",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFFB8BCC6)
-        )
-        Spacer(Modifier.height(14.dp))
-        HorizontalDivider(color = Color(0xFF292929))
-
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        ResumenSemana(estado)
         when {
-            estado.cargando -> CircularProgressIndicator(modifier = Modifier.padding(24.dp))
+            estado.cargando -> Row(
+                Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                Text("  Cargando tu disponibilidad…", color = TextoSecundario, fontSize = 14.sp)
+            }
             estado.error != null && estado.diasGuardados.all { !it.disponible } && estado.dias.all { !it.disponible } -> {
                 MensajeDisponibilidad(estado.error.orEmpty(), esError = true)
                 TextButtonReintentar(onClick = viewModel::reintentar)
@@ -72,62 +78,77 @@ fun DisponibilidadScreen(idUsuario: Long?, repository: DisponibilidadRepository)
                         dia = dia,
                         cambiarDisponible = { viewModel.cambiarDisponible(dia.numero, it) },
                         elegirHoraInicio = {
-                            mostrarSelectorHora(context, dia.horaInicio) {
-                                viewModel.cambiarHora(dia.numero, true, it)
-                            }
+                            mostrarSelectorHora(context, dia.horaInicio) { viewModel.cambiarHora(dia.numero, true, it) }
                         },
                         elegirHoraFin = {
-                            mostrarSelectorHora(context, dia.horaFin) {
-                                viewModel.cambiarHora(dia.numero, false, it)
-                            }
+                            mostrarSelectorHora(context, dia.horaFin) { viewModel.cambiarHora(dia.numero, false, it) }
                         }
                     )
                 }
-
-                if (estado.error != null) {
-                    Spacer(Modifier.height(10.dp))
-                    MensajeDisponibilidad(estado.error.orEmpty(), esError = true)
-                }
-                estado.mensaje?.let { mensaje ->
-                    Spacer(Modifier.height(10.dp))
-                    MensajeDisponibilidad(mensaje, esError = false) {
-                        viewModel.cerrarMensaje()
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
+                estado.error?.let { MensajeDisponibilidad(it, esError = true) }
+                estado.mensaje?.let { MensajeDisponibilidad(it, esError = false) { viewModel.cerrarMensaje() } }
+                Spacer(Modifier.height(4.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedButton(
                         onClick = viewModel::restablecer,
                         enabled = estado.hayCambios && !estado.guardando,
                         modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(20.dp),
-                        border = BorderStroke(1.dp, Color(0xFF383838))
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, CarbonBorde)
                     ) {
-                        Text("RESTABLECER", fontSize = 14.sp, fontWeight = FontWeight.Black)
+                        Text("RESTABLECER", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold)
                     }
                     Button(
                         onClick = viewModel::guardar,
                         enabled = estado.hayCambios && !estado.guardando,
                         modifier = Modifier.weight(1f).height(50.dp),
-                        shape = RoundedCornerShape(20.dp)
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         if (estado.guardando) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.height(18.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
+                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                             Spacer(Modifier.width(8.dp))
                         }
-                        Text(
-                            if (estado.guardando) "GUARDANDO" else "GUARDAR",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Black
-                        )
+                        Text(if (estado.guardando) "GUARDANDO" else "GUARDAR", fontSize = 15.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Días y horas por semana, con la inicial de cada día marcada si está disponible. */
+@Composable
+private fun ResumenSemana(estado: DisponibilidadUiState) {
+    val minutos = estado.minutosSemanales
+    val dias = estado.cantidadDiasDisponibles
+    TarjetaCarbon {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("Tu semana", color = TextoSecundario, fontSize = 12.sp)
+                Text(
+                    "$dias ${if (dias == 1) "día" else "días"} · ${duracion(minutos)}",
+                    color = Color.White,
+                    fontFamily = BarlowCondensed,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 22.sp,
+                    maxLines = 1
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                estado.dias.forEach { dia ->
+                    Surface(
+                        modifier = Modifier.size(22.dp),
+                        shape = CircleShape,
+                        color = if (dia.disponible) LimaFondo else Color.Transparent,
+                        border = BorderStroke(1.dp, if (dia.disponible) Lima else CarbonBorde)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                listOf("L", "M", "X", "J", "V", "S", "D").getOrElse(dia.numero - 1) { "" },
+                                fontSize = 10.sp,
+                                color = if (dia.disponible) Lima else TextoSecundario
+                            )
+                        }
                     }
                 }
             }
@@ -142,89 +163,101 @@ private fun DiaDisponibilidadFila(
     elegirHoraInicio: () -> Unit,
     elegirHoraFin: () -> Unit
 ) {
-    Column(Modifier.fillMaxWidth()) {
+    TarjetaCarbon(relleno = 0.dp) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(48.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = if (dia.disponible) 12.dp else 6.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                dia.nombre,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        dia.nombre,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (dia.disponible) Color.White else TextoSecundario,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (!dia.disponible) Text("Descanso", fontSize = 12.sp, color = TextoSecundario)
+                }
+                if (dia.disponible) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        ChipHora(dia.horaInicio ?: "--:--", elegirHoraInicio)
+                        Text("  →  ", color = TextoSecundario, fontSize = 14.sp)
+                        ChipHora(dia.horaFin ?: "--:--", elegirHoraFin)
+                        minutosDia(dia)?.let {
+                            Text("  ${duracion(it)}", color = TextoSecundario, fontSize = 12.sp, maxLines = 1)
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.width(10.dp))
             Switch(
                 checked = dia.disponible,
                 onCheckedChange = cambiarDisponible,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.Black,
-                    checkedTrackColor = Color(0xFFB7F34A),
-                    checkedBorderColor = Color(0xFFB7F34A),
-                    uncheckedThumbColor = Color(0xFFF0F0F0),
-                    uncheckedTrackColor = Color(0xFF454545),
-                    uncheckedBorderColor = Color(0xFF454545)
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    checkedBorderColor = MaterialTheme.colorScheme.primary,
+                    uncheckedThumbColor = Color(0xFF8A909A),
+                    uncheckedTrackColor = Color(0xFF2A2D33),
+                    uncheckedBorderColor = Color(0xFF2A2D33)
                 )
             )
         }
-        if (dia.disponible) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilaHoraDisponibilidad("Desde", dia.horaInicio ?: "Elegir hora", elegirHoraInicio)
-                FilaHoraDisponibilidad("Hasta", dia.horaFin ?: "Elegir hora", elegirHoraFin)
-            }
-            Spacer(Modifier.height(8.dp))
-        }
-        HorizontalDivider(color = Color(0xFF292929))
     }
 }
 
+/** Hora tocable que abre el selector del sistema. */
 @Composable
-private fun FilaHoraDisponibilidad(etiqueta: String, hora: String, alPulsar: () -> Unit) {
+private fun ChipHora(hora: String, alPulsar: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = alPulsar),
-        shape = RoundedCornerShape(6.dp),
-        color = Color(0xFF191919)
+        modifier = Modifier.clickable(onClick = alPulsar),
+        shape = RoundedCornerShape(10.dp),
+        color = CarbonCampo,
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(etiqueta, fontSize = 16.sp, color = Color(0xFFB8BCC6))
-            Text(hora, fontSize = 22.sp, fontWeight = FontWeight.Black, color = Color.White)
-        }
+        Text(
+            hora,
+            modifier = Modifier.padding(horizontal = 11.dp, vertical = 4.dp),
+            color = Color.White,
+            fontFamily = BarlowCondensed,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 20.sp
+        )
     }
 }
 
 @Composable
 private fun MensajeDisponibilidad(mensaje: String, esError: Boolean, cerrar: (() -> Unit)? = null) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = if (esError) Color(0xFF241516) else Color(0xFF11130B),
-        border = BorderStroke(1.dp, if (esError) Color(0xFF713B3E) else Color(0xFF46551A))
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                mensaje,
-                modifier = Modifier.weight(1f),
-                color = if (esError) Color(0xFFFFB4B4) else Color.White,
-                fontSize = 15.sp,
-                lineHeight = 18.sp
-            )
-            cerrar?.let {
-                TextButtonReintentar(onClick = it, texto = "Cerrar")
-            }
+    val acento = if (esError) Color(0xFFFF6B6B) else Lima
+    TarjetaCarbon(borde = acento.copy(alpha = 0.55f), relleno = 4.dp) {
+        Row(Modifier.padding(start = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("●", color = acento, fontSize = 14.sp)
+            Text(mensaje, modifier = Modifier.weight(1f).padding(horizontal = 9.dp, vertical = 8.dp), color = Color.White, fontSize = 14.sp, lineHeight = 18.sp)
+            cerrar?.let { TextButtonReintentar(onClick = it, texto = "Cerrar") }
         }
     }
 }
 
 @Composable
 private fun TextButtonReintentar(onClick: () -> Unit, texto: String = "Reintentar") {
-    androidx.compose.material3.TextButton(onClick = onClick) { Text(texto, fontSize = 15.sp) }
+    androidx.compose.material3.TextButton(onClick = onClick) { Text(texto, fontSize = 14.sp, color = MaterialTheme.colorScheme.primary) }
+}
+
+private fun minutosDia(dia: DiaDisponibilidadUi): Int? {
+    fun minutos(hora: String?): Int? = hora?.take(5)?.split(":")?.let { p ->
+        p.getOrNull(0)?.toIntOrNull()?.let { h -> p.getOrNull(1)?.toIntOrNull()?.let { m -> h * 60 + m } }
+    }
+    val inicio = minutos(dia.horaInicio) ?: return null
+    val fin = minutos(dia.horaFin) ?: return null
+    return (fin - inicio).takeIf { it > 0 }
+}
+
+private fun duracion(minutos: Int): String = when {
+    minutos % 60 == 0 -> "${minutos / 60} h"
+    minutos < 60 -> "$minutos min"
+    else -> "${minutos / 60} h ${minutos % 60} min"
 }
 
 private fun mostrarSelectorHora(

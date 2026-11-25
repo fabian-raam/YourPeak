@@ -1,5 +1,13 @@
 package com.ramirez.yourpeak.ui.home
 
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextOverflow
+import com.ramirez.yourpeak.ui.components.IlustracionEjercicio
+import com.ramirez.yourpeak.ui.theme.BarlowCondensed
+import com.ramirez.yourpeak.ui.theme.Carbon
+import com.ramirez.yourpeak.ui.theme.CarbonBorde
+import com.ramirez.yourpeak.ui.theme.Lima
+import java.util.Calendar
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -91,7 +99,15 @@ fun MiRutinaScreen(
         Spacer(Modifier.height(8.dp))
 
         when {
-            estado.cargando -> CircularProgressIndicator()
+            estado.cargando -> Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 48.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp)
+                Spacer(Modifier.width(12.dp))
+                Text("Cargando tu rutina…", fontSize = 15.sp, color = Color(0xFF9AA1AD))
+            }
             estado.error != null && estado.diasGuardados.none { it.disponible } && estado.dias.none { it.disponible } -> {
                 MensajeRutina(estado.error.orEmpty(), error = true)
                 TextButton(onClick = viewModel::reintentar) { Text("Reintentar") }
@@ -105,94 +121,17 @@ fun MiRutinaScreen(
                     generar = viewModel::generar
                 )
                 Spacer(Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    estado.dias.forEach { item ->
-                        val seleccionado = estado.diaSeleccionado == item.numero
-                        Surface(
-                            modifier = Modifier.weight(1f).height(76.dp).clickable {
-                                viewModel.seleccionarDia(item.numero)
-                            },
-                            shape = RoundedCornerShape(18.dp),
-                            color = if (seleccionado) MaterialTheme.colorScheme.primary else Color.Black,
-                            border = BorderStroke(
-                                1.dp,
-                                if (seleccionado) MaterialTheme.colorScheme.primary else Color(0xFF303030)
-                            )
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    item.nombre.take(3).uppercase(),
-                                    fontSize = 18.sp,
-                                    lineHeight = 20.sp,
-                                    fontWeight = FontWeight.Black,
-                                    color = Color.White
-                                )
-                                if (seleccionado) {
-                                    Spacer(
-                                        Modifier
-                                            .padding(top = 3.dp)
-                                            .size(8.dp)
-                                            .clip(CircleShape)
-                                            .background(Color(0xFFB7F34A))
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                SelectorDiasSemana(
+                    dias = estado.dias,
+                    seleccionado = estado.diaSeleccionado,
+                    alSeleccionar = viewModel::seleccionarDia
+                )
 
-                Spacer(Modifier.height(22.dp))
+                Spacer(Modifier.height(18.dp))
                 if (dia != null) {
                     Column(Modifier.fillMaxWidth()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                dia.nombre.uppercase(),
-                                fontSize = 17.sp,
-                                letterSpacing = 0.8.sp,
-                                fontWeight = FontWeight.Black
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFF292929))
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            if (dia.disponible) "Disponible · ${dia.horaInicio ?: "--:--"} a ${dia.horaFin ?: "--:--"}"
-                            else "Día de descanso · configura tu disponibilidad para agregar ejercicios.",
-                            fontSize = 16.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        EncabezadoDiaRutina(dia)
                         Spacer(Modifier.height(12.dp))
-                        HorizontalDivider(color = Color(0xFF292929))
-                        Spacer(Modifier.height(12.dp))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Ejercicios del día",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
-                            val cantidadEjercicios = dia.ejercicios.size
-                            Text(
-                                cantidadEjercicios.toString(),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                        }
-                        Spacer(Modifier.height(10.dp))
-                        HorizontalDivider(color = Color(0xFF292929))
-                        Spacer(Modifier.height(10.dp))
 
                         if (!dia.disponible) {
                             TextButton(onClick = alIrADisponibilidad) { Text("Configurar disponibilidad") }
@@ -329,56 +268,158 @@ fun MiRutinaScreen(
 private fun EjercicioAsignadoFila(ejercicio: EjercicioRutinaUi, quitar: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
-        color = Color(0xFF141414),
-        border = BorderStroke(1.dp, Color(0xFF383838))
+        shape = RoundedCornerShape(18.dp),
+        color = Carbon,
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
-        Column(Modifier.padding(18.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        ejercicio.nombre,
-                        fontSize = 20.sp,
-                        lineHeight = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+        Row(Modifier.padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
+            IlustracionEjercicio(
+                nombre = ejercicio.nombre,
+                grupoMuscular = ejercicio.grupoMuscular,
+                forma = RoundedCornerShape(12.dp),
+                modifier = Modifier.width(76.dp).height(60.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    ejercicio.nombre,
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp, bottom = 6.dp)) {
+                    Spacer(
+                        Modifier
+                            .size(7.dp)
+                            .clip(CircleShape)
+                            .background(colorGrupoMuscular(ejercicio.grupoMuscular))
                     )
+                    Spacer(Modifier.width(6.dp))
+                    Text(ejercicio.grupoMuscular, fontSize = 13.sp, color = Color(0xFF9AA1AD))
                     if (ejercicio.origen == ORIGEN_IA) {
-                        Spacer(Modifier.height(6.dp))
+                        Spacer(Modifier.width(8.dp))
                         EtiquetaIa()
                     }
-                    Spacer(Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Spacer(
-                            Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(colorGrupoMuscular(ejercicio.grupoMuscular))
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            ejercicio.grupoMuscular,
-                            fontSize = 16.sp,
-                            color = Color(0xFFBFC3CC)
-                        )
-                    }
                 }
-                BotonIconoEliminar(onClick = quitar)
+                val medicion = if (ejercicio.tipoMedicion.equals("TIEMPO", ignoreCase = true)) {
+                    "${ejercicio.series} × ${ejercicio.segundos ?: 0} s"
+                } else "${ejercicio.series} × ${ejercicio.repeticiones ?: 0}"
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    EtiquetaDatoRutina(medicion)
+                    EtiquetaDatoRutina(if (ejercicio.descansoSegundos == 0) "Sin descanso" else "${ejercicio.descansoSegundos} s descanso")
+                }
             }
-            val medicion = if (ejercicio.tipoMedicion.equals("TIEMPO", ignoreCase = true)) {
-                "${ejercicio.segundos ?: 0} s"
-            } else "${ejercicio.repeticiones ?: 0} rep."
-            Spacer(Modifier.height(14.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                EtiquetaDatoRutina("${ejercicio.series} series")
-                EtiquetaDatoRutina(medicion)
-                EtiquetaDatoRutina("Descanso ${ejercicio.descansoSegundos} s")
+            BotonIconoEliminar(onClick = quitar)
+        }
+    }
+}
+
+/** Lunes a domingo de la semana actual: número del día y un punto si tiene ejercicios. */
+@Composable
+private fun SelectorDiasSemana(dias: List<DiaRutinaUi>, seleccionado: Int, alSeleccionar: (Int) -> Unit) {
+    val numeros = remember {
+        val calendario = Calendar.getInstance()
+        val diaHoy = ((calendario.get(Calendar.DAY_OF_WEEK) + 5) % 7) + 1
+        calendario.add(Calendar.DAY_OF_MONTH, 1 - diaHoy)
+        (1..7).map { calendario.get(Calendar.DAY_OF_MONTH).also { calendario.add(Calendar.DAY_OF_MONTH, 1) } }
+    }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        dias.forEachIndexed { indice, dia ->
+            val elegido = dia.numero == seleccionado
+            val primario = MaterialTheme.colorScheme.primary
+            Surface(
+                modifier = Modifier.weight(1f).clickable { alSeleccionar(dia.numero) },
+                shape = RoundedCornerShape(14.dp),
+                color = if (elegido) primario else Carbon,
+                border = BorderStroke(1.dp, if (elegido) primario else CarbonBorde)
+            ) {
+                Column(
+                    Modifier.padding(vertical = 7.dp).fillMaxWidth().alpha(if (dia.disponible || elegido) 1f else 0.5f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        dia.nombre.take(3).uppercase(),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (elegido) Color.White else Color(0xFF9AA1AD)
+                    )
+                    Text(
+                        numeros.getOrElse(indice) { dia.numero }.toString(),
+                        fontFamily = BarlowCondensed,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 21.sp,
+                        lineHeight = 23.sp,
+                        color = Color.White
+                    )
+                    Box(
+                        Modifier
+                            .padding(top = 2.dp)
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                when {
+                                    dia.ejercicios.isEmpty() -> Color.Transparent
+                                    elegido -> Color.White
+                                    else -> Lima
+                                }
+                            )
+                    )
+                }
             }
         }
+    }
+}
+
+/** Encabezado del día: horario en pequeño, grupo muscular principal en grande y cantidad de ejercicios. */
+@Composable
+private fun EncabezadoDiaRutina(dia: DiaRutinaUi) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom) {
+        Column(Modifier.weight(1f)) {
+            Text(
+                if (dia.disponible) "${dia.nombre.uppercase()} · ${dia.horaInicio ?: "--:--"} – ${dia.horaFin ?: "--:--"}"
+                else dia.nombre.uppercase(),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.sp,
+                color = Color(0xFF9AA1AD)
+            )
+            Text(
+                when {
+                    !dia.disponible -> "DESCANSO"
+                    dia.ejercicios.isEmpty() -> "DÍA DISPONIBLE"
+                    else -> dia.ejercicios.map { it.grupoMuscular }.filter(String::isNotBlank)
+                        .distinct().take(2).joinToString(" + ").uppercase().ifBlank { "ENTRENAMIENTO" }
+                },
+                fontFamily = BarlowCondensed,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 32.sp,
+                lineHeight = 34.sp,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        if (dia.disponible) {
+            Surface(shape = RoundedCornerShape(20.dp), color = Color(0xFF1A1C21), border = BorderStroke(1.dp, CarbonBorde)) {
+                Text(
+                    "${dia.ejercicios.size} ${if (dia.ejercicios.size == 1) "ejercicio" else "ejercicios"}",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    fontSize = 12.sp,
+                    color = Color(0xFF9AA1AD)
+                )
+            }
+        }
+    }
+    if (!dia.disponible) {
+        Text(
+            "No marcaste este día como disponible para entrenar.",
+            modifier = Modifier.padding(top = 4.dp),
+            fontSize = 14.sp,
+            color = Color(0xFF9AA1AD)
+        )
     }
 }
 
@@ -391,72 +432,101 @@ private fun TarjetaRutinaIa(
     hayDiasDisponibles: Boolean,
     generar: () -> Unit
 ) {
+    val primario = MaterialTheme.colorScheme.primary
+    if (propuesta != null) {
+        // Con una propuesta en pantalla la tarjeta se reduce para dejar sitio a la rutina.
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = primario.copy(alpha = 0.12f),
+            border = BorderStroke(1.dp, primario)
+        ) {
+            Column(Modifier.padding(horizontal = 14.dp, vertical = 11.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("✦", fontSize = 18.sp, color = primario)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (propuesta.conGemini) "Propuesta generada con IA" else "Propuesta generada por reglas",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                        Text("Revísala y pulsa «Guardar» para conservarla.", fontSize = 12.sp, color = Color(0xFF9AA1AD))
+                    }
+                    OutlinedButton(
+                        onClick = generar,
+                        enabled = habilitado,
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, primario),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        if (generando) {
+                            CircularProgressIndicator(Modifier.size(14.dp), strokeWidth = 2.dp, color = primario)
+                        } else Text("Otra", color = primario, fontWeight = FontWeight.Bold)
+                    }
+                }
+                Text(
+                    "Rutina orientativa. Si tienes lesiones o dudas de salud, consulta con un entrenador.",
+                    modifier = Modifier.padding(top = 6.dp),
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    color = Color(0xFF9AA1AD)
+                )
+            }
+        }
+        return
+    }
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(26.dp),
-        color = Color(0xFF141414),
-        border = BorderStroke(1.dp, if (propuesta != null) MaterialTheme.colorScheme.primary else Color(0xFF383838))
+        shape = RoundedCornerShape(22.dp),
+        color = Carbon,
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
-        Column(Modifier.padding(18.dp)) {
+        Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(modifier = Modifier.size(34.dp), shape = CircleShape, color = Color(0xFF29360A)) {
+                Surface(modifier = Modifier.size(34.dp), shape = CircleShape, color = primario.copy(alpha = 0.16f)) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text("✦", fontSize = 17.sp, fontWeight = FontWeight.Black, color = Color(0xFFB7F34A))
+                        Text("✦", fontSize = 17.sp, color = primario)
                     }
                 }
                 Spacer(Modifier.width(10.dp))
-                Text(
-                    when {
-                        propuesta == null -> "Rutina con IA"
-                        propuesta.conGemini -> "Propuesta generada con IA"
-                        else -> "Propuesta generada por reglas"
-                    },
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
+                Text("Rutina con IA", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Color.White)
             }
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(8.dp))
             Text(
-                when {
-                    propuesta != null -> propuesta.mensaje
-                    hayDiasDisponibles -> "Te proponemos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio. Podrás revisarla antes de guardarla."
-                    else -> "Marca al menos un día en tu disponibilidad para generar una rutina."
-                },
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
+                if (hayDiasDisponibles) "Te proponemos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio. Podrás revisarla antes de guardarla."
+                else "Marca al menos un día en tu disponibilidad para generar una rutina.",
+                fontSize = 14.sp,
+                lineHeight = 19.sp,
                 color = Color(0xFFBFC3CC)
             )
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
                 "Rutina orientativa. Si tienes lesiones o dudas de salud, consulta con un entrenador.",
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                fontSize = 11.sp,
+                lineHeight = 14.sp,
+                color = Color(0xFF9AA1AD)
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(12.dp))
             Button(
                 onClick = generar,
                 enabled = habilitado,
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(22.dp)
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 if (generando) {
                     CircularProgressIndicator(
-                        modifier = Modifier.height(18.dp),
+                        modifier = Modifier.size(18.dp),
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Spacer(Modifier.width(8.dp))
                 }
                 Text(
-                    when {
-                        generando -> "GENERANDO"
-                        propuesta != null -> "GENERAR OTRA"
-                        else -> "GENERAR CON IA"
-                    },
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Black,
+                    if (generando) "GENERANDO" else "✦  GENERAR CON IA",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 0.5.sp
                 )
             }
@@ -466,14 +536,15 @@ private fun TarjetaRutinaIa(
 
 @Composable
 private fun EtiquetaIa() {
-    Surface(shape = RoundedCornerShape(8.dp), color = Color(0xFF29360A)) {
+    val primario = MaterialTheme.colorScheme.primary
+    Surface(shape = RoundedCornerShape(6.dp), color = primario.copy(alpha = 0.18f)) {
         Text(
             "IA",
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-            fontSize = 12.sp,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+            fontSize = 10.sp,
             fontWeight = FontWeight.Black,
             letterSpacing = 0.6.sp,
-            color = Color(0xFFB7F34A)
+            color = primario
         )
     }
 }
@@ -481,14 +552,14 @@ private fun EtiquetaIa() {
 @Composable
 private fun EtiquetaDatoRutina(texto: String) {
     Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = Color(0xFF141414),
-        border = BorderStroke(1.dp, Color(0xFF383838))
+        shape = RoundedCornerShape(10.dp),
+        color = Color(0xFF1A1C21),
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
         Text(
             texto,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
             color = Color(0xFFE0E2E6),
             maxLines = 1

@@ -55,11 +55,10 @@ import com.ramirez.yourpeak.ui.components.IconoProgreso
 import com.ramirez.yourpeak.ui.components.IconoPerfil
 import com.ramirez.yourpeak.ui.components.NotaPie
 import com.ramirez.yourpeak.ui.components.TarjetaAuth
+import com.ramirez.yourpeak.ui.theme.BarlowCondensed
+import com.ramirez.yourpeak.ui.theme.Carbon
+import com.ramirez.yourpeak.ui.theme.CarbonBorde
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
-
-private val tipografiaTituloCondensada = FontFamily(
-    android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL)
-)
 
 private val seccionesEntrenamiento = listOf(SeccionCliente.MI_RUTINA, SeccionCliente.EJERCICIOS, SeccionCliente.DISPONIBILIDAD)
 
@@ -80,20 +79,25 @@ fun HomeScreen(
                 title = {
                     Text(
                         text = "YOUR PEAK",
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.5.sp
+                        fontFamily = BarlowCondensed,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 24.sp,
+                        letterSpacing = 2.sp
                     )
                 },
                 actions = {
                     IconButton(onClick = { viewModel.seleccionarSeccion(SeccionCliente.PERFIL) }) {
+                        val iniciales = listOfNotNull(usuario.nombre, usuario.apellido)
+                            .mapNotNull { it.trim().firstOrNull()?.uppercaseChar() }.joinToString("")
                         Surface(
-                            modifier = Modifier.size(44.dp),
+                            modifier = Modifier.size(42.dp),
                             shape = CircleShape,
-                            color = Color(0xFF202020),
-                            border = BorderStroke(1.dp, Color(0xFF3A3A3A))
+                            color = MaterialTheme.colorScheme.primary
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                IconoPerfil(Color.White, Modifier.size(23.dp))
+                                if (iniciales.isNotEmpty()) {
+                                    Text(iniciales, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                } else IconoPerfil(Color.White, Modifier.size(23.dp))
                             }
                         }
                     }
@@ -159,11 +163,11 @@ fun HomeScreen(
                         },
                         style = if (esTituloGrande) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge,
                         color = if (esTituloGrande) Color.White else MaterialTheme.colorScheme.tertiary,
-                        fontFamily = if (esTituloGrande) tipografiaTituloCondensada else FontFamily.SansSerif,
-                        fontSize = if (esTituloGrande) 42.sp else 14.sp,
-                        lineHeight = if (esTituloGrande) 46.sp else 18.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = if (esTituloGrande) (-1.4).sp else 0.sp,
+                        fontFamily = if (esTituloGrande) BarlowCondensed else FontFamily.SansSerif,
+                        fontSize = if (esInicio) 44.sp else if (esTituloGrande) 40.sp else 14.sp,
+                        lineHeight = if (esInicio) 46.sp else if (esTituloGrande) 42.sp else 18.sp,
+                        fontWeight = if (esTituloGrande) FontWeight.ExtraBold else FontWeight.Black,
+                        letterSpacing = if (esTituloGrande) 0.3.sp else 0.sp,
                         maxLines = 2
                     )
                     if (estado.seccionSeleccionada != SeccionCliente.PERFIL) Spacer(Modifier.height(if (esInicio) 1.dp else 8.dp))
@@ -243,8 +247,8 @@ private fun NavegacionPrincipal(
         Surface(
             modifier = Modifier.fillMaxWidth(0.94f),
             shape = RoundedCornerShape(22.dp),
-            color = Color(0xFF151515),
-            border = BorderStroke(1.dp, Color(0xFF292929)),
+            color = Color(0xFF0E0F12),
+            border = BorderStroke(1.dp, CarbonBorde),
             shadowElevation = 8.dp
         ) {
             Row(
@@ -255,14 +259,14 @@ private fun NavegacionPrincipal(
                     val seleccionado = if (seccion == SeccionCliente.MI_RUTINA) {
                         entrenamientoSeleccionado
                     } else seccionSeleccionada == seccion
-                    val colorContenido = if (seleccionado) Color.White else Color(0xFF9A9A9A)
+                    val colorContenido = if (seleccionado) MaterialTheme.colorScheme.primary else Color(0xFF9AA1AD)
                     Column(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxSize()
                             .padding(horizontal = 2.dp, vertical = 1.dp)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(if (seleccionado) Color(0xFF292929) else Color.Transparent)
+                            .background(if (seleccionado) Color(0xFF1C1F25) else Color.Transparent)
                             .clickable { alSeleccionar(seccion) },
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
@@ -297,9 +301,9 @@ private fun NavegacionEntrenamiento(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = Color(0xFF111111),
-        border = BorderStroke(1.dp, Color(0xFF292929))
+        shape = RoundedCornerShape(18.dp),
+        color = Carbon,
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().height(46.dp).padding(3.dp),
@@ -311,7 +315,7 @@ private fun NavegacionEntrenamiento(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(20.dp))
+                        .clip(RoundedCornerShape(14.dp))
                         .background(if (seleccionado) MaterialTheme.colorScheme.primary else Color.Transparent)
                         .clickable { alSeleccionar(seccion) },
                     contentAlignment = Alignment.Center
@@ -322,7 +326,7 @@ private fun NavegacionEntrenamiento(
                             SeccionCliente.EJERCICIOS -> "Ejercicios"
                             else -> "Disponibilidad"
                         },
-                        color = if (seleccionado) Color.White else Color(0xFFB8BCC6),
+                        color = if (seleccionado) Color.White else Color(0xFF9AA1AD),
                         fontSize = 14.sp,
                         fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Medium,
                         maxLines = 1
