@@ -2,6 +2,7 @@ package com.ramirez.yourpeak.data.network
 
 import com.ramirez.yourpeak.data.model.LoginRequest
 import com.ramirez.yourpeak.data.model.LoginResponse
+import com.ramirez.yourpeak.data.model.MembresiaPeriodoResponse
 import com.ramirez.yourpeak.data.model.EjercicioResponse
 import com.ramirez.yourpeak.data.model.DisponibilidadRequest
 import com.ramirez.yourpeak.data.model.DisponibilidadResponse
@@ -65,6 +66,13 @@ interface ApiService {
         @Header("X-Client-User-Id") idUsuario: Long,
         @Body request: DisponibilidadRequest
     ): Response<DisponibilidadResponse>
+
+    /** Lista los periodos de membresía del cliente con su plan, fechas y estado. */
+    @GET("api/cliente/perfil/membresias")
+    suspend fun consultarMembresias(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long
+    ): Response<List<MembresiaPeriodoResponse>>
 
     /** Consulta el perfil inicial del cliente junto con los catálogos para el formulario. */
     @GET("api/cliente/perfil")

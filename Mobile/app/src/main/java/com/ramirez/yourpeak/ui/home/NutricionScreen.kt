@@ -1,5 +1,16 @@
 package com.ramirez.yourpeak.ui.home
 
+import androidx.compose.ui.text.style.TextAlign
+import com.ramirez.yourpeak.ui.components.AnilloProgreso
+import com.ramirez.yourpeak.ui.components.CarbonCampo
+import com.ramirez.yourpeak.ui.components.NaranjaSube
+import com.ramirez.yourpeak.ui.components.TarjetaCarbon
+import com.ramirez.yourpeak.ui.components.TextoSecundario
+import com.ramirez.yourpeak.ui.components.TituloSeccion
+import com.ramirez.yourpeak.ui.theme.BarlowCondensed
+import com.ramirez.yourpeak.ui.theme.Carbon
+import com.ramirez.yourpeak.ui.theme.CarbonBorde
+import com.ramirez.yourpeak.ui.theme.Lima
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -76,6 +87,7 @@ fun NutricionScreen(idUsuario: Long?, repository: NutricionRepository) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     var mostrarSelectorAlimento by remember { mutableStateOf(false) }
     var mostrarCalendario by remember { mutableStateOf(false) }
+    var mostrarFormulario by remember { mutableStateOf(false) }
     val ingestaPorEliminar = estado.ingestas.firstOrNull { it.idIngesta == estado.idIngestaPorEliminar }
     val alimentoSeleccionado = estado.alimentoSeleccionado
     val cantidadPrevia = estado.cantidadG.replace(',', '.').toBigDecimalOrNull()
@@ -93,74 +105,61 @@ fun NutricionScreen(idUsuario: Long?, repository: NutricionRepository) {
             Spacer(Modifier.height(12.dp))
         }
 
-        ResumenNutricionCuadricula(
-            kcal = estado.kcal,
-            proteina = estado.proteinaG,
-            carbohidratos = estado.carbohidratoG,
-            grasas = estado.grasaG,
-            cargando = estado.cargandoDia
-        )
-        Spacer(Modifier.height(18.dp))
-
-        Text("REGISTRO DIARIO", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp, color = Color.White)
-        Spacer(Modifier.height(8.dp))
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            color = Color(0xFF141414),
-            border = BorderStroke(1.dp, Color(0xFF303030))
+            shape = RoundedCornerShape(16.dp),
+            color = Carbon,
+            border = BorderStroke(1.dp, CarbonBorde)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BotonCambioDia("‹", habilitado = true) { viewModel.moverDia(-1) }
                 Text(
-                    formatearFechaCorta(estado.fecha),
+                    (if (estado.esHoy) "Hoy · " else "") + formatearFechaCorta(estado.fecha),
                     modifier = Modifier.weight(1f).clickable { mostrarCalendario = true },
                     fontSize = 15.sp,
-                    lineHeight = 18.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.White,
+                    textAlign = TextAlign.Center,
                     maxLines = 1
                 )
                 BotonCambioDia("›", habilitado = !estado.esHoy) { viewModel.moverDia(1) }
             }
         }
+        Spacer(Modifier.height(12.dp))
+        ResumenAnillo(estado)
+        Spacer(Modifier.height(12.dp))
 
-        if (estado.esHoy) {
-            Spacer(Modifier.height(18.dp))
-            Text("AGREGAR ALIMENTO", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.4.sp, color = Color.White)
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                value = estado.busqueda,
-                onValueChange = viewModel::buscar,
-                modifier = Modifier.fillMaxWidth().height(58.dp),
-                placeholder = { Text("Buscar alimento", fontSize = 16.sp, color = Color(0xFFB8BCC6)) },
-                leadingIcon = { IconoBuscar() },
-                singleLine = true,
-                enabled = !estado.cargandoCatalogo && !estado.guardando,
-                shape = RoundedCornerShape(22.dp),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp, color = Color.White),
-                colors = TextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color(0xFF141414),
-                    unfocusedContainerColor = Color(0xFF141414),
-                    focusedIndicatorColor = Color(0xFF454545),
-                    unfocusedIndicatorColor = Color(0xFF303030),
-                    cursorColor = MaterialTheme.colorScheme.primary
-                )
-            )
-            Spacer(Modifier.height(8.dp))
+        if (estado.esHoy && !mostrarFormulario) {
+            Button(
+                onClick = { mostrarFormulario = true },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("+  AGREGAR ALIMENTO", fontSize = 15.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 0.5.sp)
+            }
+        } else if (estado.esHoy) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = Carbon,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+            ) { Column(Modifier.padding(14.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TituloSeccion("AGREGAR ALIMENTO", Modifier.weight(1f))
+                TextButton(onClick = { mostrarFormulario = false }) { Text("Cerrar", color = TextoSecundario) }
+            }
+            Spacer(Modifier.height(6.dp))
             Surface(
                 modifier = Modifier.fillMaxWidth().height(52.dp)
                     .clickable(enabled = !estado.cargandoCatalogo && estado.alimentos.isNotEmpty() && !estado.guardando) {
                         mostrarSelectorAlimento = true
                     },
                 shape = RoundedCornerShape(18.dp),
-                color = Color(0xFF141414),
-                border = BorderStroke(1.dp, Color(0xFF303030))
+                color = Carbon,
+                border = BorderStroke(1.dp, CarbonBorde)
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 14.dp),
@@ -171,18 +170,19 @@ fun NutricionScreen(idUsuario: Long?, repository: NutricionRepository) {
                         alimentoSeleccionado?.nombre ?: if (estado.cargandoCatalogo) "Cargando alimentos..." else "Selecciona un alimento",
                         modifier = Modifier.weight(1f),
                         fontSize = 16.sp,
-                        color = if (alimentoSeleccionado == null) Color(0xFFB8BCC6) else Color.White,
+                        color = if (alimentoSeleccionado == null) TextoSecundario else Color.White,
                         maxLines = 1
                     )
-                    Text("⌄", fontSize = 20.sp, color = Color(0xFFB8BCC6))
+                    Text("⌄", fontSize = 20.sp, color = TextoSecundario)
                 }
             }
             Spacer(Modifier.height(8.dp))
             OutlinedTextField(
                 value = estado.cantidadG,
                 onValueChange = viewModel::cambiarCantidad,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                placeholder = { Text("Cantidad (g)", fontSize = 16.sp, color = Color(0xFFB8BCC6)) },
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text("Cantidad") },
+                suffix = { Text("g", color = TextoSecundario) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 enabled = !estado.guardando,
@@ -191,10 +191,10 @@ fun NutricionScreen(idUsuario: Long?, repository: NutricionRepository) {
                 colors = TextFieldDefaults.colors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
-                    focusedContainerColor = Color(0xFF141414),
-                    unfocusedContainerColor = Color(0xFF141414),
+                    focusedContainerColor = Carbon,
+                    unfocusedContainerColor = Carbon,
                     focusedIndicatorColor = Color(0xFF454545),
-                    unfocusedIndicatorColor = Color(0xFF303030),
+                    unfocusedIndicatorColor = CarbonBorde,
                     cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
@@ -203,7 +203,7 @@ fun NutricionScreen(idUsuario: Long?, repository: NutricionRepository) {
                     "Aprox.: ${formatearNumero(it[0])} kcal · ${formatearNumero(it[1])} g proteína",
                     modifier = Modifier.padding(top = 6.dp),
                     fontSize = 14.sp,
-                    color = Color(0xFFB8BCC6)
+                    color = TextoSecundario
                 )
             }
             if (estado.alimentos.isEmpty() && !estado.cargandoCatalogo) {
@@ -222,29 +222,38 @@ fun NutricionScreen(idUsuario: Long?, repository: NutricionRepository) {
                 }
                 Text(if (estado.guardando) "AGREGANDO..." else "AGREGAR", fontSize = 16.sp, fontWeight = FontWeight.Black)
             }
+            } }
         } else {
             Spacer(Modifier.height(12.dp))
             Text(
                 "Día anterior: puedes revisar, corregir o eliminar consumos registrados.",
                 fontSize = 15.sp,
-                color = Color(0xFFB8BCC6)
+                color = TextoSecundario
             )
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(18.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("ALIMENTOS REGISTRADOS", modifier = Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Black, color = Color.White)
-            Text("${estado.ingestas.size}", fontSize = 15.sp, color = Color(0xFFB8BCC6))
+            TituloSeccion(if (estado.esHoy) "REGISTRADO HOY" else "REGISTRADO", Modifier.weight(1f))
+            if (estado.ingestas.isNotEmpty()) {
+                Surface(shape = RoundedCornerShape(20.dp), color = CarbonCampo, border = BorderStroke(1.dp, CarbonBorde)) {
+                    Text(
+                        "${estado.ingestas.size} ${if (estado.ingestas.size == 1) "alimento" else "alimentos"} · ${formatearNumero(estado.kcal.setScale(0, java.math.RoundingMode.HALF_UP))} kcal",
+                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 5.dp),
+                        fontSize = 12.sp,
+                        color = TextoSecundario
+                    )
+                }
+            }
         }
         Spacer(Modifier.height(8.dp))
-        androidx.compose.material3.HorizontalDivider(color = Color(0xFF303030))
         when {
             estado.cargandoDia -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally).padding(18.dp))
             estado.ingestas.isEmpty() -> Text(
                 if (estado.esHoy) "Aún no registraste alimentos hoy." else "No hay consumos en esta fecha.",
                 modifier = Modifier.padding(vertical = 18.dp),
                 fontSize = 15.sp,
-                color = Color(0xFFB8BCC6)
+                color = TextoSecundario
             )
             else -> estado.ingestas.forEach { ingesta ->
                 IngestaFila(
@@ -298,6 +307,59 @@ fun NutricionScreen(idUsuario: Long?, repository: NutricionRepository) {
     }
 }
 
+/** Anillo de kcal restantes frente a la meta y barras de macros, igual que en Inicio. */
+@Composable
+private fun ResumenAnillo(estado: NutricionUiState) {
+    val meta = estado.meta
+    val metaKcal = meta?.kcal ?: BigDecimal.ZERO
+    val hayMeta = metaKcal > BigDecimal.ZERO
+    TarjetaCarbon {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            AnilloProgreso(
+                progreso = if (hayMeta) (estado.kcal.toFloat() / metaKcal.toFloat()) else 0f,
+                centro = formatearNumero(
+                    (if (hayMeta) (metaKcal - estado.kcal).max(BigDecimal.ZERO) else estado.kcal).setScale(0, java.math.RoundingMode.HALF_UP)
+                ),
+                leyenda = if (hayMeta) "kcal restantes" else "kcal",
+                color = if (hayMeta && estado.kcal >= metaKcal) Lima else MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                BarraMacro("Proteínas", estado.proteinaG, meta?.proteinaG, MaterialTheme.colorScheme.primary)
+                BarraMacro("Carbohidratos", estado.carbohidratoG, meta?.carbohidratoG, NaranjaSube)
+                BarraMacro("Grasas", estado.grasaG, meta?.grasaG, Lima)
+            }
+        }
+        if (!hayMeta && !estado.cargandoDia) {
+            Text(
+                "Completa tu perfil para calcular tu meta diaria.",
+                modifier = Modifier.padding(top = 10.dp),
+                fontSize = 12.sp,
+                color = TextoSecundario
+            )
+        }
+    }
+}
+
+@Composable
+private fun BarraMacro(titulo: String, consumido: BigDecimal, meta: BigDecimal?, color: Color) {
+    val objetivo = meta ?: BigDecimal.ZERO
+    val progreso = if (objetivo > BigDecimal.ZERO) (consumido.toFloat() / objetivo.toFloat()).coerceIn(0f, 1f) else 0f
+    Column {
+        Row(Modifier.fillMaxWidth()) {
+            Text(titulo, color = TextoSecundario, fontSize = 13.sp, modifier = Modifier.weight(1f), maxLines = 1)
+            Text(
+                "${unDecimal(consumido)} / ${if (objetivo > BigDecimal.ZERO) unDecimal(objetivo) else "—"} g",
+                color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1
+            )
+        }
+        Spacer(Modifier.height(5.dp))
+        androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth().height(7.dp).background(CarbonBorde, CircleShape)) {
+            androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth(progreso).height(7.dp).background(color, CircleShape))
+        }
+    }
+}
+
 @Composable
 private fun ResumenNutricionCuadricula(
     kcal: BigDecimal,
@@ -311,7 +373,7 @@ private fun ResumenNutricionCuadricula(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         color = Color.Black,
-        border = BorderStroke(1.dp, Color(0xFF383838))
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
         Column {
             Row(Modifier.height(IntrinsicSize.Min)) {
@@ -349,9 +411,9 @@ private fun ResumenNutricion(
                     color = Color.White
                 )
                 Spacer(Modifier.width(3.dp))
-                Text(unidad, modifier = Modifier.padding(bottom = 4.dp), fontSize = 17.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB8BCC6))
+                Text(unidad, modifier = Modifier.padding(bottom = 4.dp), fontSize = 17.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, color = TextoSecundario)
             }
-            Text(titulo, fontSize = 16.sp, lineHeight = 19.sp, color = Color(0xFFB8BCC6), maxLines = 1)
+            Text(titulo, fontSize = 16.sp, lineHeight = 19.sp, color = TextoSecundario, maxLines = 1)
         }
     }
 }
@@ -387,21 +449,27 @@ private fun IngestaFila(
     eliminar: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-        shape = RoundedCornerShape(24.dp),
-        color = Color(0xFF141414),
-        border = BorderStroke(1.dp, Color(0xFF383838))
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = Carbon,
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(14.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
-                    Text(ingesta.alimento, fontSize = 18.sp, lineHeight = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(ingesta.alimento, fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.weight(1f, fill = false))
+                        Text(
+                            "  ${formatearNumero(ingesta.kcal.setScale(0, java.math.RoundingMode.HALF_UP))} kcal",
+                            fontFamily = BarlowCondensed, fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color.White
+                        )
+                    }
                     Spacer(Modifier.height(3.dp))
                     Text(
                         "${formatearHora(ingesta.fechaHora)} · ${formatearNumero(ingesta.cantidadG)} g",
                         fontSize = 15.sp,
                         lineHeight = 18.sp,
-                        color = Color(0xFFB8BCC6)
+                        color = TextoSecundario
                     )
                 }
                 if (!editando) {
@@ -435,10 +503,10 @@ private fun IngestaFila(
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
-                        focusedContainerColor = Color(0xFF141414),
-                        unfocusedContainerColor = Color(0xFF141414),
+                        focusedContainerColor = Carbon,
+                        unfocusedContainerColor = Carbon,
                         focusedIndicatorColor = Color(0xFF454545),
-                        unfocusedIndicatorColor = Color(0xFF383838),
+                        unfocusedIndicatorColor = CarbonBorde,
                         cursorColor = MaterialTheme.colorScheme.primary
                     )
                 )
@@ -447,13 +515,11 @@ private fun IngestaFila(
                     TextButton(onClick = guardarEdicion, enabled = !guardando) { Text("Guardar", fontSize = 15.sp) }
                 }
             } else {
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    EtiquetaNutricion("${formatearNumero(ingesta.cantidadG)} g")
-                    EtiquetaNutricion("${formatearNumero(ingesta.kcal)} kcal")
                     EtiquetaNutricion("${formatearNumero(ingesta.proteinaG)} g prot.")
                     EtiquetaNutricion("${formatearNumero(ingesta.carbohidratoG)} g carb.")
                     EtiquetaNutricion("${formatearNumero(ingesta.grasaG)} g grasa")
@@ -466,14 +532,14 @@ private fun IngestaFila(
 @Composable
 private fun EtiquetaNutricion(texto: String) {
     Surface(
-        shape = CircleShape,
-        color = Color(0xFF141414),
-        border = BorderStroke(1.dp, Color(0xFF383838))
+        shape = RoundedCornerShape(10.dp),
+        color = CarbonCampo,
+        border = BorderStroke(1.dp, CarbonBorde)
     ) {
         Text(
             texto,
-            modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
-            fontSize = 13.sp,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            fontSize = 12.sp,
             lineHeight = 16.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color.White,
@@ -535,17 +601,17 @@ private fun SelectorAlimentoBottomSheet(
                     focusedContainerColor = Color(0xFF121212),
                     unfocusedContainerColor = Color(0xFF121212),
                     focusedIndicatorColor = Color(0xFF454545),
-                    unfocusedIndicatorColor = Color(0xFF383838),
+                    unfocusedIndicatorColor = CarbonBorde,
                     cursorColor = MaterialTheme.colorScheme.primary
                 )
             )
             Spacer(Modifier.height(12.dp))
-            androidx.compose.material3.HorizontalDivider(color = Color(0xFF303030))
+            androidx.compose.material3.HorizontalDivider(color = CarbonBorde)
             if (filtrados.isEmpty()) {
                 Text(
                     if (alimentos.isEmpty()) "No hay alimentos disponibles." else "No hay alimentos que coincidan con la búsqueda.",
                     modifier = Modifier.padding(vertical = 20.dp),
-                    color = Color(0xFFB8BCC6),
+                    color = TextoSecundario,
                     fontSize = 14.sp
                 )
             } else {
@@ -560,10 +626,10 @@ private fun SelectorAlimentoBottomSheet(
                                 Text(
                                     "Porción base ${formatearNumero(alimento.porcionBaseG ?: BigDecimal.ZERO)} g · ${formatearNumero(alimento.kcal ?: BigDecimal.ZERO)} kcal",
                                     fontSize = 13.sp,
-                                    color = Color(0xFFB8BCC6)
+                                    color = TextoSecundario
                                 )
                             }
-                            androidx.compose.material3.HorizontalDivider(color = Color(0xFF303030))
+                            androidx.compose.material3.HorizontalDivider(color = CarbonBorde)
                         }
                     }
                 }
@@ -573,7 +639,7 @@ private fun SelectorAlimentoBottomSheet(
                 onClick = cerrar,
                 modifier = Modifier.fillMaxWidth().height(54.dp),
                 shape = RoundedCornerShape(28.dp),
-                border = BorderStroke(1.dp, Color(0xFF383838)),
+                border = BorderStroke(1.dp, CarbonBorde),
                 colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
             ) {
                 Text("CERRAR", fontSize = 16.sp, fontWeight = FontWeight.Black, letterSpacing = 0.5.sp)
@@ -653,6 +719,8 @@ private fun calcularNutrientes(
         .map { it ?: BigDecimal.ZERO }
         .map { it.multiply(gramos).divide(porcion, 2, java.math.RoundingMode.HALF_UP) }
 }
+
+private fun unDecimal(valor: BigDecimal): String = formatearNumero(valor.setScale(1, java.math.RoundingMode.HALF_UP))
 
 private fun formatearNumero(valor: BigDecimal): String = valor.stripTrailingZeros()
     .toPlainString().replace('.', ',')

@@ -43,3 +43,14 @@ data class ApiErrorResponse(
     val detail: String?,
     val campos: Map<String, String>?
 )
+
+/** Periodo de membresía del cliente (GET /api/cliente/perfil/membresias). */
+data class MembresiaPeriodoResponse(
+    val idMembresia: Long?,
+    val idPlanMembresia: Int?,
+    val nombrePlan: String?,
+    val fechaInicio: String?,
+    val fechaVencimiento: String?,
+    val estadoPeriodo: String?,
+    val observacion: String?
+)

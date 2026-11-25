@@ -1,5 +1,10 @@
 package com.ramirez.yourpeak.ui.home
 
+import com.ramirez.yourpeak.data.model.MembresiaPeriodoResponse
+import com.ramirez.yourpeak.data.repository.ResultadoHistorialMembresia
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -15,9 +20,26 @@ import kotlinx.coroutines.launch
 data class MiMembresiaUiState(
     val estadoCuenta: String,
     val membresiaVigente: Boolean?,
+    val periodos: List<MembresiaPeriodoResponse> = emptyList(),
     val cargando: Boolean = true,
     val error: String? = null
 ) {
+    /** Periodo vigente hoy; si no hay, el próximo programado. */
+    val actual: MembresiaPeriodoResponse?
+        get() = periodos.firstOrNull { it.estadoPeriodo.equals("VIGENTE", true) }
+            ?: periodos.firstOrNull { it.estadoPeriodo.equals("PROGRAMADA", true) }
+
+    /** Días que quedan hasta el vencimiento (incluido hoy) y duración total del periodo actual. */
+    fun diasRestantes(hoy: LocalDate = LocalDate.now()): Pair<Int, Int>? {
+        val periodo = actual ?: return null
+        val inicio = fechaIso(periodo.fechaInicio) ?: return null
+        val fin = fechaIso(periodo.fechaVencimiento) ?: return null
+        val total = (ChronoUnit.DAYS.between(inicio, fin) + 1).toInt().coerceAtLeast(1)
+        val desde = if (hoy.isBefore(inicio)) inicio else hoy
+        val restantes = (ChronoUnit.DAYS.between(desde, fin) + 1).toInt().coerceIn(0, total)
+        return restantes to total
+    }
+
     val tituloEstadoMembresia: String
         get() = when (membresiaVigente) {
             true -> "Vigente"
@@ -68,6 +90,12 @@ class MiMembresiaViewModel(
                 }
             }
         }
+        viewModelScope.launch {
+            when (val resultado = repository.historial(id)) {
+                is ResultadoHistorialMembresia.Exito -> _estado.update { it.copy(periodos = resultado.periodos) }
+                is ResultadoHistorialMembresia.Error -> _estado.update { it.copy(error = it.error ?: resultado.mensaje) }
+            }
+        }
     }
 
     companion object {
@@ -84,3 +112,6 @@ class MiMembresiaViewModel(
         }
     }
 }
+
+/** Fecha ISO (yyyy-MM-dd) a LocalDate, o null si no se puede leer. */
+internal fun fechaIso(texto: String?): LocalDate? = runCatching { LocalDate.parse(texto?.take(10)) }.getOrNull()
