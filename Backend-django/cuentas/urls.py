@@ -20,6 +20,11 @@ urlpatterns = [
         api.ejercicios_disponibles_rutina,
         name='ejercicios-disponibles-rutina',
     ),
+    path(
+        'api/web/cliente/rutina/ejercicios/<int:id_plan_ejercicio>/completar/',
+        api.completar_ejercicio_rutina,
+        name='completar-ejercicio-rutina',
+    ),
     # Lista/detalle usan GET; aprobar cambia el estado y por eso usa POST.
     path('api/web/admin/clientes/pendientes/', api.clientes_pendientes),
     path('api/web/admin/clientes/pendientes/<int:id_cliente>/', api.cliente_pendiente),

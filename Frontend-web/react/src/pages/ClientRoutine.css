@@ -102,6 +102,19 @@
 .routine-exercise-description small, .routine-catalog-label small { color: #53627b; font-size: 13px; }
 .routine-exercise-tag { padding: 3px 8px; border-radius: 99px; color: #455978; background: #edf2f9; font-size: 12px; }
 .routine-remove-exercise { flex: none; width: 36px; height: 36px; }
+.routine-exercise-actions { display: flex; flex: none; align-items: center; gap: 9px; }
+.routine-complete-exercise {
+  min-height: 34px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 10px; border: 1px solid #cfe5d8; border-radius: 7px; color: #147747;
+  background: #f0faf4; font: 600 13px 'IBM Plex Sans', Arial, sans-serif; white-space: nowrap;
+}
+.routine-complete-exercise:hover:not(:disabled) { border-color: #178c58; background: #e5f6ec; }
+.routine-complete-exercise:disabled { opacity: .55; cursor: not-allowed; }
+.routine-complete-exercise svg, .routine-exercise-completed svg { width: 15px; height: 15px; }
+.routine-exercise-completed {
+  display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border-radius: 99px;
+  color: #147747; background: #e6f6ed; font-size: 13px; font-weight: 600; white-space: nowrap;
+}
 
 .routine-exercise-dialog {
   position: fixed; inset: 0; margin: auto; width: min(620px, calc(100% - 24px));
@@ -148,6 +161,9 @@
   .routine-exercise-heading, .routine-exercise-list li { padding-inline: 12px; }
   .routine-exercise-heading h3 { font-size: 23px; }
   .routine-exercise-list .routine-exercise-tag, .routine-rest-icon { display: none; }
+  .routine-exercise-actions { gap: 4px; }
+  .routine-complete-exercise { min-height: 32px; padding-inline: 7px; font-size: 12px; }
+  .routine-exercise-completed { padding: 5px 7px; font-size: 12px; }
   .routine-rest-panel { padding: 21px; }
   .routine-next-workout { flex-wrap: wrap; }
   .routine-next-workout button { margin-left: 46px; padding-top: 0; }

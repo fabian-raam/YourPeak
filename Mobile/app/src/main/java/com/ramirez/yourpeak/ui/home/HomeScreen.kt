@@ -57,6 +57,10 @@ import com.ramirez.yourpeak.ui.components.NotaPie
 import com.ramirez.yourpeak.ui.components.TarjetaAuth
 import com.ramirez.yourpeak.ui.theme.YourPeakTheme
 
+private val tipografiaTituloCondensada = FontFamily(
+    android.graphics.Typeface.create("sans-serif-condensed", android.graphics.Typeface.NORMAL)
+)
+
 private val seccionesEntrenamiento = listOf(SeccionCliente.MI_RUTINA, SeccionCliente.EJERCICIOS, SeccionCliente.DISPONIBILIDAD)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -155,9 +159,9 @@ fun HomeScreen(
                         },
                         style = if (esTituloGrande) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge,
                         color = if (esTituloGrande) Color.White else MaterialTheme.colorScheme.tertiary,
-                        fontFamily = FontFamily.SansSerif,
-                        fontSize = if (esInicio) 36.sp else if (esTituloGrande) 42.sp else 14.sp,
-                        lineHeight = if (esInicio) 40.sp else if (esTituloGrande) 46.sp else 18.sp,
+                        fontFamily = if (esTituloGrande) tipografiaTituloCondensada else FontFamily.SansSerif,
+                        fontSize = if (esTituloGrande) 42.sp else 14.sp,
+                        lineHeight = if (esTituloGrande) 46.sp else 18.sp,
                         fontWeight = FontWeight.Black,
                         letterSpacing = if (esTituloGrande) (-1.4).sp else 0.sp,
                         maxLines = 2

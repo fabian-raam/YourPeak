@@ -30,3 +30,8 @@ export async function saveRoutine(dias) {
   if (!Array.isArray(data.dias)) throw new Error('No se pudo interpretar la rutina guardada.')
   return data.dias
 }
+
+/** Registra que el cliente completó hoy todas las series prescritas de un ejercicio. */
+export async function completeRoutineExercise(idPlanEjercicio, series) {
+  return request(`${routinePath}ejercicios/${idPlanEjercicio}/completar/`, { series })
+}
