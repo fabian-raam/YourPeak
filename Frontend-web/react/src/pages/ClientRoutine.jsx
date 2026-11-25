@@ -1,7 +1,7 @@
 import ClientToast from '../components/ClientToast'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { generateRoutine, getRoutine, getRoutineExercises, saveRoutine } from '../services/routine'
+import { completeRoutineExercise, generateRoutine, getRoutine, getRoutineExercises, saveRoutine } from '../services/routine'
 import { normalizeSearch } from '../utils/format'
 import './ClientRoutine.css'
 
@@ -14,6 +14,7 @@ const mondayOf = date => {
 }
 const formatDate = (date, options) => new Intl.DateTimeFormat('es-PE', options).format(date)
 const normalizeExercise = item => ({
+  idPlanEjercicio: item.idPlanEjercicio,
   idEjercicio: item.idEjercicio,
   nombre: item.nombre,
   grupoMuscular: item.grupoMuscular,
@@ -96,6 +97,9 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
   const [proposal, setProposal] = useState(null)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [completionNotice, setCompletionNotice] = useState('')
+  const [completedExerciseIds, setCompletedExerciseIds] = useState(() => new Set())
+  const [completingExerciseId, setCompletingExerciseId] = useState(null)
 
   useEffect(() => {
     let current = true
@@ -252,6 +256,34 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
     }
   }
 
+  async function completeExercise(exercise) {
+    const idPlanEjercicio = exercise.idPlanEjercicio
+    if (!isToday || !idPlanEjercicio || completingExerciseId || completedExerciseIds.has(idPlanEjercicio)) return
+
+    setCompletingExerciseId(idPlanEjercicio)
+    setError('')
+    setCompletionNotice('')
+    const timed = exercise.tipoMedicion === 'TIEMPO'
+    const series = Array.from({ length: exercise.series }, (_, index) => ({
+      numeroSerie: index + 1,
+      ...(timed ? { segundos: exercise.segundos } : { repeticiones: exercise.repeticiones }),
+    }))
+
+    try {
+      await completeRoutineExercise(idPlanEjercicio, series)
+      setCompletedExerciseIds(current => new Set(current).add(idPlanEjercicio))
+      setCompletionNotice(`${exercise.nombre} quedó marcado como realizado hoy.`)
+    } catch (err) {
+      if (err.status === 401) onExpired()
+      else if (err.status === 409 && err.message?.includes('ya fue registrado como completado hoy')) {
+        setCompletedExerciseIds(current => new Set(current).add(idPlanEjercicio))
+        setCompletionNotice(`${exercise.nombre} ya estaba registrado como realizado hoy.`)
+      } else setError(err.message || 'No se pudo registrar el ejercicio realizado.')
+    } finally {
+      setCompletingExerciseId(null)
+    }
+  }
+
   function reset() {
     setAddedId(null)
     setDays(savedDays.map(day => ({ ...day, ejercicios: day.ejercicios.map(item => ({ ...item })) })))
@@ -291,6 +323,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
     {error && <p className="routine-error" role="alert">{error}</p>}
     {loadFailed && <button className="client-text-link" type="button" onClick={retry}>Reintentar</button>}
     {notice && <ClientToast title="Rutina guardada" message={notice} onClose={() => setNotice('')} />}
+    {completionNotice && <ClientToast title="Avance registrado" message={completionNotice} onClose={() => setCompletionNotice('')} />}
 
     <section className={`routine-ai${proposal ? ' has-proposal' : ''}`} aria-live="polite">
       <span className="routine-ai-icon"><Icon name="sparkles" /></span>
@@ -358,8 +391,19 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
                   {' · '}{exercise.descansoSegundos === 0 ? 'Sin descanso' : `Descanso ${exercise.descansoSegundos} s`}</small>
               </div>
               {exercise.grupoMuscular && <span className="routine-exercise-tag">{exercise.grupoMuscular}</span>}
-              <button type="button" className="routine-remove-exercise" disabled={saving}
-                onClick={() => removeExercise(exercise.idEjercicio)} aria-label={`Quitar ${exercise.nombre}`}><Icon name="close" /></button>
+              <div className="routine-exercise-actions">
+                {isToday && exercise.idPlanEjercicio && (completedExerciseIds.has(exercise.idPlanEjercicio)
+                  ? <span className="routine-exercise-completed"><Icon name="check" />Realizado</span>
+                  : <button type="button" className="routine-complete-exercise"
+                    disabled={saving || generating || completingExerciseId !== null}
+                    onClick={() => completeExercise(exercise)}
+                    aria-label={`Marcar ${exercise.nombre} como realizado`}>
+                    <Icon name={completingExerciseId === exercise.idPlanEjercicio ? 'clock' : 'check'} />
+                    {completingExerciseId === exercise.idPlanEjercicio ? 'Guardando…' : 'Marcar realizado'}
+                  </button>)}
+                <button type="button" className="routine-remove-exercise" disabled={saving || completingExerciseId !== null}
+                  onClick={() => removeExercise(exercise.idEjercicio)} aria-label={`Quitar ${exercise.nombre}`}><Icon name="close" /></button>
+              </div>
             </li>)}
           </ol> : <div className="routine-empty-day"><span><Icon name="dumbbell" /></span>
             <strong>Aún no agregaste ejercicios</strong><p>Elige ejercicios del catálogo para armar tu sesión de este día.</p>

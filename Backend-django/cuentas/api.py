@@ -269,6 +269,32 @@ def ejercicios_disponibles_rutina(request):
     return _respuesta_spring_json(resultado)
 
 
+@require_POST
+def completar_ejercicio_rutina(request, id_plan_ejercicio):
+    """Registra las series realizadas hoy por el cliente en un ejercicio de su rutina."""
+    datos = objeto_json(request)
+    if datos is None:
+        return error("Envía un objeto JSON válido con las series realizadas.")
+
+    id_usuario, respuesta_error = _validar_cliente_activo(request)
+    if respuesta_error:
+        return respuesta_error
+
+    try:
+        resultado = _spring_request(
+            f"/api/cliente/rutina/ejercicios/{id_plan_ejercicio}/completar",
+            payload=datos,
+            headers=_headers_cliente(id_usuario),
+            method="POST",
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo registrar el ejercicio realizado.", 503)
+
+    return _respuesta_spring_json(resultado, status=201)
+
+
 @require_GET
 def csrf(request):
     response = JsonResponse({"csrfToken": get_token(request)})

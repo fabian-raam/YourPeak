@@ -174,6 +174,35 @@ fun BotonIconoEditar(
     }
 }
 
+/** Botón circular de información para abrir el detalle de un ejercicio. */
+@Composable
+fun BotonIconoDetalle(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    descripcion: String = "Ver detalle del ejercicio"
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = modifier
+            .size(40.dp)
+            .background(Color(0xFF151515), CircleShape)
+            .border(1.dp, Color(0xFF454545), CircleShape)
+            .semantics { contentDescription = descripcion }
+    ) {
+        IconoDetalle(color = Color.White, modifier = Modifier.size(22.dp))
+    }
+}
+
+@Composable
+fun IconoDetalle(color: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val escala = size.width / 24f
+        drawCircle(color, radius = 9f * escala, style = estiloTrazo(1.8.dp.toPx()))
+        drawCircle(color, radius = 1.1f * escala, center = Offset(12f * escala, 8f * escala))
+        drawLine(color, Offset(12f * escala, 11f * escala), Offset(12f * escala, 16f * escala), 1.8.dp.toPx(), StrokeCap.Round)
+    }
+}
+
 @Composable
 fun IconoEditar(color: Color, modifier: Modifier = Modifier) {
     Canvas(modifier) {
