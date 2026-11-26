@@ -1,1 +1,2 @@
 Django==6.1.1
+google-auth[requests]==2.63.1

@@ -353,8 +353,14 @@ def login(request):
         return spring_error(exception)
     except (URLError, TimeoutError, ValueError):
         return error("No se pudo conectar con el servicio. Inténtalo de nuevo.", 503)
-    if not usuario.get("idUsuario"):
+    return iniciar_sesion(request, usuario)
+
+
+def iniciar_sesion(request, usuario):
+    if not isinstance(usuario, dict) or not usuario.get("idUsuario"):
         return error("El servicio devolvió una respuesta inválida.", 502)
+    request.session.pop("google_nonce", None)
+    request.session.pop("google_pendiente", None)
     request.session.cycle_key()
     request.session["id_usuario"] = usuario["idUsuario"]
     return JsonResponse({"usuario": usuario, "csrfToken": get_token(request)})

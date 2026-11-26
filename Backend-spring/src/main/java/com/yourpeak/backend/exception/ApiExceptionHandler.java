@@ -83,6 +83,12 @@ public class ApiExceptionHandler {
                     return conflictoCorreo();
                 }
                 if (restriccion != null
+                        && (restriccion.equals("uq_usuario_google_subject")
+                        || restriccion.endsWith(".uq_usuario_google_subject"))) {
+                    return problema(HttpStatus.CONFLICT, "Cuenta vinculada",
+                            "Vuelve a iniciar sesión con Google para continuar.");
+                }
+                if (restriccion != null
                         && (restriccion.equals("uq_plan_membresia_nombre")
                         || restriccion.endsWith(".uq_plan_membresia_nombre"))) {
                     return conflictoPlanMembresia();

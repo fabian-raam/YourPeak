@@ -170,6 +170,13 @@ input::placeholder { color: #929ca4; opacity: 1; }
 .primary:active:not(:disabled) { transform: translateY(0) scale(.99); }
 .switch a { transition: color 160ms ease; }
 .switch a:hover { color: var(--brand-link-hover); }
+.google-option { display: grid; gap: 12px; margin-block: 14px; }
+.google-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
+.google-divider::before, .google-divider::after { content: ''; height: 1px; background: #344563; flex: 1; }
+.google-button { display: grid; justify-items: center; min-width: 0; }
+.google-unavailable { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+.google-back { background: none; border: 0; padding: 0; color: var(--brand-link); font: inherit; text-decoration: underline; cursor: pointer; }
+
 /* Respeta la preferencia de movimiento reducido del sistema. */
 @media (prefers-reduced-motion: reduce) {
   .auth-card, .hero-athlete, .alert { animation: none; }

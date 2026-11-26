@@ -26,6 +26,9 @@ public class Usuario {
     @Column(name = "contrasena_hash", nullable = false, length = 255)
     private String contrasenaHash;
 
+    @Column(name = "google_subject", unique = true, length = 255)
+    private String googleSubject;
+
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
@@ -68,6 +71,14 @@ public class Usuario {
 
     public String getContrasenaHash() {
         return contrasenaHash;
+    }
+
+    public String getGoogleSubject() {
+        return googleSubject;
+    }
+
+    public void vincularGoogle(String subject) {
+        this.googleSubject = subject;
     }
 
     public LocalDate getFechaNacimiento() {

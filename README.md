@@ -40,7 +40,8 @@ Por tanto, MySQL es la fuente de verdad para las cuentas. SQLite guarda los dato
 1. Inicia el servicio local de MySQL/MariaDB.
 2. En SQLyog o MySQL Workbench abre y ejecuta `Backend-spring/database/yourpeak_schema.sql`. El archivo crea `yourpeak_db`, las tablas y los catálogos iniciales.
 3. Ejecútalo sobre una base vacía. Si ya existe una base de prueba con tablas, expórtala primero si quieres conservar sus datos y luego vacíala o elimínala antes de cargar el esquema nuevo: el archivo no borra ni reemplaza tablas existentes.
-4. El SQL no contiene cuentas reales. Crea una cuenta desde el formulario de registro cuando Spring Boot, Django y React estén en marcha.
+4. En una base recién creada, ejecuta también `Backend-spring/database/yourpeak_nutricion.sql` para agregar las columnas que exige el perfil del cliente.
+5. Crea una cuenta desde el formulario de registro cuando Spring Boot, Django y React estén en marcha.
 
 Este archivo es el esquema y los catálogos iniciales del proyecto; no es una copia de los datos de MySQL de otro desarrollador. Spring tiene `ddl-auto=validate`: al arrancar comprueba que las tablas que usa existan, pero no crea ni modifica el esquema.
 
@@ -93,6 +94,17 @@ Si configuraste Spring en otro puerto, usa ese mismo puerto en `SPRING_API_BASE_
 ```
 
 Mantén Spring y Django ejecutándose en sus respectivas terminales y continúa con el paso 4 para abrir la interfaz React. Las direcciones `http://127.0.0.1:8000/login/` y `http://127.0.0.1:8000/registro/` conservan las páginas provisionales de Django.
+
+## Acceso web con Google de Tecsup
+
+El botón de Google está disponible en el login y en el registro de React. Django valida el token de Google y exige que tanto el correo como el dominio administrado de Google Workspace correspondan a `tecsup.edu.pe`. Una cuenta nueva completa su fecha de nacimiento y los nombres que falten, y pasa por la aprobación habitual. Para vincular una cuenta existente se requiere su contraseña de YourPeak.
+
+1. Si ya tienes una base de datos YourPeak, ejecuta una vez `Backend-spring/database/yourpeak_acceso_google.sql` antes de arrancar Spring. Agrega el identificador de Google a la tabla de usuarios y conserva sus datos. Para una base nueva, `yourpeak_schema.sql` ya lo incluye.
+2. Crea un cliente OAuth de tipo **Aplicación web** en [Google Auth Platform](https://console.cloud.google.com/auth/clients). Configura los orígenes JavaScript que realmente utilices, como `http://localhost` y `http://localhost:5173` para desarrollo. Abre React con ese mismo origen. Si el cliente está en modo de pruebas y requiere usuarios de prueba, agrega la cuenta institucional con la que probarás.
+3. Define `GOOGLE_OAUTH_CLIENT_ID` en el entorno de Django y define `YOURPEAK_GOOGLE_INTERNAL_KEY` con el mismo secreto aleatorio de al menos 32 caracteres en los entornos de Django y Spring. Una forma de generar este último en PowerShell es ejecutar `python -c "import secrets; print(secrets.token_urlsafe(32))"`. Configura los valores antes de arrancar los servicios y guárdalos fuera del repositorio.
+4. Actualiza las dependencias de Django con `python -m pip install -r requirements.txt` y reinicia Django y Spring. Si omites la configuración de Google, React presenta el formulario de acceso habitual.
+
+Para probar la integración real, abre React con el origen autorizado y usa una cuenta de Tecsup nueva y una ya registrada. Si Google muestra una cuenta personal en el selector, YourPeak la rechaza en el servidor. El acceso con Google está disponible en la web.
 
 ## Endpoints de autenticación usados por Django
 

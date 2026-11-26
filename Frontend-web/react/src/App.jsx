@@ -3,6 +3,7 @@ import Field from './components/Field'
 import { request } from './services/auth'
 import { listPending } from './services/admin'
 import AuthHero from './components/AuthHero'
+import GoogleButton from './components/GoogleButton'
 import UserManagement from './pages/UserManagement'
 import MembershipPlans from './pages/MembershipPlans'
 import ExercisesCatalog from './pages/ExercisesCatalog'
@@ -44,13 +45,21 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
+  const [googleStep, setGoogleStep] = useState(null)
+  const [googleRevision, setGoogleRevision] = useState(0)
   const registering = page === 'registro'
+  const completingGoogle = googleStep === 'completar'
+  const linkingGoogle = googleStep === 'vincular'
+  const collectingProfile = completingGoogle || (registering && !googleStep)
+  const manualRegistration = registering && !googleStep
+  const accessTitle = completingGoogle ? 'Completa tu registro' : linkingGoogle ? 'Vincula tu cuenta'
+    : registering ? 'Crea tu cuenta' : 'Iniciar sesión'
   const isAdmin = user?.rol === 'ADMINISTRADOR'
   const isActive = user?.rol === 'CLIENTE' && user.estado?.toUpperCase() === 'ACTIVO'
     && user.membresiaVigente === true
 
   const sessionExpired = useCallback(() => {
-    setUser(null); setPendingCount(null); setPage('login'); setValues(empty)
+    setUser(null); setPendingCount(null); setPage('login'); setValues(empty); setGoogleStep(null)
     setFields({}); setNotice('')
     setError('Tu sesión terminó. Inicia sesión de nuevo.')
     history.replaceState({}, '', '/login')
@@ -87,7 +96,7 @@ export default function App() {
       setAdminSection(sectionFromPath(location.pathname))
       setClientSection(clientSectionFromPath(location.pathname) || 'inicio')
       setPage(publicPageFromPath(location.pathname))
-      setError(''); setFields({}); setValues(empty); setNotice('')
+      setError(''); setFields({}); setValues(empty); setNotice(''); setGoogleStep(null)
     }
     window.addEventListener('popstate', onPop)
     return () => { active = false; window.removeEventListener('popstate', onPop) }
@@ -110,9 +119,13 @@ export default function App() {
     const adminTitles = { membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', practica: 'Práctica React', usuarios: 'Usuarios' }
     const title = isAdmin ? `${adminTitles[adminSection]} · Administración`
       : isActive ? clientSections[clientSection].label
-        : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : registering ? 'Crear cuenta' : 'Iniciar sesión'
+        : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : accessTitle
     document.title = `${title} | YourPeak`
-  }, [user, registering, isAdmin, isActive, adminSection, clientSection, page])
+  }, [user, accessTitle, isAdmin, isActive, adminSection, clientSection, page])
+
+  useEffect(() => {
+    if (googleStep) document.getElementById('access-title')?.focus()
+  }, [googleStep])
 
   function navigateAdmin(section) {
     if (section === adminSection) return
@@ -129,7 +142,7 @@ export default function App() {
 
   function navigate(next) {
     history.pushState({}, '', next === 'inicio' ? '/' : next === 'registro' ? '/registro' : '/login')
-    setPage(next); setValues(empty); setFields({}); setError(''); setNotice('')
+    setPage(next); setValues(empty); setFields({}); setError(''); setNotice(''); setGoogleStep(null)
     window.scrollTo(0, 0)
   }
   function update(event) {
@@ -137,14 +150,43 @@ export default function App() {
     setValues(previous => ({ ...previous, [name]: value }))
     setFields(previous => ({ ...previous, [name]: undefined }))
   }
+  function finishLogin(usuario) {
+    setClientSection('inicio')
+    setUser(usuario); setValues(empty); setGoogleStep(null)
+    history.replaceState({}, '', '/')
+  }
+
+  function handleGoogleResult(data) {
+    if (data.estado === 'completar' || data.estado === 'vincular') {
+      setGoogleStep(data.estado)
+      setValues({ ...empty, ...data.perfil })
+      window.scrollTo(0, 0)
+    } else {
+      finishLogin(data.usuario)
+    }
+  }
+
+  async function googleLogin(credential) {
+    if (busy) return
+    setBusy(true); setError(''); setFields({}); setNotice('')
+    try {
+      handleGoogleResult(await request('google/login/', { credential }))
+    } catch (err) {
+      setError(err.message)
+      if (err.status === 401) setGoogleRevision(previous => previous + 1)
+    } finally { setBusy(false) }
+  }
+
   async function submit(event) {
     event.preventDefault()
     const errors = {}
     if (!emailValid(values.correo)) errors.correo = 'Usa tu correo institucional @tecsup.edu.pe.'
-    if (registering) {
+    if (collectingProfile) {
       if (!values.nombre.trim()) errors.nombre = 'Ingresa tu nombre.'
       if (!values.apellido.trim()) errors.apellido = 'Ingresa tu apellido.'
       if (!values.fechaNacimiento || values.fechaNacimiento >= localDate()) errors.fechaNacimiento = 'Ingresa una fecha anterior a hoy.'
+    }
+    if (manualRegistration) {
       if (values.contrasena.length < 8) errors.contrasena = 'Usa al menos 8 caracteres.'
       if (values.contrasena !== values.confirmar_contrasena) errors.confirmar_contrasena = 'Las contraseñas no coinciden.'
     }
@@ -156,13 +198,19 @@ export default function App() {
     }
     setBusy(true)
     try {
+      if (googleStep) {
+        const { nombre, apellido, fechaNacimiento, contrasena } = values
+        const data = await request('google/completar/', completingGoogle
+          ? { nombre, apellido, fechaNacimiento } : { contrasena })
+        handleGoogleResult(data)
+        return
+      }
       const data = await request(registering ? 'registro/' : 'login/', { ...values, correo: values.correo.trim().toLowerCase() })
       if (registering) {
         const correo = values.correo
         navigate('login'); setValues({ ...empty, correo }); setNotice(data.detail)
       } else {
-        setClientSection('inicio')
-        setUser(data.usuario); setValues(empty); history.replaceState({}, '', '/')
+        finishLogin(data.usuario)
       }
     } catch (err) { setError(err.message); setFields(err.fields || {}) }
     finally { setBusy(false) }
@@ -173,6 +221,7 @@ export default function App() {
     catch (err) { setError(err.message) }
     finally { setBusy(false) }
   }
+  const googleButton = <GoogleButton registering={registering} busy={busy} onCredential={googleLogin} revision={googleRevision} />
   const field = (name, label, props = {}) => <Field key={name} name={name} label={label} value={values[name]}
     onChange={update} error={fields[name]} required disabled={busy} {...props} />
 
@@ -223,13 +272,16 @@ export default function App() {
         {loading ? <p role="status">Comprobando tu sesión…</p> : user ?
           <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : <>
           <img className="auth-tecsup" src="/assets/home/tecsup.png" alt="Tecsup" width="102" height="30" />
-          <h1>{registering ? 'Crea tu cuenta' : 'Iniciar sesión'}</h1>
-          <p className="intro">{registering ? 'Comienza tu camino con Your Peak.' : 'Bienvenido de nuevo a Your Peak.'}</p>
+          <h1 id="access-title" tabIndex={googleStep ? -1 : undefined}>{accessTitle}</h1>
+          <p className="intro">{completingGoogle ? 'Completa tus datos para crear tu cuenta de YourPeak.'
+            : linkingGoogle ? 'Ingresa tu contraseña de YourPeak para vincular tu cuenta de Google.'
+              : registering ? 'Comienza tu camino con Your Peak.' : 'Bienvenido de nuevo a Your Peak.'}</p>
           {notice && <p className="alert success" role="status">{notice}</p>}
           {error && <p className="alert" role="alert">{error}</p>}
+          {manualRegistration && googleButton}
           <form onSubmit={submit}>
             <fieldset disabled={busy}>
-              {registering && <>
+              {collectingProfile && <>
                 <div className="name-row">
                   {field('nombre', 'Nombre', { autoComplete: 'given-name', maxLength: 100, placeholder: 'Tu nombre' })}
                   {field('apellido', 'Apellido', { autoComplete: 'family-name', maxLength: 100, placeholder: 'Tu apellido' })}
@@ -237,18 +289,22 @@ export default function App() {
                 {field('fechaNacimiento', 'Fecha de nacimiento', { type: 'date', autoComplete: 'bday', max: localDate(-1) })}
               </>}
               {field('correo', 'Correo institucional', { type: 'email', autoComplete: 'username', maxLength: 254,
-                placeholder: 'nombre@tecsup.edu.pe', hint: 'Acceso exclusivo con tu correo @tecsup.edu.pe.' })}
-              {field('contrasena', 'Contraseña', { type: 'password', autoComplete: registering ? 'new-password' : 'current-password',
-                maxLength: 128, placeholder: 'Ingresa tu contraseña', hint: registering ? 'Mínimo 8 caracteres.' : undefined })}
-              {registering && field('confirmar_contrasena', 'Confirmar contraseña', { type: 'password', autoComplete: 'new-password', maxLength: 128, placeholder: 'Repite tu contraseña' })}
-              <button className="primary" type="submit">{busy ? 'Un momento…' : registering ? 'Crear cuenta' : 'Iniciar sesión'}</button>
+                placeholder: 'nombre@tecsup.edu.pe', readOnly: !!googleStep, hint: googleStep
+                  ? 'Cuenta institucional verificada con Google.' : 'Acceso exclusivo con tu correo @tecsup.edu.pe.' })}
+              {!completingGoogle && field('contrasena', 'Contraseña', { type: 'password', autoComplete: manualRegistration ? 'new-password' : 'current-password',
+                maxLength: 128, placeholder: 'Ingresa tu contraseña', hint: manualRegistration ? 'Mínimo 8 caracteres.' : undefined })}
+              {manualRegistration && field('confirmar_contrasena', 'Confirmar contraseña', { type: 'password', autoComplete: 'new-password', maxLength: 128, placeholder: 'Repite tu contraseña' })}
+              <button className="primary" type="submit">{busy ? 'Un momento…' : linkingGoogle ? 'Vincular cuenta'
+                : registering || completingGoogle ? 'Crear cuenta' : 'Iniciar sesión'}</button>
             </fieldset>
           </form>
-          <p className="switch">{registering ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}{' '}
+          {!registering && !googleStep && googleButton}
+          {googleStep ? <p className="switch"><button type="button" className="google-back" disabled={busy}
+            onClick={() => navigate(page)}>Volver</button></p> : <p className="switch">{registering ? '¿Ya tienes una cuenta?' : '¿No tienes una cuenta?'}{' '}
             <a href={registering ? '/login' : '/registro'} aria-disabled={busy} onClick={event => { event.preventDefault(); if (!busy) navigate(registering ? 'login' : 'registro') }}>
               {registering ? 'Inicia sesión' : 'Regístrate'}
             </a>
-          </p>
+          </p>}
         </>}
       </div>
     </section>

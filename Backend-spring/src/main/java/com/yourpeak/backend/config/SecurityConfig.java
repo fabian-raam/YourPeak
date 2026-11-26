@@ -119,6 +119,7 @@ public class SecurityConfig {
                                 registro,
                                 login,
                                 usuarioInterno,
+                                PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, "/api/auth/google"),
                                 listarPendientes,
                                 obtenerPendiente,
                                 listarClientesActivos,
