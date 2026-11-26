@@ -1,5 +1,6 @@
 package com.yourpeak.backend.service;
 
+import com.yourpeak.backend.dto.GoogleAuthRequest;
 import com.yourpeak.backend.dto.RegistroRequest;
 import com.yourpeak.backend.dto.RegistroResponse;
 import com.yourpeak.backend.exception.CorreoRegistradoException;
@@ -17,6 +18,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.time.LocalDate;
+import java.util.UUID;
 
 @Service
 @Validated
@@ -43,7 +47,20 @@ public class RegistroService {
     public RegistroResponse registrar(
             @NotNull @Valid RegistroRequest request
     ) {
-        if (usuarioRepository.existsByCorreo(request.correo())) {
+        return crearCliente(request.nombre(), request.apellido(), request.correo(), request.fechaNacimiento(),
+                request.contrasena(), null);
+    }
+
+    @Transactional
+    public RegistroResponse registrarConGoogle(@NotNull @Valid GoogleAuthRequest request) {
+        // La contraseña aleatoria no se entrega al usuario ni se almacena en texto plano.
+        return crearCliente(request.nombre().strip(), request.apellido().strip(), request.correo(),
+                request.fechaNacimiento(), UUID.randomUUID().toString(), request.subject());
+    }
+
+    private RegistroResponse crearCliente(String nombre, String apellido, String correo, LocalDate nacimiento,
+                                          String contrasena, String googleSubject) {
+        if (usuarioRepository.existsByCorreo(correo)) {
             throw new CorreoRegistradoException();
         }
 
@@ -53,15 +70,14 @@ public class RegistroService {
                         "Falta configurar el estado pendiente"
                 ));
 
-        String hash = passwordEncoder.encode(request.contrasena());
+        String hash = passwordEncoder.encode(contrasena);
 
         Usuario usuario = new Usuario(
-                request.nombre(),
-                request.apellido(),
-                request.correo(),
-                hash,
-                request.fechaNacimiento()
+                nombre, apellido, correo, hash, nacimiento
         );
+        if (googleSubject != null) {
+            usuario.vincularGoogle(googleSubject);
+        }
 
         usuarioRepository.save(usuario);
 

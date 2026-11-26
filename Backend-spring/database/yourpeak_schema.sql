@@ -20,10 +20,12 @@ CREATE TABLE usuario (
   apellido          VARCHAR(100)  NOT NULL,
   correo            VARCHAR(254)  NOT NULL,           -- correo institucional Tecsup (HU-15)
   contrasena_hash   VARCHAR(255)  NOT NULL,
+  google_subject    VARCHAR(255) CHARACTER SET ascii COLLATE ascii_bin NULL,
   fecha_nacimiento  DATE          NULL,               -- NULL: HU-15 no la exige al registrarse
   fecha_creacion    DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id_usuario),
-  UNIQUE KEY uq_usuario_correo (correo)
+  UNIQUE KEY uq_usuario_correo (correo),
+  UNIQUE KEY uq_usuario_google_subject (google_subject)
 ) ENGINE=InnoDB;
 
 CREATE TABLE administrador (

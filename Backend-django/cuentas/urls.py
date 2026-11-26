@@ -1,11 +1,14 @@
 from django.urls import path
 
-from . import views, api
+from . import views, api, google_auth
 
 urlpatterns = [
     path('api/web/csrf/', api.csrf),
     path('api/web/registro/', api.registro),
     path('api/web/login/', api.login),
+    path('api/web/google/config/', google_auth.configuracion),
+    path('api/web/google/login/', google_auth.autenticar),
+    path('api/web/google/completar/', google_auth.completar),
     path('api/web/perfil/', api.perfil),
     path('api/web/logout/', api.logout),
     # Disponibilidad personal: requiere una sesión de cliente activa.

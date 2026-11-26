@@ -6,6 +6,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG = os.environ.get("DJANGO_DEBUG", "true").lower() in {"true", "1", "yes"}
 SPRING_API_BASE_URL = os.environ.get("SPRING_API_BASE_URL", "http://localhost:8080")
 SPRING_INTERNAL_API_KEY = "yourpeak-dev-internal-key"
+GOOGLE_OAUTH_CLIENT_ID = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "").strip()
+GOOGLE_INTERNAL_KEY = os.environ.get("YOURPEAK_GOOGLE_INTERNAL_KEY", "").strip()
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 if not SECRET_KEY:
     if not DEBUG:
