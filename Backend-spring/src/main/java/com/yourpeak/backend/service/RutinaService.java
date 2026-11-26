@@ -83,7 +83,8 @@ public class RutinaService {
     @Transactional(readOnly = true)
     public RutinaResponse.Consulta consultar(Long idUsuario) {
         Cliente cliente = buscarClienteActivo(idUsuario);
-        return new RutinaResponse.Consulta(consultarDias(cliente), resumenRepository.listarActividadReciente(cliente.getIdCliente()));
+        return new RutinaResponse.Consulta(consultarDias(cliente), resumenRepository.listarActividadReciente(cliente.getIdCliente()),
+                resumenRepository.listarEjerciciosRealizados(cliente.getIdCliente(), java.time.LocalDate.now(java.time.ZoneId.of("America/Lima"))));
     }
 
     private List<DiaRutinaResponse> consultarDias(Cliente cliente) {

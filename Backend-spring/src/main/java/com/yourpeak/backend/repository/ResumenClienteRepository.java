@@ -54,4 +54,34 @@ public class ResumenClienteRepository {
                         rs.getString("titulo"), rs.getInt("ejercicios")))
                 .list();
     }
+
+    /**
+     * Ejercicios del día de hoy en el plan activo que ya tienen series registradas hoy.
+     * Se comparan por ejercicio y no por idPlanEjercicio porque guardar la rutina crea un plan nuevo
+     * con otros identificadores; así lo marcado no se pierde si el cliente reordena y guarda.
+     */
+    public List<Long> listarEjerciciosRealizados(Long idCliente, java.time.LocalDate fecha) {
+        return jdbc.sql("""
+                SELECT DISTINCT pe.id_plan_ejercicio
+                FROM plan_entrenamiento p
+                JOIN tipo_estado ep ON ep.id_tipo_estado = p.id_tipo_estado AND UPPER(ep.nombre) = 'ACTIVO'
+                JOIN plan_entrenamiento_dia d ON d.id_plan_entrenamiento = p.id_plan_entrenamiento
+                JOIN plan_entrenamiento_ejercicio pe ON pe.id_plan_dia = d.id_plan_dia
+                JOIN tipo_estado ee ON ee.id_tipo_estado = pe.id_tipo_estado AND UPPER(ee.nombre) = 'ACTIVO'
+                WHERE p.id_cliente = :cliente AND d.dia_semana = :dia
+                  AND pe.id_ejercicio IN (
+                      SELECT pr.id_ejercicio
+                      FROM serie_realizada s
+                      JOIN plan_entrenamiento_ejercicio pr ON pr.id_plan_ejercicio = s.id_plan_ejercicio
+                      JOIN plan_entrenamiento_dia dr ON dr.id_plan_dia = pr.id_plan_dia
+                      JOIN plan_entrenamiento pp ON pp.id_plan_entrenamiento = dr.id_plan_entrenamiento
+                      WHERE pp.id_cliente = :cliente AND s.fecha_hora >= :inicio AND s.fecha_hora < :fin)
+                """)
+                .param("cliente", idCliente)
+                .param("dia", fecha.getDayOfWeek().getValue())
+                .param("inicio", fecha.atStartOfDay())
+                .param("fin", fecha.plusDays(1).atStartOfDay())
+                .query((rs, row) -> rs.getLong(1))
+                .list();
+    }
 }
