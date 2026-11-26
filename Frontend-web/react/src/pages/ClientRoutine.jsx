@@ -1,7 +1,8 @@
 import ClientToast from '../components/ClientToast'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
-import { completeRoutineExercise, generateRoutine, getRoutine, getRoutineExercises, saveRoutine } from '../services/routine'
+import { completeRoutineExercise, generateRoutine, getRoutineExercises, getRoutineSummary, saveRoutine } from '../services/routine'
+import { exerciseImage } from '../utils/exerciseIllustrations'
 import { normalizeSearch } from '../utils/format'
 import './ClientRoutine.css'
 
@@ -40,6 +41,21 @@ const formatTime = value => {
     .format(new Date(2020, 0, 1, hour, minute))
 }
 const exerciseCount = count => `${count} ${count === 1 ? 'ejercicio' : 'ejercicios'}`
+const groupColors = {
+  pecho: '#2166e8', espalda: '#0b0d12', piernas: '#f26b2d', hombros: '#7bc41f', brazos: '#9b6bff', core: '#2ec4b6', cardio: '#e5484d',
+}
+const groupColor = group => groupColors[normalizeSearch(group ?? '').trim()] ?? '#8e96a3'
+const isoDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+const minutesBetween = (start, end) => {
+  const toMinutes = value => value ? Number(value.slice(0, 2)) * 60 + Number(value.slice(3, 5)) : NaN
+  const total = toMinutes(end) - toMinutes(start)
+  return total > 0 ? total : null
+}
+const measureLabel = exercise => exercise.tipoMedicion === 'TIEMPO' ? `${exercise.series} × ${exercise.segundos} s` : `${exercise.series} × ${exercise.repeticiones}`
+const dayTitle = day => {
+  const groups = [...new Set(day.ejercicios.map(item => item.grupoMuscular).filter(Boolean))]
+  return groups.length ? groups.slice(0, 2).join(' + ') : 'Entrenamiento'
+}
 
 function normalizeWeek(days = []) {
   const week = Array.from({ length: 7 }, (_, index) => ({
@@ -100,12 +116,16 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
   const [completionNotice, setCompletionNotice] = useState('')
   const [completedExerciseIds, setCompletedExerciseIds] = useState(() => new Set())
   const [completingExerciseId, setCompletingExerciseId] = useState(null)
+  const [trainedDates, setTrainedDates] = useState(() => new Set())
+  const [dragIndex, setDragIndex] = useState(null)
 
   useEffect(() => {
     let current = true
-    Promise.all([getRoutine(), getRoutineExercises()]).then(([routine, exercises]) => {
+    Promise.all([getRoutineSummary(), getRoutineExercises()]).then(([summary, exercises]) => {
       if (!current) return
-      const loaded = normalizeWeek(routine)
+      const loaded = normalizeWeek(summary.dias)
+      setCompletedExerciseIds(new Set(summary.realizadosHoy ?? []))
+      setTrainedDates(new Set((summary.actividadReciente ?? []).map(item => item.fecha?.slice(0, 10))))
       setDays(loaded)
       setSavedDays(loaded)
       setCatalog(exercises.filter(exercise => exercise.estado?.toUpperCase() === 'ACTIVO'))
@@ -235,6 +255,26 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
     setNotice('')
   }
 
+  /** Mueve un ejercicio del día seleccionado a otra posición; se guarda con «Guardar rutina». */
+  function moveExercise(from, to) {
+    const dayIndex = selectedDayNumber - 1
+    setDays(current => current.map((day, index) => {
+      if (index !== dayIndex || to < 0 || to >= day.ejercicios.length || from === to) return day
+      const exercises = [...day.ejercicios]
+      const [moved] = exercises.splice(from, 1)
+      exercises.splice(to, 0, moved)
+      return { ...day, ejercicios: exercises.map((item, order) => ({ ...item, orden: order + 1 })) }
+    }))
+    setNotice('')
+  }
+
+  function continueWorkout() {
+    const pending = selectedDay.ejercicios.find(item => item.idPlanEjercicio && !completedExerciseIds.has(item.idPlanEjercicio))
+    const target = pending && document.getElementById(`routine-exercise-${pending.idPlanEjercicio}`)
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    target?.querySelector('.routine-complete-exercise')?.focus({ preventScroll: true })
+  }
+
   async function save(event) {
     event.preventDefault()
     if (saving || !dirty) return
@@ -325,105 +365,139 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
     {notice && <ClientToast title="Rutina guardada" message={notice} onClose={() => setNotice('')} />}
     {completionNotice && <ClientToast title="Avance registrado" message={completionNotice} onClose={() => setCompletionNotice('')} />}
 
-    <section className={`routine-ai${proposal ? ' has-proposal' : ''}`} aria-live="polite">
-      <span className="routine-ai-icon"><Icon name="sparkles" /></span>
-      <div>
-        <strong>{proposal ? (proposal.fuente === 'GEMINI' ? 'Propuesta generada con IA' : 'Propuesta generada por reglas') : 'Rutina con IA'}</strong>
-        <p>{proposal ? proposal.mensaje : 'Te proponemos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio. Podrás revisarla antes de guardarla.'}</p>
-        <small>Rutina orientativa. Si tienes lesiones o dudas de salud, consulta con un entrenador.</small>
-      </div>
-      <button type="button" className="routine-ai-button" onClick={generate}
-        disabled={loading || loadFailed || saving || generating || availableCount === 0}
-        title={availableCount === 0 ? 'Configura tu disponibilidad para generar una rutina' : undefined}>
-        <Icon name={generating ? 'clock' : 'sparkles'} />{generating ? 'Generando…' : proposal ? 'Generar otra' : 'Generar con IA'}
-      </button>
-    </section>
-
-    <section className="routine-week" aria-label="Calendario semanal" aria-busy={loading}>
+    <div className="routine-toolbar">
       <div className="routine-week-navigation">
         <button type="button" aria-label="Semana anterior" onClick={() => changeWeek(-1)}>‹</button>
-        <button type="button" aria-label="Semana siguiente" onClick={() => changeWeek(1)}>›</button>
         <strong>Semana del {weekLabel}</strong>
+        <button type="button" aria-label="Semana siguiente" onClick={() => changeWeek(1)}>›</button>
       </div>
+    </div>
+
+    <section className="routine-week" aria-label="Calendario semanal" aria-busy={loading}>
       <div className="routine-week-days" ref={weekStrip}>
         {currentWeekDays.map(({ day, date, index }) => {
           const selected = date.toDateString() === selectedDate.toDateString()
           const isCurrentDay = date.getTime() === today.getTime()
           const hasRoutine = day.disponible && day.ejercicios.length > 0
-          const label = hasRoutine ? exerciseCount(day.ejercicios.length) : 'Sin ejercicios'
+          const cover = hasRoutine && day.ejercicios.map(item => exerciseImage(item.nombre)).find(Boolean)
+          const trained = trainedDates.has(isoDate(date))
+          const doneToday = isCurrentDay ? day.ejercicios.filter(item => completedExerciseIds.has(item.idPlanEjercicio)).length : 0
+          const progress = trained && !isCurrentDay ? 100 : hasRoutine ? doneToday / day.ejercicios.length * 100 : 0
+          const minutes = minutesBetween(day.horaInicio, day.horaFin)
           return <button key={day.diaSemana} type="button"
-            className={`routine-day-card${selected ? ' selected' : ''}${!day.disponible ? ' rest' : ''}`}
+            className={['routine-day-card', selected && 'selected', isCurrentDay && 'today', !day.disponible && 'rest', trained && 'trained'].filter(Boolean).join(' ')}
             aria-pressed={selected} disabled={loading || loadFailed} onClick={() => selectDate(date)}>
-            <span className="routine-day-top"><strong>{shortWeekdays[index]}</strong>{isCurrentDay && <small>HOY</small>}</span>
-            <span className="routine-day-number">{date.getDate()}</span>
-            <span className="routine-day-title">{day.disponible ? (hasRoutine ? day.ejercicios[0].nombre : 'Disponible') : 'Descanso'}</span>
-            {day.disponible && <span className="routine-day-status">{label}</span>}
+            <span className="routine-day-top"><small>{shortWeekdays[index]}</small><strong>{date.getDate()}</strong>
+              {isCurrentDay ? <em className="routine-day-badge">HOY</em> : trained && <em className="routine-day-check" aria-label="Entrenado"><Icon name="check" /></em>}</span>
+            {hasRoutine ? <>
+              <span className="routine-day-thumb">{cover ? <img src={cover} alt="" loading="lazy" /> : <Icon name="dumbbell" />}</span>
+              <span className="routine-day-title">{dayTitle(day)}</span>
+              <span className="routine-day-status">{exerciseCount(day.ejercicios.length)}{minutes ? ` · ${minutes} min` : ''}</span>
+              <span className="routine-day-progress" aria-hidden="true"><span style={{ width: `${progress}%` }} /></span>
+            </> : <span className="routine-day-empty"><Icon name={day.disponible ? 'plus' : 'pause'} />{day.disponible ? 'Disponible' : 'Descanso'}</span>}
           </button>
         })}
         {loading && <div className="routine-loading" role="status">Cargando tu rutina…</div>}
       </div>
     </section>
 
-    {!loading && !loadFailed && <div className="routine-day-content" key={selectedDate.getTime()}>
-      {selectedDay.disponible ? <>
-        <section className={`routine-workout-banner${selectedDay.ejercicios.length ? '' : ' is-available'}`}>
-          <div><span>{dateLabel}{isToday ? ' · Hoy' : ''}</span>
-            <h2>{selectedDay.ejercicios.length ? selectedDay.ejercicios[0].grupoMuscular || 'Entrenamiento' : 'Día disponible'}</h2></div>
-          <div className="routine-workout-meta">
-            <span><Icon name="dumbbell" />{exerciseCount(selectedDay.ejercicios.length)}</span>
-            {selectedDay.horaInicio && selectedDay.horaFin && <span><Icon name="clock" />{formatTime(selectedDay.horaInicio)} – {formatTime(selectedDay.horaFin)}</span>}
+    {!loading && !loadFailed && <div className="routine-layout" key={selectedDate.getTime()}>
+      <div className="routine-main">
+        {selectedDay.disponible ? <>
+          <RoutineHero day={selectedDay} dateLabel={dateLabel} isToday={isToday}
+            completed={selectedDay.ejercicios.filter(item => completedExerciseIds.has(item.idPlanEjercicio)).length}
+            onContinue={continueWorkout} onAdd={openPicker} />
+          <section className="routine-exercise-panel" aria-labelledby="routine-exercises-heading">
+            <div className="routine-exercise-heading">
+              <h3 id="routine-exercises-heading">Ejercicios del día</h3>
+              {selectedDay.ejercicios.length > 1 && <span>Arrastra o usa ⋯ para reordenar</span>}
+            </div>
+            {selectedDay.ejercicios.length ? <ol className="routine-exercise-list">
+              {selectedDay.ejercicios.map((exercise, index) => {
+                const done = isToday && completedExerciseIds.has(exercise.idPlanEjercicio)
+                const image = exerciseImage(exercise.nombre)
+                return <li key={exercise.idEjercicio} id={exercise.idPlanEjercicio ? `routine-exercise-${exercise.idPlanEjercicio}` : undefined}
+                  className={[addedId === exercise.idEjercicio && 'routine-exercise-added', done && 'is-done', dragIndex === index && 'is-dragging'].filter(Boolean).join(' ')}
+                  draggable={!saving && !generating}
+                  onDragStart={event => { setDragIndex(index); event.dataTransfer.effectAllowed = 'move' }}
+                  onDragOver={event => { if (dragIndex !== null) event.preventDefault() }}
+                  onDrop={event => { event.preventDefault(); if (dragIndex !== null) moveExercise(dragIndex, index); setDragIndex(null) }}
+                  onDragEnd={() => setDragIndex(null)}>
+                  <span className="routine-exercise-grip" aria-hidden="true">⋮⋮</span>
+                  <span className="routine-exercise-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="routine-exercise-thumb">{image ? <img src={image} alt="" loading="lazy" /> : <Icon name="dumbbell" />}</span>
+                  <div className="routine-exercise-description">
+                    <strong>{exercise.nombre}{exercise.origen === 'IA' && <span className="routine-ai-tag" title="Propuesto por el generador de rutinas">IA</span>}</strong>
+                    <div className="routine-exercise-tags">
+                      {exercise.grupoMuscular && <span><i style={{ background: groupColor(exercise.grupoMuscular) }} />{exercise.grupoMuscular}</span>}
+                      <span>{measureLabel(exercise)}</span>
+                      <span><Icon name="clock" />{exercise.descansoSegundos === 0 ? 'Sin descanso' : `${exercise.descansoSegundos} s`}</span>
+                    </div>
+                  </div>
+                  <div className="routine-exercise-actions">
+                    {isToday && exercise.idPlanEjercicio && (done
+                      ? <span className="routine-exercise-completed"><Icon name="check" />Realizado</span>
+                      : <button type="button" className="routine-complete-exercise"
+                        disabled={saving || generating || completingExerciseId !== null}
+                        onClick={() => completeExercise(exercise)}
+                        aria-label={`Marcar ${exercise.nombre} como realizado`}>
+                        <Icon name={completingExerciseId === exercise.idPlanEjercicio ? 'clock' : 'check'} />
+                        {completingExerciseId === exercise.idPlanEjercicio ? 'Guardando…' : 'Marcar realizado'}
+                      </button>)}
+                    <details className="routine-exercise-menu"
+                      onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false }}>
+                      <summary aria-label={`Más acciones para ${exercise.nombre}`}>⋯</summary>
+                      <div>
+                        <button type="button" disabled={index === 0 || saving}
+                          onClick={event => { moveExercise(index, index - 1); event.currentTarget.closest('details').open = false }}>Subir</button>
+                        <button type="button" disabled={index === selectedDay.ejercicios.length - 1 || saving}
+                          onClick={event => { moveExercise(index, index + 1); event.currentTarget.closest('details').open = false }}>Bajar</button>
+                        <button type="button" className="is-danger" disabled={saving || completingExerciseId !== null}
+                          onClick={() => removeExercise(exercise.idEjercicio)}>Quitar de la rutina</button>
+                      </div>
+                    </details>
+                  </div>
+                </li>
+              })}
+            </ol> : <div className="routine-empty-day"><span><Icon name="dumbbell" /></span>
+              <strong>Aún no agregaste ejercicios</strong><p>Elige ejercicios del catálogo o genera tu rutina con IA.</p>
+            </div>}
+          </section>
+        </> : <section className="routine-rest-panel">
+          <div><span className="routine-rest-kicker">{dateLabel}</span>
+            <h2>Día de descanso</h2><p>No marcaste este día como disponible para entrenar.</p>
+            <button type="button" onClick={() => onNavigate?.('disponibilidad')}>Configurar disponibilidad <Icon name="arrow" /></button>
           </div>
-        </section>
-        <section className="routine-exercise-panel" aria-labelledby="routine-exercises-heading">
-          <div className="routine-exercise-heading">
-            <h3 id="routine-exercises-heading">Ejercicios del día</h3>
-            <button type="button" ref={addTrigger} className="routine-add-button" onClick={openPicker} disabled={saving || generating}>
-              <Icon name="plus" />Agregar ejercicio
-            </button>
-          </div>
-          {selectedDay.ejercicios.length ? <ol className="routine-exercise-list">
-            {selectedDay.ejercicios.map((exercise, index) => <li key={exercise.idEjercicio}
-              className={addedId === exercise.idEjercicio ? 'routine-exercise-added' : undefined}>
-              <span className="routine-exercise-index" aria-hidden="true">{index + 1}</span>
-              <div className="routine-exercise-description">
-                <strong>{exercise.nombre}{exercise.origen === 'IA' && <span className="routine-ai-tag" title="Propuesto por el generador de rutinas">IA</span>}</strong>
-                <small>{exercise.series} {exercise.series === 1 ? 'serie' : 'series'} × {exercise.tipoMedicion === 'TIEMPO' ? `${exercise.segundos} s` : `${exercise.repeticiones} rep.`}
-                  {' · '}{exercise.descansoSegundos === 0 ? 'Sin descanso' : `Descanso ${exercise.descansoSegundos} s`}</small>
-              </div>
-              {exercise.grupoMuscular && <span className="routine-exercise-tag">{exercise.grupoMuscular}</span>}
-              <div className="routine-exercise-actions">
-                {isToday && exercise.idPlanEjercicio && (completedExerciseIds.has(exercise.idPlanEjercicio)
-                  ? <span className="routine-exercise-completed"><Icon name="check" />Realizado</span>
-                  : <button type="button" className="routine-complete-exercise"
-                    disabled={saving || generating || completingExerciseId !== null}
-                    onClick={() => completeExercise(exercise)}
-                    aria-label={`Marcar ${exercise.nombre} como realizado`}>
-                    <Icon name={completingExerciseId === exercise.idPlanEjercicio ? 'clock' : 'check'} />
-                    {completingExerciseId === exercise.idPlanEjercicio ? 'Guardando…' : 'Marcar realizado'}
-                  </button>)}
-                <button type="button" className="routine-remove-exercise" disabled={saving || completingExerciseId !== null}
-                  onClick={() => removeExercise(exercise.idEjercicio)} aria-label={`Quitar ${exercise.nombre}`}><Icon name="close" /></button>
-              </div>
-            </li>)}
-          </ol> : <div className="routine-empty-day"><span><Icon name="dumbbell" /></span>
-            <strong>Aún no agregaste ejercicios</strong><p>Elige ejercicios del catálogo para armar tu sesión de este día.</p>
-          </div>}
-        </section>
-      </> : <section className="routine-rest-panel">
-        <div><span className="routine-rest-kicker">{dateLabel}</span>
-          <h2>Día de descanso</h2><p>No marcaste este día como disponible para entrenar.</p>
-          <button type="button" onClick={() => onNavigate?.('disponibilidad')}>Configurar disponibilidad <Icon name="arrow" /></button>
-        </div>
-        <span className="routine-rest-icon"><Icon name="pause" /></span>
-      </section>}
+          <span className="routine-rest-icon"><Icon name="pause" /></span>
+        </section>}
 
-      {!selectedDay.ejercicios.length && nextWorkout && <section className="routine-next-workout">
-        <span className="routine-next-icon"><Icon name="dumbbell" /></span>
-        <div><small>Próximo entrenamiento disponible</small>
-          <strong>{formatDate(nextWorkout.date, { weekday: 'long', day: 'numeric' })} · {exerciseCount(nextWorkout.day.ejercicios.length)}</strong>
-          {nextWorkout.day.horaInicio && nextWorkout.day.horaFin && <span>{formatTime(nextWorkout.day.horaInicio)} – {formatTime(nextWorkout.day.horaFin)}</span>}</div>
-        <button type="button" onClick={() => selectDate(nextWorkout.date)}>Ver ese día <Icon name="arrow" /></button>
-      </section>}
+        {!selectedDay.ejercicios.length && nextWorkout && <section className="routine-next-workout">
+          <span className="routine-next-icon"><Icon name="dumbbell" /></span>
+          <div><small>Próximo entrenamiento disponible</small>
+            <strong>{formatDate(nextWorkout.date, { weekday: 'long', day: 'numeric' })} · {exerciseCount(nextWorkout.day.ejercicios.length)}</strong>
+            {nextWorkout.day.horaInicio && nextWorkout.day.horaFin && <span>{formatTime(nextWorkout.day.horaInicio)} – {formatTime(nextWorkout.day.horaFin)}</span>}</div>
+          <button type="button" onClick={() => selectDate(nextWorkout.date)}>Ver ese día <Icon name="arrow" /></button>
+        </section>}
+      </div>
+
+      <aside className="routine-side">
+        {selectedDay.ejercicios.length > 0 && <DaySummary day={selectedDay} isToday={isToday}
+          completed={selectedDay.ejercicios.filter(item => completedExerciseIds.has(item.idPlanEjercicio)).length} />}
+        <section className={`routine-ai${proposal ? ' has-proposal' : ''}`} aria-live="polite">
+          <div className="routine-ai-head"><span className="routine-ai-icon"><Icon name="sparkles" /></span>
+            <strong>{proposal ? (proposal.fuente === 'GEMINI' ? 'Propuesta generada con IA' : 'Propuesta generada por reglas') : 'Rutina con IA'}</strong></div>
+          <p>{proposal ? proposal.mensaje : 'Te proponemos una semana de entrenamiento según tu perfil, tus horarios y el catálogo del gimnasio. Podrás revisarla antes de guardarla.'}</p>
+          <button type="button" className="routine-ai-button" onClick={generate}
+            disabled={loading || loadFailed || saving || generating || availableCount === 0}
+            title={availableCount === 0 ? 'Configura tu disponibilidad para generar una rutina' : undefined}>
+            <Icon name={generating ? 'clock' : 'sparkles'} />{generating ? 'Generando…' : proposal ? 'Generar otra' : 'Generar con IA'}
+          </button>
+          <small>Rutina orientativa. Si tienes lesiones o dudas de salud, consulta con un entrenador.</small>
+        </section>
+        {selectedDay.disponible && <button type="button" ref={addTrigger} className="routine-add-button routine-side-add" onClick={openPicker} disabled={saving || generating}>
+          <Icon name="plus" />Agregar ejercicio
+        </button>}
+      </aside>
     </div>}
 
     {showExerciseDialog && <dialog ref={dialog} className="routine-exercise-dialog" aria-labelledby="exercise-picker-title"
@@ -479,11 +553,74 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
     </dialog>}
 
     <footer className="routine-actions">
-      <span>{availableCount} {availableCount === 1 ? 'día disponible' : 'días disponibles'} · La rutina se repite cada semana</span>
+      <span>{availableCount} {availableCount === 1 ? 'día de entrenamiento' : 'días de entrenamiento'} · La rutina se repite cada semana{dirty ? ' · Tienes cambios sin guardar' : ''}</span>
       <div><button type="button" className="routine-reset" disabled={!dirty || loading || saving || generating} onClick={reset}>Restablecer</button>
         <button type="button" className="routine-save" disabled={!dirty || loading || saving || generating} onClick={save}>
           <Icon name={saving ? 'clock' : 'check'} />{saving ? 'Guardando…' : 'Guardar rutina'}
         </button></div>
     </footer>
+  </section>
+}
+
+/** Portada del día: ilustración, grupos, totales y avance de hoy. */
+function RoutineHero({ day, dateLabel, isToday, completed, onContinue, onAdd }) {
+  const exercises = day.ejercicios
+  const cover = exercises.map(item => exerciseImage(item.nombre)).find(Boolean)
+  const minutes = minutesBetween(day.horaInicio, day.horaFin)
+  const totalSeries = exercises.reduce((sum, item) => sum + Number(item.series || 0), 0)
+  const hasAi = exercises.some(item => item.origen === 'IA')
+  const allDone = exercises.length > 0 && completed === exercises.length
+  return <section className={`routine-hero${exercises.length ? '' : ' is-empty'}`}>
+    {cover && <div className="routine-hero-cover"><img src={cover} alt="" /></div>}
+    <div className="routine-hero-copy">
+      <span className="routine-hero-kicker">{dateLabel}{isToday ? ' · Hoy' : ''}{day.horaInicio && day.horaFin ? ` · ${formatTime(day.horaInicio)} – ${formatTime(day.horaFin)}` : ''}</span>
+      <h2>{exercises.length ? dayTitle(day) : 'Día disponible'}</h2>
+      {exercises.length > 0 ? <>
+        <ul className="routine-hero-chips">
+          <li><Icon name="dumbbell" />{exerciseCount(exercises.length)}</li>
+          <li><Icon name="activity" />{totalSeries} series</li>
+          {minutes && <li><Icon name="clock" />{minutes} min</li>}
+          {hasAi && <li><Icon name="sparkles" />IA</li>}
+        </ul>
+        {isToday && <div className="routine-hero-progress">
+          <span><strong>{completed} de {exercises.length}</strong> ejercicios realizados</span>
+          <span className="routine-hero-bar" aria-hidden="true"><span style={{ width: `${completed / exercises.length * 100}%` }} /></span>
+        </div>}
+        {isToday && (allDone
+          ? <p className="routine-hero-done"><Icon name="check" />¡Entrenamiento de hoy completado!</p>
+          : <button type="button" className="routine-hero-button" onClick={onContinue}>
+            <Icon name="arrow" />{completed ? 'Continuar entrenamiento' : 'Empezar entrenamiento'}</button>)}
+      </> : <>
+        <p className="routine-hero-note">Agrega ejercicios del catálogo o genera tu semana con IA.</p>
+        <button type="button" className="routine-hero-button" onClick={onAdd}><Icon name="plus" />Agregar ejercicio</button>
+      </>}
+    </div>
+  </section>
+}
+
+/** Totales del día y reparto por grupo muscular. */
+function DaySummary({ day, isToday, completed }) {
+  const minutes = minutesBetween(day.horaInicio, day.horaFin)
+  const totalSeries = day.ejercicios.reduce((sum, item) => sum + Number(item.series || 0), 0)
+  const groups = Object.entries(day.ejercicios.reduce((counts, item) => {
+    const group = item.grupoMuscular || 'Otros'
+    return { ...counts, [group]: (counts[group] ?? 0) + 1 }
+  }, {})).sort((a, b) => b[1] - a[1])
+  const max = Math.max(...groups.map(([, count]) => count))
+  return <section className="routine-summary" aria-labelledby="routine-summary-heading">
+    <h3 id="routine-summary-heading">Resumen del día</h3>
+    <dl className="routine-summary-stats">
+      <div><dt>series</dt><dd>{totalSeries}</dd></div>
+      <div><dt>minutos</dt><dd>{minutes ?? '—'}</dd></div>
+      <div><dt>{isToday ? 'hechos' : 'ejercicios'}</dt><dd>{isToday ? `${completed}/${day.ejercicios.length}` : day.ejercicios.length}</dd></div>
+    </dl>
+    <p className="routine-summary-label">Grupos trabajados</p>
+    <ul className="routine-summary-groups">
+      {groups.map(([group, count]) => <li key={group}>
+        <span><i style={{ background: groupColor(group) }} />{group}</span>
+        <span className="routine-summary-bar" aria-hidden="true"><span style={{ width: `${count / max * 100}%`, background: groupColor(group) }} /></span>
+        <strong>{count}</strong>
+      </li>)}
+    </ul>
   </section>
 }

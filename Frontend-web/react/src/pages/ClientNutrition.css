@@ -1,7 +1,8 @@
 .client-nutrition { display: grid; gap: 16px; min-width: 0; color: #16233b; }
 .nutrition-toolbar, .nutrition-date-control { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .nutrition-toolbar { justify-content: space-between; gap: 12px; }
-.nutrition-date-control label { color: #233754; font-weight: 600; text-transform: capitalize; }
+.nutrition-date-control label { display: inline-block; color: #233754; font-weight: 600; }
+.nutrition-date-control label::first-letter, .nutrition-dialog-date::first-letter { text-transform: uppercase; }
 .nutrition-date-control button, .nutrition-date-control input[type='date'] {
   display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0;
   border: 1px solid #d2deed; border-radius: 8px; background: #fff; color: #20579c;
@@ -22,7 +23,7 @@
 .client-nutrition .nutrition-overview-daily {
   --protein: #55d2ac; --carbs: #76a7ff; --fats: #ffc080;
   grid-template-columns: minmax(92px, 126px) minmax(0, 1fr);
-  gap: 18px; padding: 22px 26px; border: 0; border-radius: 16px; background: #0b1427; color: #fff;
+  gap: 18px; padding: 22px 26px; border: 0; border-radius: 20px; background: radial-gradient(120% 140% at 100% 0%, #1a2a4a 0%, #0b0d12 55%); color: #fff;
 }
 .client-nutrition .nutrition-overview-daily:has(.client-nutrition-breakdown:only-child) { grid-template-columns: 1fr; }
 .nutrition-overview-daily .client-nutrition-breakdown {
@@ -30,7 +31,7 @@
 }
 .nutrition-overview-daily h2 { color: #fff; font: 700 29px/1 'Barlow Condensed', sans-serif; text-transform: uppercase; }
 .nutrition-overview-daily .client-nutrition-ring { max-width: 100%; }
-.nutrition-overview-daily .client-nutrition-ring > div { background: #0b1427; color: #fff; }
+.nutrition-overview-daily .client-nutrition-ring > div { background: #0d1017; color: #fff; }
 .nutrition-overview-daily .client-nutrition-ring strong { font: 700 clamp(24px, 3vw, 36px)/1 'Barlow Condensed', sans-serif; }
 .nutrition-overview-daily .nutrition-daily-kcal { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px; margin: 4px 0 0; color: #d3dff2; }
 .nutrition-daily-kcal strong { font: 700 clamp(37px, 5vw, 53px)/1 'Barlow Condensed', sans-serif; color: white; }
@@ -96,7 +97,7 @@ body:has(.nutrition-dialog[open]) { overflow: hidden; }
 .nutrition-dialog::backdrop { background: #081326a8; backdrop-filter: blur(4px); }
 .nutrition-delete-dialog { width: min(440px, calc(100% - 24px)); }
 .nutrition-dialog-heading { display: flex; justify-content: space-between; align-items: start; gap: 9px; padding: 17px 21px; border-bottom: 1px solid #e1e9f3; }
-.nutrition-dialog-date { color: #395985; font-size: 12px; text-transform: capitalize; }
+.nutrition-dialog-date { display: inline-block; color: #395985; font-size: 12px; }
 .nutrition-dialog-heading h2 { margin: 3px 0; font: 700 34px/1.05 'Barlow Condensed', sans-serif; text-transform: uppercase; }
 .nutrition-dialog-heading p { margin: 5px 0 0; color: #53627b; font-size: 14px; overflow-wrap: anywhere; }
 .nutrition-dialog-close { display: grid; place-items: center; flex: none; width: 37px; height: 37px; padding: 0; border: 0; border-radius: 8px; color: #53627b; background: transparent; }
