@@ -97,14 +97,59 @@ Mantén Spring y Django ejecutándose en sus respectivas terminales y continúa 
 
 ## Acceso web con Google de Tecsup
 
-El botón de Google está disponible en el login y en el registro de React. Django valida el token de Google y exige que tanto el correo como el dominio administrado de Google Workspace correspondan a `tecsup.edu.pe`. Una cuenta nueva completa su fecha de nacimiento y los nombres que falten, y pasa por la aprobación habitual. Para vincular una cuenta existente se requiere su contraseña de YourPeak.
+El botón de Google está disponible en el login y el registro web. Django verifica que Google administre la cuenta bajo `tecsup.edu.pe` y que el correo sea institucional. La fecha de nacimiento sigue siendo obligatoria para cuentas nuevas.
 
-1. Si ya tienes una base de datos YourPeak, ejecuta una vez `Backend-spring/database/yourpeak_acceso_google.sql` antes de arrancar Spring. Agrega el identificador de Google a la tabla de usuarios y conserva sus datos. Para una base nueva, `yourpeak_schema.sql` ya lo incluye.
-2. Crea un cliente OAuth de tipo **Aplicación web** en [Google Auth Platform](https://console.cloud.google.com/auth/clients). Configura los orígenes JavaScript que realmente utilices, como `http://localhost` y `http://localhost:5173` para desarrollo. Abre React con ese mismo origen. Si el cliente está en modo de pruebas y requiere usuarios de prueba, agrega la cuenta institucional con la que probarás.
-3. Define `GOOGLE_OAUTH_CLIENT_ID` en el entorno de Django y define `YOURPEAK_GOOGLE_INTERNAL_KEY` con el mismo secreto aleatorio de al menos 32 caracteres en los entornos de Django y Spring. Una forma de generar este último en PowerShell es ejecutar `python -c "import secrets; print(secrets.token_urlsafe(32))"`. Configura los valores antes de arrancar los servicios y guárdalos fuera del repositorio.
-4. Actualiza las dependencias de Django con `python -m pip install -r requirements.txt` y reinicia Django y Spring. Si omites la configuración de Google, React presenta el formulario de acceso habitual.
+### Configuración inicial
 
-Para probar la integración real, abre React con el origen autorizado y usa una cuenta de Tecsup nueva y una ya registrada. Si Google muestra una cuenta personal en el selector, YourPeak la rechaza en el servidor. El acceso con Google está disponible en la web.
+1. Inicia MySQL en XAMPP y conecta SQLyog o MySQL Workbench a `yourpeak_db`. Si estás actualizando una base existente, comprueba si ya tiene la columna de Google:
+
+   ```sql
+   SHOW COLUMNS FROM yourpeak_db.usuario LIKE 'google_subject';
+   ```
+
+   Si devuelve cero filas, ejecuta [yourpeak_acceso_google.sql](Backend-spring/database/yourpeak_acceso_google.sql) una sola vez. El script agrega la columna y su índice único, y conserva las cuentas existentes. Una base nueva creada con `yourpeak_schema.sql` ya incluye ambos.
+
+2. En [Google Auth Platform](https://console.cloud.google.com/auth/clients), usa el proyecto de Google Cloud de YourPeak. Si el equipo lo administra desde una cuenta personal, en **Público** elige **Externo**. Usa tu cuenta institucional de Tecsup para probar el acceso en YourPeak.
+3. En **Clientes → Crear cliente**, elige **Aplicación web**. Agrega `http://localhost` y `http://localhost:5173` en **Orígenes autorizados de JavaScript** y deja vacías las URI de redireccionamiento. Guarda el **ID de cliente** que termina en `.apps.googleusercontent.com`. Si Google solicita usuarios de prueba, agrega tu cuenta institucional en **Público → Usuarios de prueba**.
+4. En `Backend-django`, actualiza el entorno virtual una vez para instalar la dependencia de Google.
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   ```
+
+### Arranque local en PowerShell
+
+1. Deja MySQL en ejecución. Abre una terminal en `Backend-spring` y otra en `Backend-django`. Si los servidores ya están corriendo, detenlos con **Ctrl+C** en sus respectivas terminales para arrancarlos con la configuración de Google.
+2. En la terminal de **Django**, asigna el ID de cliente de Google.
+
+   ```powershell
+   $env:GOOGLE_OAUTH_CLIENT_ID = "PEGA_AQUI_EL_ID_DE_CLIENTE"
+   ```
+
+3. En la terminal de **Spring**, genera una clave interna de YourPeak y cópiala al portapapeles.
+
+   ```powershell
+   $env:YOURPEAK_GOOGLE_INTERNAL_KEY = python -c "import secrets; print(secrets.token_urlsafe(32))"
+   $env:YOURPEAK_GOOGLE_INTERNAL_KEY | Set-Clipboard
+   ```
+
+4. Vuelve a la terminal de **Django** y escribe las dos líneas siguientes a mano para conservar la clave en el portapapeles. La segunda línea debe devolver `43`.
+
+   ```powershell
+   $env:YOURPEAK_GOOGLE_INTERNAL_KEY = Get-Clipboard
+   $env:YOURPEAK_GOOGLE_INTERNAL_KEY.Length
+   ```
+
+5. Arranca Spring con `.\mvnw.cmd spring-boot:run` y Django con `.\.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000`, cada uno en la terminal que configuraste. En una tercera terminal, arranca React desde `Frontend-web/react` con `npm run dev`.
+
+Las variables de PowerShell duran lo que dura cada terminal. Repite su configuración si cierras las terminales o reinicias la PC. El mismo valor de `YOURPEAK_GOOGLE_INTERNAL_KEY` debe estar en Spring y Django. Esta clave es interna de YourPeak. Para Google se usa el ID de cliente.
+
+### Prueba en el navegador
+
+- Abre [la página principal](http://localhost:5173/) y entra por **Iniciar sesión**, o abre [el login directamente](http://localhost:5173/login). El registro está en [`/registro`](http://localhost:5173/registro).
+- Si Google devuelve `origin_mismatch`, comprueba que la web esté abierta en `localhost:5173`. El origen `127.0.0.1:5173` es distinto para Google.
+- Si el botón no aparece, consulta [la configuración local](http://localhost:5173/api/web/google/config/). Con `"habilitado": false`, revisa las dos variables en la terminal que inició Django.
+- Una cuenta institucional nueva pasa a **Completa tu registro** y luego a **Pendiente de aprobación**. Si el correo ya tiene una cuenta en YourPeak, se pide su contraseña para vincularla. Si Google muestra una cuenta personal en el selector, YourPeak rechaza el acceso.
 
 ## Endpoints de autenticación usados por Django
 
@@ -192,11 +237,11 @@ Inicia el servidor de desarrollo:
 npm run dev
 ```
 
-Abre **http://127.0.0.1:5173/** para ver la bienvenida. Desde la barra superior puedes acceder a **Iniciar sesión** (`/login`) y **Registrarse** (`/registro`). Si ya tienes una sesión iniciada, se muestra tu cuenta o el panel administrativo según tu rol.
+Abre **http://localhost:5173/** para ver la bienvenida. Desde la barra superior puedes acceder a **Iniciar sesión** (`/login`) y **Registrarse** (`/registro`). Si ya tienes una sesión iniciada, se muestra tu cuenta o el panel administrativo según tu rol.
 
 | Servicio | Dirección local |
 |---|---|
-| Frontend React | http://127.0.0.1:5173 |
+| Frontend React | http://localhost:5173 |
 | Backend Django | http://127.0.0.1:8000 |
 | Servicio Spring Boot | http://127.0.0.1:8080 |
 
@@ -369,7 +414,7 @@ La implementacion se apega a las columnas existentes en `plan_membresia`; no cre
 
 ### Interfaz web de planes de membresía
 
-Accede con una cuenta administradora desde **http://127.0.0.1:5173/login** y selecciona **Membresías** en el menú. La pantalla utiliza la ruta `/admin/membresias`. Mantén MySQL, Spring Boot, Django y React ejecutándose; utiliza la misma cuenta administradora preparada en la sección de aprobación de usuarios.
+Accede con una cuenta administradora desde **http://localhost:5173/login** y selecciona **Membresías** en el menú. La pantalla utiliza la ruta `/admin/membresias`. Mantén MySQL, Spring Boot, Django y React ejecutándose; utiliza la misma cuenta administradora preparada en la sección de aprobación de usuarios.
 
 Funciones disponibles:
 
@@ -503,12 +548,12 @@ El proxy de Vite se utiliza durante el desarrollo. Para publicar la web, configu
 
 ### Acceso según rol y estado
 
-Todos utilizan el mismo login: **http://127.0.0.1:5173/login**.
+Todos utilizan el mismo login: **http://localhost:5173/login**.
 
 | Cuenta | Pantalla mostrada |
 |---|---|
 | Administrador | Panel de usuarios en `/admin/usuarios`. |
-| Cliente PENDIENTE | Pantalla de espera en `/pendiente`, con opción de consultar su estado y cerrar sesión. |
+| Cliente PENDIENTE | Pantalla de espera en `/pendiente` con el diseño del login y registro, y opciones para consultar el estado y cerrar sesión. |
 | Cliente ACTIVO con membresía vigente | Inicio del cliente en `/`, con acceso a Mi perfil y Mi membresía. |
 | Cliente INACTIVO o sin acceso habilitado | Mensaje para consultar con la administración. |
 
