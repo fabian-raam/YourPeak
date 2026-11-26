@@ -115,7 +115,7 @@ export default function ClientLayout({ user, section, onNavigate, onLogout, logo
           <h1 id="client-page-title" ref={heading} tabIndex={-1}>{title}</h1>
           <p>{subtitle}</p>
         </div>
-        {section !== 'nutricion' && <a className="client-quick-action" href={clientSections.nutricion.path}
+        {section === 'inicio' && <a className="client-quick-action" href={clientSections.nutricion.path}
           onClick={event => handleNavigation(event, 'nutricion')}>
           <Icon name="plus" /> Registrar alimento
         </a>}
