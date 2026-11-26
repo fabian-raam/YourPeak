@@ -16,16 +16,16 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
     }}><Icon name={icon} /><span>{label}</span>{target === 'usuarios' && pendingCount !== null && <b>{pendingCount}</b>}</a>
   }
 
-  const managementSection = ['usuarios', 'clientes', 'membresias', 'ejercicios', 'alimentos'].includes(section)
+  const managementSection = ['resumen', 'usuarios', 'clientes', 'entrenamientos', 'membresias', 'ejercicios', 'alimentos'].includes(section)
 
   return <div className={`admin-layout${managementSection ? ' admin-management-layout' : ''}`}>
     <aside className="admin-sidebar">
-      <Brand onNavigate={event => { event.preventDefault(); onNavigate('usuarios') }} />
+      <Brand onNavigate={event => { event.preventDefault(); onNavigate('resumen') }} />
       <span className="sidebar-label">ADMINISTRACIÓN</span>
       <nav aria-label="Administración">
-        <button disabled><Icon name="grid" /><span>Resumen</span><small>Próximamente</small></button>
+        {link('resumen', 'Resumen', 'grid')}
         {link('usuarios', 'Usuarios', 'users')}
-        <button disabled><Icon name="activity" /><span>Entrenamientos</span><small>Próximamente</small></button>
+        {link('entrenamientos', 'Entrenamientos', 'activity')}
         {link('membresias', 'Membresías', 'card')}
         {link('ejercicios', 'Ejercicios', 'dumbbell')}
         {link('alimentos', 'Alimentos', 'food')}

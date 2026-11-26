@@ -32,6 +32,12 @@ public class SecurityConfig {
                 .matcher(HttpMethod.GET, "/api/admin/clientes/activos");
         var listarClientesInactivos = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/admin/clientes/inactivos");
+        var consultarResumenAdministrador = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/resumen");
+        var listarEntrenamientosAdministrador = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/entrenamientos");
+        var consultarEntrenamientoAdministrador = PathPatternRequestMatcher.withDefaults()
+                .matcher(HttpMethod.GET, "/api/admin/entrenamientos/{idCliente}");
         var listarPlanes = PathPatternRequestMatcher.withDefaults()
                 .matcher(HttpMethod.GET, "/api/admin/planes-membresia");
         var obtenerPlan = PathPatternRequestMatcher.withDefaults()
@@ -124,6 +130,9 @@ public class SecurityConfig {
                                 obtenerPendiente,
                                 listarClientesActivos,
                                 listarClientesInactivos,
+                                consultarResumenAdministrador,
+                                listarEntrenamientosAdministrador,
+                                consultarEntrenamientoAdministrador,
                                 listarPlanes,
                                 obtenerPlan,
                                 crearPlan,

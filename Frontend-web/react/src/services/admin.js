@@ -11,3 +11,8 @@ export async function listPending() {
 
 export const getPending = id => request(`${base}pendientes/${encodeURIComponent(id)}/`)
 export const approvePending = (id, data) => request(`${base}${encodeURIComponent(id)}/aprobar/`, data)
+
+// Lecturas del panel administrativo, protegidas por la sesión Django.
+export const getAdminOverview = () => request('admin/resumen/')
+export const listAdminTrainings = () => request('admin/entrenamientos/')
+export const getAdminTraining = id => request(`admin/entrenamientos/${encodeURIComponent(id)}/`)

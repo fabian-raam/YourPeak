@@ -5,6 +5,8 @@ import { listPending } from './services/admin'
 import AuthHero from './components/AuthHero'
 import GoogleButton from './components/GoogleButton'
 import UserManagement from './pages/UserManagement'
+import AdminOverview from './pages/AdminOverview'
+import AdminTrainings from './pages/AdminTrainings'
 import MembershipPlans from './pages/MembershipPlans'
 import ExercisesCatalog from './pages/ExercisesCatalog'
 import FoodsCatalog from './pages/FoodsCatalog'
@@ -34,7 +36,7 @@ const localDate = (offset = 0) => {
 
 export default function App() {
   const [pendingCount, setPendingCount] = useState(null)
-  const sectionFromPath = path => ['usuarios', 'clientes', 'membresias', 'ejercicios', 'alimentos', 'practica'].find(section => path === `/admin/${section}`) || 'usuarios'
+  const sectionFromPath = path => ['resumen', 'usuarios', 'clientes', 'entrenamientos', 'membresias', 'ejercicios', 'alimentos', 'practica'].find(section => path === `/admin/${section}`) || 'usuarios'
   const [adminSection, setAdminSection] = useState(sectionFromPath(location.pathname))
   const [clientSection, setClientSection] = useState(() => clientSectionFromPath(location.pathname) || 'inicio')
   const [page, setPage] = useState(publicPageFromPath(location.pathname))
@@ -116,7 +118,7 @@ export default function App() {
   }, [isAdmin, pendingCount, adminSection, sessionExpired])
 
   useEffect(() => {
-    const adminTitles = { membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', practica: 'Práctica React', usuarios: 'Usuarios' }
+    const adminTitles = { resumen: 'Resumen', entrenamientos: 'Entrenamientos', membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', practica: 'Práctica React', usuarios: 'Usuarios' }
     const title = isAdmin ? `${adminTitles[adminSection]} · Administración`
       : isActive ? clientSections[clientSection].label
         : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : accessTitle
@@ -227,7 +229,11 @@ export default function App() {
 
   if (user && isAdmin) return <AdminLayout user={user} section={adminSection} onNavigate={navigateAdmin}
     onLogout={logout} logoutBusy={busy} pendingCount={pendingCount}>
-    {adminSection === 'membresias'
+    {adminSection === 'resumen'
+      ? <AdminOverview onNavigate={navigateAdmin} onExpired={sessionExpired} />
+      : adminSection === 'entrenamientos'
+        ? <AdminTrainings onExpired={sessionExpired} />
+        : adminSection === 'membresias'
       ? <MembershipPlans onExpired={sessionExpired} logoutError={error} />
       : adminSection === 'ejercicios'
           ? <ExercisesCatalog onExpired={sessionExpired} logoutError={error} />
