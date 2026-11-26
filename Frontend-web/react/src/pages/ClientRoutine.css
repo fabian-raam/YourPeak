@@ -70,7 +70,7 @@
 .routine-day-number { color: #14213b; font: 700 30px/1 'Barlow Condensed', sans-serif; }
 .routine-day-card.selected .routine-day-number { color: #fff; }
 .routine-week-days { gap: 10px; grid-template-columns: repeat(7, minmax(85px, 1fr)); overflow-x: auto; padding: 4px; margin-inline: -4px; }
-.routine-workout-banner { background: linear-gradient(115deg, #0b1427 55%, #172e54); }
+.routine-workout-banner { border-color: #0b0d12; border-radius: 20px; background: radial-gradient(120% 160% at 100% 0%, #1a2a4a 0%, #0b0d12 55%); }
 .routine-workout-banner.is-available { border-color: #cfdef3; background: #eaf2ff; }
 .routine-workout-banner.is-available h2 { color: #183868; }
 .routine-workout-banner.is-available span { color: #30517e; }

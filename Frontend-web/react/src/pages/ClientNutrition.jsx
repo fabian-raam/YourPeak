@@ -21,7 +21,7 @@ const localDate = (date = new Date()) => {
 const emptySummary = () => ({ kcal: 0, proteinaG: 0, carbohidratoG: 0, grasaG: 0, ingestas: [] })
 const number = value => Number(value || 0)
 const validQuantity = value => Number(value) >= 0.01 && Number(value) <= 99999
-const amountLabel = value => `${number(value).toLocaleString('es-PE', { maximumFractionDigits: 2 })}`
+const amountLabel = value => `${number(value).toLocaleString('es-PE', { maximumFractionDigits: 1 })}`
 const normalizeSummary = result => ({ ...result, ingestas: Array.isArray(result.ingestas) ? result.ingestas : [] })
 const formatDay = value => new Intl.DateTimeFormat('es-PE', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',

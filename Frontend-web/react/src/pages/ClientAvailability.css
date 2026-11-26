@@ -4,7 +4,7 @@
 
 .availability-summary {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 15px 24px;
-  padding: 20px 24px; border-radius: 12px; background: #0b1427; color: #fff;
+  padding: 20px 24px; border-radius: 20px; background: radial-gradient(120% 160% at 100% 0%, #1a2a4a 0%, #0b0d12 55%); color: #fff;
 }
 .availability-summary h2 {
   margin: 0 0 9px; color: #a8c7ff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
