@@ -264,14 +264,14 @@ export default function App() {
     if (!busy) navigate('inicio')
   }
 
-  return <main className={`auth-layout${!user ? ' auth-layout-access' : ''}${registering ? ' register-layout' : ''}`}>
+  return <main className={`auth-layout auth-layout-access${!user && registering ? ' register-layout' : ''}`}>
     <AuthHero onNavigate={goHome} />
     <section className="form-side" aria-label="Acceso a YourPeak">
       {!user && <a className="auth-home-link" href="/" onClick={goHome}>← Volver al inicio</a>}
       <div className="auth-card" key={loading ? 'loading' : user ? 'profile' : page}>
+        {!loading && <img className="auth-tecsup" src="/assets/home/tecsup.png" alt="Tecsup" width="102" height="30" />}
         {loading ? <p role="status">Comprobando tu sesión…</p> : user ?
           <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : <>
-          <img className="auth-tecsup" src="/assets/home/tecsup.png" alt="Tecsup" width="102" height="30" />
           <h1 id="access-title" tabIndex={googleStep ? -1 : undefined}>{accessTitle}</h1>
           <p className="intro">{completingGoogle ? 'Completa tus datos para crear tu cuenta de YourPeak.'
             : linkingGoogle ? 'Ingresa tu contraseña de YourPeak para vincular tu cuenta de Google.'
