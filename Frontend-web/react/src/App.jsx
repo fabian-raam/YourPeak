@@ -67,7 +67,7 @@ export default function App() {
     history.replaceState({}, '', '/login')
   }, [])
 
-  async function refreshProfile() {
+  const refreshProfile = useCallback(async () => {
     setError('')
     try {
       const data = await request('perfil/')
@@ -78,13 +78,13 @@ export default function App() {
       else setError(err.message)
       return null
     }
-  }
+  }, [sessionExpired])
 
   // La URL refleja el acceso que informa el servidor, no un rol guardado en el navegador.
   useEffect(() => {
     if (loading) return
     const path = user
-      ? isAdmin ? `/admin/${adminSection}` : isActive ? clientSections[clientSection].path : '/pendiente'
+      ? isAdmin ? `/admin/${adminSection}` : isActive ? clientSections[clientSection].path : '/mi-solicitud'
       : clientSectionFromPath(location.pathname) && location.pathname !== '/' ? '/login' : location.pathname
     if (location.pathname !== path) history.replaceState({}, '', path)
   }, [user, isAdmin, isActive, adminSection, clientSection, loading, page])
@@ -121,7 +121,7 @@ export default function App() {
     const adminTitles = { resumen: 'Resumen', entrenamientos: 'Entrenamientos', membresias: 'Planes', clientes: 'Usuarios', ejercicios: 'Ejercicios', alimentos: 'Alimentos', practica: 'Práctica React', usuarios: 'Usuarios' }
     const title = isAdmin ? `${adminTitles[adminSection]} · Administración`
       : isActive ? clientSections[clientSection].label
-        : user ? 'Mi cuenta' : page === 'inicio' ? 'Inicio' : accessTitle
+        : user ? 'Mi solicitud' : page === 'inicio' ? 'Inicio' : accessTitle
     document.title = `${title} | YourPeak`
   }, [user, accessTitle, isAdmin, isActive, adminSection, clientSection, page])
 
@@ -263,6 +263,10 @@ export default function App() {
               : <ClientExercises onExpired={sessionExpired} />}
   </ClientLayout>
 
+  // Cuentas pendientes, rechazadas o sin membresía ven su estado en una página propia.
+  if (user) return <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy}
+    error={error} onExpired={sessionExpired} />
+
   if (!user && page === 'inicio') return <HomePage onNavigate={navigate} />
   const goHome = event => {
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
@@ -274,10 +278,9 @@ export default function App() {
     <AuthHero onNavigate={goHome} />
     <section className="form-side" aria-label="Acceso a YourPeak">
       {!user && <a className="auth-home-link" href="/" onClick={goHome}>← Volver al inicio</a>}
-      <div className="auth-card" key={loading ? 'loading' : user ? 'profile' : page}>
+      <div className="auth-card" key={loading ? 'loading' : page}>
         {!loading && <img className="auth-tecsup" src="/assets/home/tecsup.png" alt="Tecsup" width="102" height="30" />}
-        {loading ? <p role="status">Comprobando tu sesión…</p> : user ?
-          <AccountStatus user={user} onRefresh={refreshProfile} onLogout={logout} busy={busy} error={error} /> : <>
+        {loading ? <p role="status">Comprobando tu sesión…</p> : <>
           <h1 id="access-title" tabIndex={googleStep ? -1 : undefined}>{accessTitle}</h1>
           <p className="intro">{completingGoogle ? 'Completa tus datos para crear tu cuenta de YourPeak.'
             : linkingGoogle ? 'Ingresa tu contraseña de YourPeak para vincular tu cuenta de Google.'
