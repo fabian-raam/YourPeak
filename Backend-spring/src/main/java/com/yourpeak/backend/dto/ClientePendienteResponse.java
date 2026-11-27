@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 
 /**
  * Datos seguros que necesita el panel administrativo para revisar un cliente.
+ * numeroSolicitud indica cuántas veces pidió acceso; motivoRechazoAnterior ayuda a revisar un reintento.
  */
 public record ClientePendienteResponse(
         Long idCliente,
@@ -14,6 +15,10 @@ public record ClientePendienteResponse(
         String correo,
         LocalDate fechaNacimiento,
         LocalDateTime fechaAlta,
-        String estado
+        String estado,
+        int numeroSolicitud,
+        LocalDateTime fechaSolicitud,
+        String mensajeCliente,
+        String motivoRechazoAnterior
 ) {
 }

@@ -8,4 +8,6 @@ public interface TipoEstadoRepository
         extends JpaRepository<TipoEstado, Integer> {
 
     Optional<TipoEstado> findByNombre(String nombre);
+
+    Optional<TipoEstado> findByNombreIgnoreCase(String nombre);
 }

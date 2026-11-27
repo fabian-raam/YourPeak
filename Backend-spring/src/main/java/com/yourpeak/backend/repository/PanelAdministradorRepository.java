@@ -56,6 +56,26 @@ public class PanelAdministradorRepository {
                 )).single();
     }
 
+    /** Cuenta, por fecha, los clientes que registraron al menos una serie ese día. */
+    public Map<LocalDate, Integer> contarSesionesPorDia(LocalDate desde, LocalDate hasta) {
+        Map<LocalDate, Integer> sesiones = new LinkedHashMap<>();
+        jdbc.sql("""
+                SELECT CAST(s.fecha_hora AS DATE) AS fecha, COUNT(DISTINCT p.id_cliente) AS sesiones
+                FROM serie_realizada s
+                JOIN plan_entrenamiento_ejercicio pe ON pe.id_plan_ejercicio = s.id_plan_ejercicio
+                JOIN plan_entrenamiento_dia d ON d.id_plan_dia = pe.id_plan_dia
+                JOIN plan_entrenamiento p ON p.id_plan_entrenamiento = d.id_plan_entrenamiento
+                WHERE s.fecha_hora >= :inicio AND s.fecha_hora < :fin
+                GROUP BY CAST(s.fecha_hora AS DATE)
+                """)
+                .param("inicio", desde.atStartOfDay())
+                .param("fin", hasta.plusDays(1).atStartOfDay())
+                .query(rs -> {
+                    sesiones.put(rs.getObject("fecha", LocalDate.class), rs.getInt("sesiones"));
+                });
+        return sesiones;
+    }
+
     public List<EntrenamientoAdministradorResponse> listarEntrenamientos() {
         LocalDateTime desde = LocalDate.now(ZONA_LIMA).minusDays(29).atStartOfDay();
         return jdbc.sql("""

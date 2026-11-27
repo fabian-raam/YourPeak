@@ -172,6 +172,10 @@ public class SecurityConfig {
                                 registrarProgresoCliente
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/admin/clientes/*/aprobar").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/admin/clientes/*/rechazar").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/admin/actividad").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cliente/solicitud").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/cliente/solicitud").permitAll()
                         .anyRequest().denyAll()
                 );
 

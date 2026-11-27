@@ -5,6 +5,7 @@ import com.yourpeak.backend.model.TipoEstado;
 import com.yourpeak.backend.model.Usuario;
 import com.yourpeak.backend.repository.AdministradorRepository;
 import com.yourpeak.backend.repository.ClienteRepository;
+import com.yourpeak.backend.repository.SolicitudAccesoRepository;
 import com.yourpeak.backend.repository.TipoEstadoRepository;
 import com.yourpeak.backend.service.AprobacionService;
 import com.yourpeak.backend.service.MembresiaService;
@@ -27,12 +28,43 @@ class AprobacionServicioTests {
     private final ClienteRepository clientes = mock(ClienteRepository.class);
     private final TipoEstadoRepository estados = mock(TipoEstadoRepository.class);
     private final MembresiaService membresias = mock(MembresiaService.class);
+    private final SolicitudAccesoRepository solicitudes = mock(SolicitudAccesoRepository.class);
     private final AprobacionService servicio = new AprobacionService(
             administradores,
             clientes,
             estados,
-            membresias
+            membresias,
+            solicitudes
     );
+
+    {
+        when(solicitudes.save(org.mockito.ArgumentMatchers.any())).thenAnswer(llamada -> llamada.getArgument(0));
+    }
+
+    @Test
+    void administradorPuedeRechazarClientePendiente() {
+        Cliente cliente = clienteConEstado("PENDIENTE");
+        TipoEstado rechazado = estado("RECHAZADO");
+        when(administradores.existsByUsuario_IdUsuario(7L)).thenReturn(true);
+        when(clientes.findBloqueadoByIdCliente(12L)).thenReturn(Optional.of(cliente));
+        when(estados.findByNombreIgnoreCase("RECHAZADO")).thenReturn(Optional.of(rechazado));
+
+        servicio.rechazarCliente(12L, "  Falta el pago  ", 7L);
+
+        assertEquals("RECHAZADO", cliente.getTipoEstado().getNombre());
+        verify(solicitudes).save(org.mockito.ArgumentMatchers.argThat(solicitud ->
+                "RECHAZADA".equals(solicitud.getEstado()) && "Falta el pago".equals(solicitud.getMotivoRechazo())));
+    }
+
+    @Test
+    void clienteActivoNoSePuedeRechazar() {
+        Cliente activo = clienteConEstado("ACTIVO");
+        when(administradores.existsByUsuario_IdUsuario(7L)).thenReturn(true);
+        when(clientes.findBloqueadoByIdCliente(12L)).thenReturn(Optional.of(activo));
+
+        assertEquals(409, assertThrows(ResponseStatusException.class,
+                () -> servicio.rechazarCliente(12L, "Motivo", 7L)).getStatusCode().value());
+    }
 
     @Test
     void administradorPuedeAprobarClientePendiente() {
