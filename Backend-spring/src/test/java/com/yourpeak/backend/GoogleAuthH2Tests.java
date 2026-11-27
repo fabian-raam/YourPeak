@@ -4,7 +4,10 @@ import com.yourpeak.backend.dto.GoogleAuthRequest;
 import com.yourpeak.backend.dto.LoginRequest;
 import com.yourpeak.backend.dto.RegistroRequest;
 import com.yourpeak.backend.repository.UsuarioRepository;
+import com.jayway.jsonpath.JsonPath;
 import com.yourpeak.backend.service.GoogleAuthService;
+import com.yourpeak.backend.service.GoogleMobileTokenVerifier;
+import com.yourpeak.backend.service.GoogleMobileTokenVerifier.Identity;
 import com.yourpeak.backend.service.LoginService;
 import com.yourpeak.backend.service.RegistroService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,6 +25,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -45,6 +51,7 @@ class GoogleAuthH2Tests {
     @Autowired UsuarioRepository usuarios;
     @Autowired MockMvc mvc;
     @Autowired JdbcTemplate jdbc;
+    @MockitoBean GoogleMobileTokenVerifier mobileTokens;
 
     @BeforeEach
     void prepararEstadoPendiente() {
@@ -105,6 +112,68 @@ class GoogleAuthH2Tests {
                 .header("X-Google-Internal-Key", "clave-interna-solo-pruebas-google"))
                 .andExpect(status().isOk());
         assertFalse(usuarios.existsByCorreo(EMAIL));
+    }
+
+    @Test
+    void registroMovilCreaCuentaCompartidaYConsumeLaSolicitud() throws Exception {
+        String nonce = mobileChallenge();
+        when(mobileTokens.verify("token", nonce)).thenReturn(new Identity("1300", EMAIL, "Ana", "Torres"));
+        String token = """
+                {"credential":"token","nonce":"%s"}
+                """.formatted(nonce);
+        String response = mvc.perform(post("/api/auth/google/mobile/login").contentType(MediaType.APPLICATION_JSON)
+                .content(token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("completar"))
+                .andExpect(jsonPath("$.perfil.correo").value(EMAIL))
+                .andReturn().getResponse().getContentAsString();
+        assertFalse(usuarios.existsByCorreo(EMAIL));
+        mvc.perform(post("/api/auth/google/mobile/login").contentType(MediaType.APPLICATION_JSON)
+                .content(token)).andExpect(status().isGone());
+
+        String flowId = JsonPath.read(response, "$.flowId");
+        String completion = """
+                {"flowId":"%s","nombre":"Ana","apellido":"Torres","fechaNacimiento":"2000-05-01"}
+                """.formatted(flowId);
+        mvc.perform(post("/api/auth/google/mobile/complete").contentType(MediaType.APPLICATION_JSON)
+                .content(completion))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuario.estado").value("pendiente"));
+        mvc.perform(post("/api/auth/google/mobile/complete").contentType(MediaType.APPLICATION_JSON)
+                .content(completion)).andExpect(status().isGone());
+        assertEquals(usuarios.findByCorreo(EMAIL).orElseThrow().getIdUsuario(),
+                google.authenticate(solicitud("1300", null, null)).usuario().idUsuario());
+    }
+
+    @Test
+    void cuentaExistentePideVinculacionYConservaElLoginConContrasena() throws Exception {
+        var cuenta = registro.registrar(new RegistroRequest("Ana", "Torres", NACIMIENTO, EMAIL, PASSWORD));
+        String nonce = mobileChallenge();
+        when(mobileTokens.verify("token", nonce)).thenReturn(new Identity("1400", EMAIL, "Ana", "Torres"));
+        String response = mvc.perform(post("/api/auth/google/mobile/login").contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"credential":"token","nonce":"%s"}
+                        """.formatted(nonce)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("vincular"))
+                .andReturn().getResponse().getContentAsString();
+        String flowId = JsonPath.read(response, "$.flowId");
+        mvc.perform(post("/api/auth/google/mobile/complete").contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {"flowId":"%s","contrasena":"%s"}
+                        """.formatted(flowId, PASSWORD)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuario.idUsuario").value(cuenta.idUsuario().intValue()));
+        assertEquals(cuenta.idUsuario(), login.autenticar(new LoginRequest(EMAIL, PASSWORD)).orElseThrow().idUsuario());
+        assertEquals(1, usuarios.count());
+    }
+
+    private String mobileChallenge() throws Exception {
+        when(mobileTokens.clientId()).thenReturn("web-client");
+        String response = mvc.perform(post("/api/auth/google/mobile/challenge"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return JsonPath.read(response, "$.nonce");
     }
 
     private GoogleAuthRequest solicitud(String subject, LocalDate fecha, String contrasena) {

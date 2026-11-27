@@ -120,10 +120,10 @@ El botón de Google está disponible en el login y el registro web. Django verif
 ### Arranque local en PowerShell
 
 1. Deja MySQL en ejecución. Abre una terminal en `Backend-spring` y otra en `Backend-django`. Si los servidores ya están corriendo, detenlos con **Ctrl+C** en sus respectivas terminales para arrancarlos con la configuración de Google.
-2. En la terminal de **Django**, asigna el ID de cliente de Google.
+2. En la terminal de **Django**, asigna el ID OAuth de tipo **Aplicación web** de YourPeak.
 
    ```powershell
-   $env:GOOGLE_OAUTH_CLIENT_ID = "PEGA_AQUI_EL_ID_DE_CLIENTE"
+   $env:GOOGLE_OAUTH_CLIENT_ID = "PEGA_AQUI_EL_ID_DEL_CLIENTE_WEB"
    ```
 
 3. En la terminal de **Spring**, genera una clave interna de YourPeak y cópiala al portapapeles.
@@ -150,6 +150,14 @@ Las variables de PowerShell duran lo que dura cada terminal. Repite su configura
 - Si Google devuelve `origin_mismatch`, comprueba que la web esté abierta en `localhost:5173`. El origen `127.0.0.1:5173` es distinto para Google.
 - Si el botón no aparece, consulta [la configuración local](http://localhost:5173/api/web/google/config/). Con `"habilitado": false`, revisa las dos variables en la terminal que inició Django.
 - Una cuenta institucional nueva pasa a **Completa tu registro** y luego a **Pendiente de aprobación**. Si el correo ya tiene una cuenta en YourPeak, se pide su contraseña para vincularla. Si Google muestra una cuenta personal en el selector, YourPeak rechaza el acceso.
+
+### Acceso con Google en Android
+
+En Google Auth Platform, usa un **cliente OAuth Android** del mismo proyecto que el cliente web. Puedes reutilizarlo si ya tiene registrados el paquete `com.ramirez.yourpeak` y el SHA-1 del certificado con el que firmaste la app. Para obtener el SHA-1 de una compilación debug, ejecuta `.\gradlew.bat :app:signingReport` desde `Mobile`.
+
+En la terminal de `Backend-spring`, configura `GOOGLE_OAUTH_CLIENT_ID` con el mismo ID de tipo **Aplicación web** que usaste en Django y reinicia Spring Boot. Spring le entrega ese ID a la app en cada intento. Si Logcat muestra `You must use a Web client`, revisa el valor en la terminal que arrancó Spring y vuelve a probar después de reiniciarlo.
+
+La app reutiliza las cuentas de YourPeak y sigue el flujo de aprobación cuando el registro es nuevo. Aplica la migración de Google si la base aún no tiene `google_subject`.
 
 ## Endpoints de autenticación usados por Django
 

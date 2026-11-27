@@ -1,5 +1,9 @@
 package com.ramirez.yourpeak.data.network
 
+import com.ramirez.yourpeak.data.model.GoogleAuthResponse
+import com.ramirez.yourpeak.data.model.GoogleChallenge
+import com.ramirez.yourpeak.data.model.GoogleCompleteRequest
+import com.ramirez.yourpeak.data.model.GoogleTokenRequest
 import com.ramirez.yourpeak.data.model.LoginRequest
 import com.ramirez.yourpeak.data.model.LoginResponse
 import com.ramirez.yourpeak.data.model.MembresiaPeriodoResponse
@@ -33,6 +37,15 @@ import retrofit2.http.PUT
 
 /** Endpoints públicos de autenticación expuestos por Spring Boot. */
 interface ApiService {
+
+    @POST("api/auth/google/mobile/challenge")
+    suspend fun googleChallenge(): Response<GoogleChallenge>
+
+    @POST("api/auth/google/mobile/login")
+    suspend fun googleLogin(@Body request: GoogleTokenRequest): Response<GoogleAuthResponse>
+
+    @POST("api/auth/google/mobile/complete")
+    suspend fun googleComplete(@Body request: GoogleCompleteRequest): Response<GoogleAuthResponse>
 
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
