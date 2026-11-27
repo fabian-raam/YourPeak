@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,7 +28,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -149,20 +150,21 @@ fun ContenidoEstadoCuenta(
                 )
 
                 if (esCliente) {
-                    Row(Modifier.clip(RoundedCornerShape(12.dp)).background(CarbonCampo)) {
+                    Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CarbonCampo).padding(4.dp)) {
                         listOf("Estado", "Historial (${historial.size})").forEachIndexed { indice, texto ->
-                            Tab(
-                                selected = pestana == indice,
-                                onClick = { pestana = indice },
-                                modifier = Modifier
-                                    .padding(4.dp)
+                            val activa = pestana == indice
+                            Box(
+                                Modifier
+                                    .weight(1f)
                                     .clip(RoundedCornerShape(9.dp))
-                                    .background(if (pestana == indice) Color.White else Color.Transparent)
+                                    .background(if (activa) Color.White else Color.Transparent)
+                                    .selectable(selected = activa, role = Role.Tab) { pestana = indice }
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     texto,
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                                    color = if (pestana == indice) Color.Black else TextoSecundario,
+                                    color = if (activa) Color.Black else TextoSecundario,
                                     fontWeight = FontWeight.SemiBold,
                                     fontSize = 14.sp
                                 )

@@ -26,6 +26,8 @@ import com.ramirez.yourpeak.data.model.RegistroProgresoResponse
 import com.ramirez.yourpeak.data.model.RegistroRequest
 import com.ramirez.yourpeak.data.model.RegistroResponse
 import com.ramirez.yourpeak.data.model.NuevaSolicitudAccesoRequest
+import com.ramirez.yourpeak.data.model.AsistenteRequest
+import com.ramirez.yourpeak.data.model.AsistenteResponse
 import com.ramirez.yourpeak.data.model.SolicitudAccesoResponse
 import retrofit2.Response
 import retrofit2.http.Body
@@ -206,4 +208,12 @@ interface ApiService {
         @Header("X-Client-User-Id") idUsuario: Long,
         @Body request: NuevaSolicitudAccesoRequest
     ): Response<SolicitudAccesoResponse>
+
+    /** Chat con IA limitado a alimentación y ejercicio. */
+    @POST("api/cliente/asistente")
+    suspend fun preguntarAsistente(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Body request: AsistenteRequest
+    ): Response<AsistenteResponse>
 }
