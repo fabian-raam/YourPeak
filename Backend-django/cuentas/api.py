@@ -40,7 +40,7 @@ def spring_error(exception):
         data = json.loads(exception.read().decode("utf-8"))
     except (ValueError, UnicodeDecodeError):
         data = {}
-    status = exception.code if exception.code in (400, 401, 403, 404, 409) else 502
+    status = exception.code if exception.code in (400, 401, 403, 404, 409, 429) else 502
     return error(data.get("detail", "No se pudo completar la solicitud."), status, data.get("campos"))
 
 
@@ -82,8 +82,8 @@ def _headers_administrador(id_usuario):
     }
 
 
-def _validar_cliente_activo(request):
-    """Obtiene el cliente de la sesión y confirma en Spring su rol y estado actuales."""
+def _validar_cliente(request, exigir_activo=True):
+    """Obtiene el cliente de la sesión y confirma en Spring su rol (y, si se pide, que esté activo)."""
     id_usuario = request.session.get("id_usuario")
     if not id_usuario:
         return None, error("Inicia sesión como cliente para continuar.", 401)
@@ -106,10 +106,14 @@ def _validar_cliente_activo(request):
 
     if usuario.get("rol") != "CLIENTE":
         return None, error("Esta función es exclusiva para cuentas de cliente.", 403)
-    if usuario.get("estado") != "ACTIVO":
+    if exigir_activo and usuario.get("estado") != "ACTIVO":
         return None, error("Tu cuenta no está activa y no puede usar esta función.", 403)
 
     return id_usuario, None
+
+
+def _validar_cliente_activo(request):
+    return _validar_cliente(request)
 
 
 def _headers_cliente(id_usuario):
@@ -470,6 +474,62 @@ def aprobar_cliente(request, id_cliente):
         return spring_error(exception)
     except (URLError, TimeoutError, ValueError):
         return error("No se pudo aprobar el cliente.", 503)
+
+    return _respuesta_spring_json(resultado)
+
+
+@require_POST
+def rechazar_cliente(request, id_cliente):
+    """Pide a Spring rechazar la solicitud con un motivo que el cliente podrá leer."""
+    id_usuario, respuesta_error = _validar_administrador(request)
+    if respuesta_error:
+        return respuesta_error
+
+    data = objeto_json(request)
+    motivo = data.get("motivo") if data else None
+    if not isinstance(motivo, str) or not 5 <= len(motivo.strip()) <= 500:
+        return error("Indica el motivo del rechazo (entre 5 y 500 caracteres).",
+                     campos={"motivo": "Escribe entre 5 y 500 caracteres."})
+
+    try:
+        resultado = _spring_request(
+            f"/api/admin/clientes/{id_cliente}/rechazar",
+            payload={"motivo": motivo.strip()},
+            headers=_headers_administrador(id_usuario),
+            method="POST",
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo rechazar la solicitud.", 503)
+
+    return _respuesta_spring_json(resultado)
+
+
+@require_http_methods(["GET", "POST"])
+def solicitud_cliente(request):
+    """Estado de la solicitud de acceso; con POST, vuelve a pedir acceso tras un rechazo."""
+    id_usuario, respuesta_error = _validar_cliente(request, exigir_activo=False)
+    if respuesta_error:
+        return respuesta_error
+
+    opciones = {"headers": _headers_cliente(id_usuario), "method": request.method}
+    if request.method == "POST":
+        data = objeto_json(request)
+        if data is None:
+            return error("Envía datos JSON válidos.")
+        mensaje = data.get("mensaje")
+        if mensaje is not None and (not isinstance(mensaje, str) or len(mensaje) > 300):
+            return error("El mensaje admite hasta 300 caracteres.",
+                         campos={"mensaje": "Admite hasta 300 caracteres."})
+        opciones["payload"] = {"mensaje": mensaje.strip() if mensaje else None}
+
+    try:
+        resultado = _spring_request("/api/cliente/solicitud", **opciones)
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("No se pudo consultar tu solicitud.", 503)
 
     return _respuesta_spring_json(resultado)
 

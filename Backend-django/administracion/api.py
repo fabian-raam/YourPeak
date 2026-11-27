@@ -61,3 +61,16 @@ def entrenamiento_cliente(request, id_cliente):
         f'/api/admin/entrenamientos/{id_cliente}',
         'No se pudo consultar el entrenamiento del cliente.',
     )
+
+
+@require_GET
+def actividad(request):
+    """Sesiones de entrenamiento por día para el gráfico del resumen (7 a 60 días)."""
+    dias = request.GET.get('dias', '14')
+    if not dias.isdigit() or not 7 <= int(dias) <= 60:
+        return error('Indica entre 7 y 60 días.')
+    return _consultar_spring(
+        request,
+        f'/api/admin/actividad?dias={int(dias)}',
+        'No se pudo consultar la actividad de entrenamiento.',
+    )

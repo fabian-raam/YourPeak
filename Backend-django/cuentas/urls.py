@@ -15,6 +15,8 @@ urlpatterns = [
     path('api/web/cliente/disponibilidad/', api.disponibilidad_cliente),
     path('api/web/cliente/perfil/', api.perfil_cliente, name='perfil-cliente'),
     path('api/web/cliente/membresias/', api.mis_membresias, name='mis-membresias'),
+    # Estado de la solicitud de acceso: disponible también para cuentas pendientes o rechazadas.
+    path('api/web/cliente/solicitud/', api.solicitud_cliente, name='solicitud-cliente'),
     # Rutina personal: solo permite asignar ejercicios a los días disponibles del cliente.
     path('api/web/cliente/rutina/', api.rutina_cliente, name='rutina-cliente'),
     path('api/web/cliente/rutina/generar/', api.generar_rutina_cliente, name='generar-rutina-cliente'),
@@ -32,6 +34,7 @@ urlpatterns = [
     path('api/web/admin/clientes/pendientes/', api.clientes_pendientes),
     path('api/web/admin/clientes/pendientes/<int:id_cliente>/', api.cliente_pendiente),
     path('api/web/admin/clientes/<int:id_cliente>/aprobar/', api.aprobar_cliente),
+    path('api/web/admin/clientes/<int:id_cliente>/rechazar/', api.rechazar_cliente),
     path('api/web/admin/clientes/<int:id_cliente>/membresias/', api.membresias_cliente),
     path('api/web/admin/clientes/activos/', api.clientes_activos),
     path('api/web/admin/clientes/inactivos/', api.clientes_inactivos),
