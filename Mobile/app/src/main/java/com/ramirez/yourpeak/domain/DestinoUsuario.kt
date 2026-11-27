@@ -6,6 +6,7 @@ import java.util.Locale
 enum class DestinoUsuario {
     INICIO_CLIENTE,
     CUENTA_PENDIENTE,
+    CUENTA_RECHAZADA,
     CUENTA_INACTIVA,
     INFORMACION_ADMINISTRADOR,
     ACCESO_NO_RECONOCIDO
@@ -21,6 +22,7 @@ fun determinarDestinoUsuario(rol: String?, estado: String?): DestinoUsuario {
         "CLIENTE" -> when (estadoNormalizado) {
             "ACTIVO" -> DestinoUsuario.INICIO_CLIENTE
             "PENDIENTE" -> DestinoUsuario.CUENTA_PENDIENTE
+            "RECHAZADO" -> DestinoUsuario.CUENTA_RECHAZADA
             "INACTIVO" -> DestinoUsuario.CUENTA_INACTIVA
             else -> DestinoUsuario.ACCESO_NO_RECONOCIDO
         }

@@ -28,6 +28,7 @@ private object Rutas {
     const val REGISTRO = "registro"
     const val INICIO_CLIENTE = "cliente/inicio"
     const val PENDIENTE = "cuenta/pendiente"
+    const val RECHAZADO = "cuenta/rechazada"
     const val INACTIVO = "cuenta/inactiva"
     const val ADMINISTRADOR = "administrador/informacion"
     const val SIN_ACCESO = "cuenta/sin-acceso"
@@ -39,7 +40,8 @@ private object Rutas {
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
-    val sesion = (LocalContext.current.applicationContext as YourPeakApp).sessionManager
+    val app = LocalContext.current.applicationContext as YourPeakApp
+    val sesion = app.sessionManager
 
     fun navegarSinVolver(ruta: String) {
         navController.navigate(ruta) {
@@ -50,6 +52,12 @@ fun AppNavigation() {
 
     fun navegarSegunCuenta(usuario: LoginResponse) {
         navegarSinVolver(rutaPara(determinarDestinoUsuario(usuario.rol, usuario.estado)))
+    }
+
+    // La cuenta cambió de estado (aprobada, rechazada o reenviada): se guarda y se lleva a su pantalla.
+    fun cambiarEstado(usuario: LoginResponse) {
+        sesion.guardar(usuario)
+        navegarSegunCuenta(usuario)
     }
 
     fun cerrarSesion() {
@@ -114,16 +122,19 @@ fun AppNavigation() {
         }
 
         composable(Rutas.PENDIENTE) {
-            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.CUENTA_PENDIENTE) { cerrarSesion() }
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.CUENTA_PENDIENTE, app, ::cambiarEstado) { cerrarSesion() }
+        }
+        composable(Rutas.RECHAZADO) {
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.CUENTA_RECHAZADA, app, ::cambiarEstado) { cerrarSesion() }
         }
         composable(Rutas.INACTIVO) {
-            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.CUENTA_INACTIVA) { cerrarSesion() }
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.CUENTA_INACTIVA, app, ::cambiarEstado) { cerrarSesion() }
         }
         composable(Rutas.ADMINISTRADOR) {
-            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.INFORMACION_ADMINISTRADOR) { cerrarSesion() }
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.INFORMACION_ADMINISTRADOR, app, ::cambiarEstado) { cerrarSesion() }
         }
         composable(Rutas.SIN_ACCESO) {
-            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.ACCESO_NO_RECONOCIDO) { cerrarSesion() }
+            PantallaEstadoCuenta(sesion, navController, DestinoUsuario.ACCESO_NO_RECONOCIDO, app, ::cambiarEstado) { cerrarSesion() }
         }
     }
 }
@@ -133,10 +144,12 @@ private fun PantallaEstadoCuenta(
     sesion: SessionManager,
     navController: NavHostController,
     esperado: DestinoUsuario,
+    app: YourPeakApp,
+    alCambiarEstado: (LoginResponse) -> Unit,
     alCerrarSesion: () -> Unit
 ) {
     DestinoProtegido(sesion, navController, esperado) { usuario ->
-        EstadoAccesoScreen(esperado, usuario, alCerrarSesion)
+        EstadoAccesoScreen(esperado, usuario, app.solicitudAccesoRepository, alCambiarEstado, alCerrarSesion)
     }
 }
 
@@ -167,6 +180,7 @@ private fun DestinoProtegido(
 private fun rutaPara(destino: DestinoUsuario): String = when (destino) {
     DestinoUsuario.INICIO_CLIENTE -> Rutas.INICIO_CLIENTE
     DestinoUsuario.CUENTA_PENDIENTE -> Rutas.PENDIENTE
+    DestinoUsuario.CUENTA_RECHAZADA -> Rutas.RECHAZADO
     DestinoUsuario.CUENTA_INACTIVA -> Rutas.INACTIVO
     DestinoUsuario.INFORMACION_ADMINISTRADOR -> Rutas.ADMINISTRADOR
     DestinoUsuario.ACCESO_NO_RECONOCIDO -> Rutas.SIN_ACCESO
