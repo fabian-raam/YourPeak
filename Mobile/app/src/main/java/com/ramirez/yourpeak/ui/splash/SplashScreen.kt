@@ -35,11 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -55,11 +53,6 @@ import com.ramirez.yourpeak.ui.theme.YourPeakTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// Misma composición que el hero del login web (AuthHero.jsx): degradado de fondo,
-// frase "BUSCA TU MEJOR VERSIÓN.", forma azul inclinada y el atleta.
-private val FondoCentro = Color(0xFF1C1E26)
-private val FondoMedio = Color(0xFF131621)
-private val FondoBorde = Color(0xFF10131C)
 private val TextoTenue = Color(0xFFA0A6CA)
 
 /** Triángulo irregular de la web: clip-path polygon(0 22%, 100% 0, 70% 100%). */
@@ -114,31 +107,13 @@ private fun SplashContenido(
     alRegistrarse: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val densidad = LocalDensity.current
-        val anchoPx = with(densidad) { maxWidth.toPx() }
-        val altoPx = with(densidad) { maxHeight.toPx() }
+    BoxWithConstraints(Modifier.fillMaxSize().background(colores.background)) {
         val alto = maxHeight
         // En pantallas bajas se reduce el título para que los botones siempre quepan.
         val pantallaBaja = maxHeight < 720.dp
 
         // En pantallas bajas el atleta y la forma se achican para no tapar la frase.
         val escalaAtleta = if (maxHeight < 720.dp) 0.62f else 0.82f
-
-        // Degradado radial suave detrás del atleta, como en la web
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        0f to FondoCentro,
-                        0.42f to FondoMedio,
-                        0.72f to FondoBorde,
-                        center = Offset(anchoPx * 0.70f, altoPx * 0.55f),
-                        radius = maxOf(anchoPx, altoPx) * 0.75f
-                    )
-                )
-        )
 
         // Forma azul detrás del atleta
         Box(
@@ -171,7 +146,11 @@ private fun SplashContenido(
                     .fillMaxWidth()
                     .height(alto * 0.38f)
                     .alpha(opacidadBotones)
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, FondoBorde.copy(alpha = 0.92f), FondoBorde)))
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, colores.background.copy(alpha = 0.92f), colores.background)
+                        )
+                    )
             )
         }
 
@@ -236,7 +215,7 @@ private fun SplashContenido(
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, colores.outline),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = FondoBorde.copy(alpha = 0.6f),
+                            containerColor = colores.background.copy(alpha = 0.6f),
                             contentColor = colores.onBackground
                         )
                     ) {
