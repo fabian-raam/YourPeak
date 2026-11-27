@@ -11,6 +11,7 @@ import com.ramirez.yourpeak.data.repository.MembresiaClienteRepository
 import com.ramirez.yourpeak.data.repository.PerfilRepository
 import com.ramirez.yourpeak.data.repository.ProgresoRepository
 import com.ramirez.yourpeak.data.repository.SolicitudAccesoRepository
+import com.ramirez.yourpeak.data.repository.AsistenteRepository
 import com.ramirez.yourpeak.data.session.SessionManager
 
 /** Crea una sola vez las dependencias compartidas por las pantallas. */
@@ -34,6 +35,8 @@ class YourPeakApp : Application() {
         private set
     lateinit var solicitudAccesoRepository: SolicitudAccesoRepository
         private set
+    lateinit var asistenteRepository: AsistenteRepository
+        private set
     lateinit var sessionManager: SessionManager
         private set
 
@@ -49,6 +52,7 @@ class YourPeakApp : Application() {
         progresoRepository = ProgresoRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         perfilRepository = PerfilRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         solicitudAccesoRepository = SolicitudAccesoRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
+        asistenteRepository = AsistenteRepository(api, RetrofitClient.gson, BuildConfig.INTERNAL_API_KEY)
         sessionManager = SessionManager(this, RetrofitClient.gson)
     }
 }

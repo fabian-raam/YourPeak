@@ -75,3 +75,16 @@ data class SolicitudAccesoItem(
 
 /** Mensaje opcional al volver a pedir acceso tras un rechazo. */
 data class NuevaSolicitudAccesoRequest(val mensaje: String?)
+
+/** Pregunta al asistente de alimentación y ejercicio con los últimos mensajes de la conversación. */
+data class AsistenteRequest(val pregunta: String, val historial: List<MensajeAsistente>)
+
+/** rol: "usuario" o "asistente". */
+data class MensajeAsistente(val rol: String, val texto: String)
+
+data class AsistenteResponse(
+    val respuesta: String?,
+    val enTema: Boolean = true,
+    val consultasRestantesHoy: Int = 0,
+    val limiteDiario: Int = 0
+)

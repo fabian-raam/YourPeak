@@ -72,6 +72,17 @@ fun HomeScreen(
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val app = LocalContext.current.applicationContext as? YourPeakApp
 
+    // El chat ocupa toda la pantalla para dejar sitio al teclado.
+    if (estado.seccionSeleccionada == SeccionCliente.ASISTENTE && app != null) {
+        AsistenteScreen(
+            nombre = usuario.nombre,
+            idUsuario = usuario.idUsuario,
+            repository = app.asistenteRepository,
+            alVolver = { viewModel.seleccionarSeccion(SeccionCliente.INICIO) }
+        )
+        return
+    }
+
     Scaffold(
         topBar = {
             if (estado.seccionSeleccionada != SeccionCliente.PERFIL) TopAppBar(
@@ -86,6 +97,20 @@ fun HomeScreen(
                     )
                 },
                 actions = {
+                    Surface(
+                        onClick = { viewModel.seleccionarSeccion(SeccionCliente.ASISTENTE) },
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFF16233D),
+                        border = BorderStroke(1.dp, Color(0xFF2B4A80))
+                    ) {
+                        Text(
+                            "✦ Coach IA",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                     IconButton(onClick = { viewModel.seleccionarSeccion(SeccionCliente.PERFIL) }) {
                         Surface(
                             modifier = Modifier.size(42.dp),
@@ -406,6 +431,7 @@ private fun ContenidoSeccion(
             titulo = "Mi membresía",
             descripcion = "Aquí podrás consultar el estado y vigencia de tu membresía."
         )
+        SeccionCliente.ASISTENTE -> Unit
         SeccionCliente.PERFIL -> perfilRepository?.let {
             PerfilScreen(
                 usuario = usuario,

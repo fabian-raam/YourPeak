@@ -40,7 +40,7 @@ def spring_error(exception):
         data = json.loads(exception.read().decode("utf-8"))
     except (ValueError, UnicodeDecodeError):
         data = {}
-    status = exception.code if exception.code in (400, 401, 403, 404, 409, 429) else 502
+    status = exception.code if exception.code in (400, 401, 403, 404, 409, 429, 503) else 502
     return error(data.get("detail", "No se pudo completar la solicitud."), status, data.get("campos"))
 
 
@@ -249,6 +249,51 @@ def generar_rutina_cliente(request):
         return spring_error(exception)
     except (URLError, TimeoutError, ValueError):
         return error("No se pudo generar la rutina. Inténtalo de nuevo.", 503)
+
+    return _respuesta_spring_json(resultado)
+
+
+@require_POST
+def asistente_cliente(request):
+    """Envía a Spring una pregunta de alimentación o ejercicio junto con los últimos mensajes del chat."""
+    id_usuario, respuesta_error = _validar_cliente_activo(request)
+    if respuesta_error:
+        return respuesta_error
+
+    data = objeto_json(request)
+    if data is None:
+        return error("Envía datos JSON válidos.")
+    pregunta = data.get("pregunta")
+    if not isinstance(pregunta, str) or not pregunta.strip() or len(pregunta) > 500:
+        return error("Escribe una pregunta de hasta 500 caracteres.", campos={"pregunta": "Entre 1 y 500 caracteres."})
+
+    historial = data.get("historial") or []
+    if not isinstance(historial, list) or len(historial) > 12 or any(
+        not isinstance(item, dict)
+        or item.get("rol") not in ("usuario", "asistente")
+        or not isinstance(item.get("texto"), str)
+        or not item["texto"].strip()
+        or len(item["texto"]) > 4000
+        for item in historial
+    ):
+        return error("El historial del chat no es válido.")
+
+    try:
+        resultado = _spring_request(
+            "/api/cliente/asistente",
+            payload={
+                "pregunta": pregunta.strip(),
+                "historial": [{"rol": item["rol"], "texto": item["texto"]} for item in historial],
+            },
+            headers=_headers_cliente(id_usuario),
+            method="POST",
+            # Gemini puede tardar varios segundos en responder.
+            timeout=40,
+        )
+    except HTTPError as exception:
+        return spring_error(exception)
+    except (URLError, TimeoutError, ValueError):
+        return error("El asistente no respondió. Inténtalo de nuevo.", 503)
 
     return _respuesta_spring_json(resultado)
 

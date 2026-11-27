@@ -176,6 +176,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/admin/actividad").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/cliente/solicitud").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/cliente/solicitud").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/cliente/asistente").permitAll()
                         .anyRequest().denyAll()
                 );
 

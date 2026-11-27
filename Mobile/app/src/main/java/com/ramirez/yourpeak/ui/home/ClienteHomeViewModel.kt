@@ -15,6 +15,7 @@ enum class SeccionCliente(val titulo: String) {
     NUTRICION("Nutrición"),
     PROGRESO("Mi progreso"),
     MEMBRESIA("Mi membresía"),
+    ASISTENTE("Coach IA"),
     PERFIL("Mi perfil")
 }
 

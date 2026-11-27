@@ -22,6 +22,7 @@ import ClientAvailability from './pages/ClientAvailability'
 import ClientRoutine from './pages/ClientRoutine'
 import ClientNutrition from './pages/ClientNutrition'
 import ClientProgress from './pages/ClientProgress'
+import ClientAssistant from './pages/ClientAssistant'
 import ClientInitialProfile from './pages/ClientInitialProfile'
 import './App.css'
 
@@ -260,6 +261,8 @@ export default function App() {
             ? <ClientNutrition onExpired={sessionExpired} />
             : clientSection === 'progreso'
               ? <ClientProgress onExpired={sessionExpired} onNavigate={navigateClient} />
+              : clientSection === 'asistente'
+                ? <ClientAssistant user={user} onExpired={sessionExpired} />
               : <ClientExercises onExpired={sessionExpired} />}
   </ClientLayout>
 
