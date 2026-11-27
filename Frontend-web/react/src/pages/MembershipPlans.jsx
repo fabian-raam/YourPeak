@@ -1,6 +1,7 @@
 import ClientToast from '../components/ClientToast'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
+import RowMenu from '../components/RowMenu'
 import PlanDialog from '../components/PlanDialog'
 import { listPlans } from '../services/memberships'
 import './MembershipPlans.css'
@@ -106,12 +107,12 @@ export default function MembershipPlans({ onExpired, logoutError }) {
                 <td><div className="user-cell"><span className="catalog-row-icon"><Icon name="card" /></span><div><strong>{plan.nombre}</strong><span>Plan #{plan.idPlanMembresia}</span></div></div></td>
                 <td>{plan.duracionMeses} {plan.duracionMeses === 1 ? 'mes' : 'meses'}</td>
                 <td><span className={`status-badge plan-status ${plan.estado === 'ACTIVO' ? 'is-active' : 'is-inactive'}`}><i />{plan.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}</span></td>
-                <td><div className="plan-actions">
-                  <button type="button" className="plan-view" aria-label={`Ver ${plan.nombre}`} onClick={event => openDialog('detail', plan.idPlanMembresia, event)}><Icon name="eye" /> Ver</button>
-                  <button type="button" className="plan-edit" aria-label={`Editar ${plan.nombre}`} onClick={event => openDialog('edit', plan.idPlanMembresia, event)}><Icon name="edit" /> Editar</button>
-                  <button type="button" className={plan.estado === 'ACTIVO' ? 'plan-deactivate' : 'plan-activate'} aria-label={`${plan.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'} ${plan.nombre}`}
-                    onClick={event => openDialog('status', plan.idPlanMembresia, event)}><Icon name="power" /> {plan.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'}</button>
-                </div></td>
+                <td><RowMenu label={`Acciones de ${plan.nombre}`} items={[
+                  { label: 'Ver detalle', icon: 'eye', onClick: event => openDialog('detail', plan.idPlanMembresia, event) },
+                  { label: 'Editar nombre', icon: 'edit', onClick: event => openDialog('edit', plan.idPlanMembresia, event) },
+                  { label: plan.estado === 'ACTIVO' ? 'Desactivar' : 'Activar', icon: 'power', tone: plan.estado === 'ACTIVO' ? 'danger' : 'ok',
+                    onClick: event => openDialog('status', plan.idPlanMembresia, event) },
+                ]} /></td>
               </tr>)}</tbody></table></div>}
       <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `Mostrando ${filtered.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} de ${filtered.length}`}</span>
         <div><button aria-label="Página anterior" disabled={currentPage <= 1 || unavailable} onClick={() => setPage(currentPage - 1)}>←</button>

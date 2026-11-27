@@ -47,4 +47,12 @@ public interface ClienteRepository extends JpaRepository<Cliente, Long> {
     // Busca el estado del cliente asociado a una cuenta para login y perfil.
     @EntityGraph(attributePaths = {"tipoEstado"})
     Optional<Cliente> findByUsuario_IdUsuario(Long idUsuario);
+
+    // Bloquea la fila del cliente para que dos pedidos simultáneos no superen el tope diario.
+    // Consulta nativa: MariaDB no admite el "FOR UPDATE OF" que genera Hibernate.
+    @Query(value = "SELECT * FROM cliente WHERE id_usuario = :idUsuario FOR UPDATE", nativeQuery = true)
+    Optional<Cliente> findBloqueadoByUsuario_IdUsuario(@Param("idUsuario") Long idUsuario);
+
+    @Query(value = "SELECT * FROM cliente WHERE id_cliente = :idCliente FOR UPDATE", nativeQuery = true)
+    Optional<Cliente> findBloqueadoByIdCliente(@Param("idCliente") Long idCliente);
 }

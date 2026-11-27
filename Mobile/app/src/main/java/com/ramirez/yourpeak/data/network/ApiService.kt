@@ -25,6 +25,8 @@ import com.ramirez.yourpeak.data.model.RegistroProgresoRequest
 import com.ramirez.yourpeak.data.model.RegistroProgresoResponse
 import com.ramirez.yourpeak.data.model.RegistroRequest
 import com.ramirez.yourpeak.data.model.RegistroResponse
+import com.ramirez.yourpeak.data.model.NuevaSolicitudAccesoRequest
+import com.ramirez.yourpeak.data.model.SolicitudAccesoResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -189,4 +191,19 @@ interface ApiService {
         @Header("X-Client-User-Id") idUsuario: Long,
         @Body request: RegistroProgresoRequest
     ): Response<RegistroProgresoResponse>
+
+    /** Estado e historial de la solicitud de acceso (también para cuentas pendientes o rechazadas). */
+    @GET("api/cliente/solicitud")
+    suspend fun consultarSolicitud(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long
+    ): Response<SolicitudAccesoResponse>
+
+    /** Vuelve a pedir acceso tras un rechazo; Spring limita las solicitudes por día. */
+    @POST("api/cliente/solicitud")
+    suspend fun volverASolicitar(
+        @Header("X-Internal-Api-Key") apiKey: String,
+        @Header("X-Client-User-Id") idUsuario: Long,
+        @Body request: NuevaSolicitudAccesoRequest
+    ): Response<SolicitudAccesoResponse>
 }

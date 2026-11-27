@@ -2,6 +2,7 @@ import Brand from './Brand'
 import Icon from './Icon'
 import { initials } from '../utils/format'
 import '../pages/AdminPanel.css'
+import './AdminTheme.css'
 
 // Usuarios y planes comparten navegación, identidad y cierre de sesión.
 export default function AdminLayout({ user, section, onNavigate, onLogout, logoutBusy, pendingCount, children }) {
@@ -18,7 +19,7 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
 
   const managementSection = ['resumen', 'usuarios', 'clientes', 'entrenamientos', 'membresias', 'ejercicios', 'alimentos'].includes(section)
 
-  return <div className={`admin-layout${managementSection ? ' admin-management-layout' : ''}`}>
+  return <div className={`admin-layout admin-c${managementSection ? ' admin-management-layout' : ''}`}>
     <aside className="admin-sidebar">
       <Brand onNavigate={event => { event.preventDefault(); onNavigate('resumen') }} />
       <span className="sidebar-label">ADMINISTRACIÓN</span>
@@ -29,7 +30,6 @@ export default function AdminLayout({ user, section, onNavigate, onLogout, logou
         {link('membresias', 'Membresías', 'card')}
         {link('ejercicios', 'Ejercicios', 'dumbbell')}
         {link('alimentos', 'Alimentos', 'food')}
-        {link('practica', 'Práctica React', 'activity')}
       </nav>
       <div className="sidebar-account"><span className="avatar">{initials(user)}</span><div><strong title={user.nombre}>{user.nombre}</strong><span>Administrador</span></div>
         <button className="icon-button" aria-label="Cerrar sesión" disabled={logoutBusy} onClick={onLogout}><Icon name="logout" /></button>

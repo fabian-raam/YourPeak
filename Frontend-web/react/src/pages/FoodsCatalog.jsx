@@ -1,6 +1,7 @@
 import ClientToast from '../components/ClientToast'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
+import RowMenu from '../components/RowMenu'
 import FoodDialog from '../components/FoodDialog'
 import { listFoods } from '../services/foods'
 import './FoodsCatalog.css'
@@ -119,10 +120,10 @@ export default function FoodsCatalog({ onExpired, logoutError }) {
                 <td><div className="user-cell"><span className="catalog-row-icon"><Icon name="food" /></span><div><strong>{food.nombre}</strong><span>Alimento #{food.idAlimento}</span></div></div></td>
                 <td>{format(food.porcionBaseG)} g</td><td>{format(food.kcal)} kcal</td>
                 <td>{format(food.proteinaG)} g</td><td>{format(food.carbohidratoG)} g</td><td>{format(food.grasaG)} g</td>
-                <td><div className="plan-actions">
-                  <button type="button" className="plan-view" aria-label={`Ver ${food.nombre}`} onClick={event => openDialog('detail', food.idAlimento, event)}><Icon name="eye" /> Ver</button>
-                  <button type="button" className="plan-edit" aria-label={`Editar ${food.nombre}`} onClick={event => openDialog('edit', food.idAlimento, event)}><Icon name="edit" /> Editar</button>
-                </div></td>
+                <td><RowMenu label={`Acciones de ${food.nombre}`} items={[
+                  { label: 'Ver detalle', icon: 'eye', onClick: event => openDialog('detail', food.idAlimento, event) },
+                  { label: 'Editar', icon: 'edit', onClick: event => openDialog('edit', food.idAlimento, event) },
+                ]} /></td>
               </tr>)}</tbody></table></div>}
       <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `${filtered.length} ${filtered.length === 1 ? 'alimento' : 'alimentos'}`}</span>
         <div><button aria-label="Página anterior" disabled={currentPage <= 1 || loading || !!error} onClick={() => setPage(currentPage - 1)}>←</button>

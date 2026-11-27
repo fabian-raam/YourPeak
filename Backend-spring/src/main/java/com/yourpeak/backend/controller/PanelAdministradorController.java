@@ -1,5 +1,7 @@
 package com.yourpeak.backend.controller;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.yourpeak.backend.service.PanelAdministradorService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,15 @@ public class PanelAdministradorController {
             @RequestHeader(value = "X-Admin-User-Id", required = false) Long idAdministrador) {
         ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idAdministrador);
         return error != null ? error : ResponseEntity.ok(panelService.consultarResumen(idAdministrador));
+    }
+
+    @GetMapping("/actividad")
+    public ResponseEntity<?> consultarActividad(
+            @RequestParam(defaultValue = "14") int dias,
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String apiKey,
+            @RequestHeader(value = "X-Admin-User-Id", required = false) Long idAdministrador) {
+        ResponseEntity<Map<String, String>> error = validarSolicitud(apiKey, idAdministrador);
+        return error != null ? error : ResponseEntity.ok(panelService.consultarActividad(idAdministrador, dias));
     }
 
     @GetMapping("/entrenamientos")

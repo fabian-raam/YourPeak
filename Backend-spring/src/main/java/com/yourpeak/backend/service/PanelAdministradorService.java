@@ -1,5 +1,10 @@
 package com.yourpeak.backend.service;
 
+import com.yourpeak.backend.dto.ActividadDiariaResponse;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Map;
+
 import com.yourpeak.backend.dto.DetalleEntrenamientoAdministradorResponse;
 import com.yourpeak.backend.dto.EntrenamientoAdministradorResponse;
 import com.yourpeak.backend.dto.ResumenPanelAdministradorResponse;
@@ -28,6 +33,19 @@ public class PanelAdministradorService {
     public ResumenPanelAdministradorResponse consultarResumen(Long idUsuarioAdministrador) {
         verificarAdministrador(idUsuarioAdministrador);
         return panelRepository.consultarResumen();
+    }
+
+    /** Sesiones por día de los últimos {@code dias} días (incluye hoy), con ceros en los días sin actividad. */
+    @Transactional(readOnly = true)
+    public List<ActividadDiariaResponse> consultarActividad(Long idUsuarioAdministrador, int dias) {
+        verificarAdministrador(idUsuarioAdministrador);
+        int rango = Math.clamp(dias, 7, 60);
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/Lima"));
+        LocalDate desde = hoy.minusDays(rango - 1L);
+        Map<LocalDate, Integer> sesiones = panelRepository.contarSesionesPorDia(desde, hoy);
+        return desde.datesUntil(hoy.plusDays(1))
+                .map(fecha -> new ActividadDiariaResponse(fecha, sesiones.getOrDefault(fecha, 0)))
+                .toList();
     }
 
     @Transactional(readOnly = true)

@@ -30,13 +30,16 @@ public class RegistroService {
     private final ClienteRepository clienteRepository;
     private final TipoEstadoRepository tipoEstadoRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SolicitudAccesoService solicitudAccesoService;
 
     public RegistroService(
             UsuarioRepository usuarioRepository,
             ClienteRepository clienteRepository,
             TipoEstadoRepository tipoEstadoRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            SolicitudAccesoService solicitudAccesoService
     ) {
+        this.solicitudAccesoService = solicitudAccesoService;
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
         this.tipoEstadoRepository = tipoEstadoRepository;
@@ -83,6 +86,7 @@ public class RegistroService {
 
         Cliente cliente = new Cliente(usuario, pendiente);
         clienteRepository.saveAndFlush(cliente);
+        solicitudAccesoService.registrarInicial(cliente);
 
         return new RegistroResponse(
                 usuario.getIdUsuario(),

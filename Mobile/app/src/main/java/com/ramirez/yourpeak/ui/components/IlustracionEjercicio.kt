@@ -25,20 +25,22 @@ import java.util.Locale
 fun recursoIlustracionEjercicio(imagenRuta: String?): Int? {
     val context = LocalContext.current
     return remember(context, imagenRuta) {
-        val clave = imagenRuta
-            ?.substringAfterLast('/')
-            ?.substringBeforeLast('.')
-            ?.trim()
-            ?.lowercase(Locale.ROOT)
-            ?.replace('-', '_')
-            ?.takeIf { it.matches(Regex("[a-z0-9_]+")) }
-            ?: return@remember null
+        val clave = claveIlustracion(imagenRuta) ?: return@remember null
 
         context.resources
             .getIdentifier("exercise_$clave", "drawable", context.packageName)
             .takeIf { it != 0 }
     }
 }
+
+/** Nombre del recurso (sin el prefijo exercise_) para una imagenRuta, o null si no es válida. */
+internal fun claveIlustracion(imagenRuta: String?): String? = imagenRuta
+    ?.substringAfterLast('/')
+    ?.substringBeforeLast('.')
+    ?.trim()
+    ?.lowercase(Locale.ROOT)
+    ?.replace('-', '_')
+    ?.takeIf { it.matches(Regex("[a-z0-9_]+")) }
 
 /** Muestra la ilustración indicada por la ruta que viene asociada al ejercicio en la BD. */
 @Composable

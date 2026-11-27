@@ -2,6 +2,7 @@ package com.yourpeak.backend.controller;
 
 import com.yourpeak.backend.dto.ClientePendienteResponse;
 import com.yourpeak.backend.dto.AprobarClienteRequest;
+import com.yourpeak.backend.dto.RechazarClienteRequest;
 import com.yourpeak.backend.model.Membresia;
 import com.yourpeak.backend.service.AprobacionService;
 import jakarta.validation.Valid;
@@ -104,6 +105,22 @@ public class AprobacionController {
                 "fechaInicio", periodo.getFechaInicio().toString(),
                 "fechaVencimiento", periodo.getFechaVencimiento().toString()
         ));
+    }
+
+    /** Rechaza la solicitud de un cliente pendiente con un motivo que el cliente podrá leer. */
+    @PostMapping("/{idCliente}/rechazar")
+    public ResponseEntity<Map<String, String>> rechazarCliente(
+            @PathVariable Long idCliente,
+            @Valid @RequestBody RechazarClienteRequest request,
+            @RequestHeader(value = "X-Internal-Api-Key", required = false) String apiKey,
+            @RequestHeader(value = "X-Admin-User-Id", required = false) Long idUsuarioAdministrador
+    ) {
+        ResponseEntity<Map<String, String>> error = validarSolicitudInterna(apiKey, idUsuarioAdministrador);
+        if (error != null) {
+            return error;
+        }
+        aprobacionService.rechazarCliente(idCliente, request.motivo(), idUsuarioAdministrador);
+        return ResponseEntity.ok(Map.of("detail", "La solicitud fue rechazada.", "estado", "RECHAZADO"));
     }
 
     /** Valida la clave servicio-a-servicio y que Django haya identificado al administrador. */

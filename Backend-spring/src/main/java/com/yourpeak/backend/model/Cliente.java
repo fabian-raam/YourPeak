@@ -130,6 +130,28 @@ public class Cliente {
         this.tipoEstado = estadoActivo;
     }
 
+    /** Registra que el administrador no aceptó la solicitud de acceso. */
+    public void rechazar(TipoEstado estadoRechazado) {
+        if (!"PENDIENTE".equalsIgnoreCase(tipoEstado.getNombre())) {
+            throw new IllegalStateException("Solo se pueden rechazar clientes pendientes");
+        }
+        if (estadoRechazado == null || !"RECHAZADO".equalsIgnoreCase(estadoRechazado.getNombre())) {
+            throw new IllegalArgumentException("El nuevo estado del cliente debe ser RECHAZADO");
+        }
+        this.tipoEstado = estadoRechazado;
+    }
+
+    /** Un cliente rechazado vuelve a la cola de revisión al pedir acceso otra vez. */
+    public void volverAPendiente(TipoEstado estadoPendiente) {
+        if (!"RECHAZADO".equalsIgnoreCase(tipoEstado.getNombre())) {
+            throw new IllegalStateException("Solo un cliente rechazado puede volver a solicitar acceso");
+        }
+        if (estadoPendiente == null || !"PENDIENTE".equalsIgnoreCase(estadoPendiente.getNombre())) {
+            throw new IllegalArgumentException("El nuevo estado del cliente debe ser PENDIENTE");
+        }
+        this.tipoEstado = estadoPendiente;
+    }
+
     public LocalDateTime getFechaAlta() {
         return fechaAlta;
     }

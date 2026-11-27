@@ -1,0 +1,45 @@
+.row-menu { display: flex; justify-content: flex-end; }
+.row-menu-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e2e4e9;
+  border-radius: 10px;
+  color: #5f6673;
+  background: #fff;
+  cursor: pointer;
+}
+.row-menu-trigger:hover, .row-menu-trigger[aria-expanded='true'] { border-color: #2166e8; color: #2166e8; background: #f3f7ff; }
+.row-menu-trigger svg { width: 18px; height: 18px; fill: currentColor; }
+.row-menu-list {
+  position: fixed;
+  z-index: 50;
+  display: grid;
+  width: 200px;
+  padding: 6px;
+  border: 1px solid #e2e4e9;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 40px #0b0d1229;
+}
+.row-menu-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 9px;
+  color: #0b0d12;
+  background: transparent;
+  font: 500 14px 'IBM Plex Sans', sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+.row-menu-list button:hover, .row-menu-list button:focus-visible { outline: none; background: #f4f5f7; }
+.row-menu-list button svg { width: 16px; height: 16px; color: #5f6673; }
+.row-menu-list .danger { color: #b3261e; }
+.row-menu-list .danger svg { color: #b3261e; }
+.row-menu-list .ok { color: #1d7a46; }
+.row-menu-list .ok svg { color: #1d7a46; }

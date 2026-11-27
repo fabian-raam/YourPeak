@@ -2,15 +2,22 @@ package com.ramirez.yourpeak.ui
 
 import com.ramirez.yourpeak.ui.components.claveIlustracion
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** Los nombres del catálogo, con tildes y mayúsculas, deben encontrar su ilustración. */
+/** La imagenRuta que entrega la API debe resolver al nombre del recurso incluido en la app. */
 class IlustracionEjercicioTest {
     @Test
-    fun normalizaTildesEspaciosYMayusculas() {
-        assertEquals("jalon_al_pecho", claveIlustracion("Jalón al pecho"))
-        assertEquals("curl_de_biceps", claveIlustracion(" Curl de Bíceps "))
-        assertEquals("extension_de_triceps_en_polea", claveIlustracion("Extensión de tríceps en polea"))
-        assertEquals("", claveIlustracion(null))
+    fun convierteLaRutaEnLaClaveDelRecurso() {
+        assertEquals("jalon_al_pecho", claveIlustracion("jalon-al-pecho"))
+        assertEquals("curl_de_biceps", claveIlustracion("ejercicios/Curl-De-Biceps.jpg"))
+        assertEquals("aperturas_con_mancuernas", claveIlustracion(" aperturas-con-mancuernas "))
+    }
+
+    @Test
+    fun rechazaRutasVaciasOInvalidas() {
+        assertNull(claveIlustracion(null))
+        assertNull(claveIlustracion(""))
+        assertNull(claveIlustracion("jalón al pecho"))
     }
 }

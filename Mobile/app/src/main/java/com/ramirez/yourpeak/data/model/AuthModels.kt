@@ -54,3 +54,24 @@ data class MembresiaPeriodoResponse(
     val estadoPeriodo: String?,
     val observacion: String?
 )
+
+/** Estado de la solicitud de acceso del cliente y su historial (más reciente primero). */
+data class SolicitudAccesoResponse(
+    val estado: String?,
+    val puedeSolicitar: Boolean = false,
+    val solicitudesRestantesHoy: Int = 0,
+    val limiteDiario: Int = 0,
+    val historial: List<SolicitudAccesoItem>? = null
+)
+
+data class SolicitudAccesoItem(
+    val numero: Int,
+    val estado: String?,
+    val mensajeCliente: String?,
+    val motivoRechazo: String?,
+    val fechaSolicitud: String?,
+    val fechaResolucion: String?
+)
+
+/** Mensaje opcional al volver a pedir acceso tras un rechazo. */
+data class NuevaSolicitudAccesoRequest(val mensaje: String?)

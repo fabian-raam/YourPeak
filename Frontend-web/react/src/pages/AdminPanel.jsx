@@ -10,6 +10,8 @@ import { fullName, initials, registrationDate } from '../utils/format'
 import './AdminPanel.css'
 
 const PAGE_SIZE = 7
+// La fecha de la solicitud está en hora de Lima y sin zona horaria.
+const requestDate = value => value ? new Date(value).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }) : ''
 const normalize = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 export default function AdminPanel({ section, onNavigate, pendingCount, onExpired, logoutError, onPendingCount }) {
@@ -53,7 +55,7 @@ export default function AdminPanel({ section, onNavigate, pendingCount, onExpire
     const search = normalize(query.trim())
     return clients.filter(person => normalize(`${fullName(person)} ${person.correo} ${person.idCliente}`).includes(search))
       .sort((a, b) => sort === 'name' ? fullName(a).localeCompare(fullName(b), 'es')
-        : (sort === 'newest' ? -1 : 1) * String(a.fechaAlta || '').localeCompare(String(b.fechaAlta || '')))
+        : (sort === 'newest' ? -1 : 1) * String(a.fechaSolicitud || a.fechaAlta || '').localeCompare(String(b.fechaSolicitud || b.fechaAlta || '')))
   }, [clients, query, sort])
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -68,10 +70,18 @@ export default function AdminPanel({ section, onNavigate, pendingCount, onExpire
     })
   }
 
+  function rejected(person) {
+    sequence.current += 1
+    setClients(previous => previous.filter(item => item.idCliente !== person.idCliente))
+    setNotice({ title: 'Solicitud rechazada', message: `${fullName(person)} verá el motivo en su cuenta y podrá volver a solicitar acceso.` })
+    closeDetail()
+    reload()
+  }
+
   function approved(person) {
     sequence.current += 1
     setClients(previous => previous.filter(item => item.idCliente !== person.idCliente))
-    setNotice(`${fullName(person)} fue aprobado. Su cuenta ya está activa.`)
+    setNotice({ title: 'Usuario aprobado', message: `${fullName(person)} fue aprobado. Su cuenta ya está activa.` })
     closeDetail()
     reload()
   }
@@ -82,7 +92,7 @@ export default function AdminPanel({ section, onNavigate, pendingCount, onExpire
           <button className="secondary-button" onClick={reload} disabled={loading}><Icon name="refresh" />{loading ? 'Actualizando…' : 'Actualizar'}</button>
         </div>
         <UserStats active={activeCount} pending={clients.length} inactive={inactiveCount} loading={loading} />
-        {notice && <ClientToast key={notice} title="Usuario aprobado" message={notice} onClose={() => setNotice('')} />}
+        {notice && <ClientToast key={notice.message} title={notice.title} message={notice.message} onClose={() => setNotice('')} />}
         {(error || logoutError) && <p className="alert" role="alert">{error || logoutError}{!forbidden && <button className="text-button" onClick={reload} disabled={loading}>Volver a intentar</button>}</p>}
         <section className="users-panel requests-list-panel" aria-label="Solicitudes de registro" aria-busy={loading}>
           <UserManagementTabs section={section} onNavigate={onNavigate} pendingCount={pendingCount} />
@@ -92,12 +102,12 @@ export default function AdminPanel({ section, onNavigate, pendingCount, onExpire
           {loading ? <div className="table-state" role="status"><span className="loading-dot" /> Consultando solicitudes…</div>
             : forbidden ? <div className="table-state"><Icon name="shield" /><h3>Acceso no disponible</h3><p>Tu cuenta no tiene permisos para consultar estas solicitudes.</p></div>
               : !visible.length ? <div className="table-state"><Icon name={query ? 'search' : 'check'} /><h3>{query ? 'No encontramos coincidencias' : error ? 'No pudimos cargar las solicitudes' : 'Todo al día'}</h3><p>{query ? 'Prueba con otro nombre o correo institucional.' : error ? 'Actualiza la lista para volver a intentarlo.' : 'Las nuevas solicitudes aparecerán aquí para que puedas revisarlas.'}</p></div>
-                : <div className="users-table-scroll"><table className="users-table"><caption className="sr-only">Usuarios pendientes de aprobación</caption><thead><tr><th scope="col">Usuario</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead><tbody>
-                  {visible.map(person => <tr key={person.idCliente}><td><div className="user-cell"><span className="avatar">{initials(person)}</span><div><strong>{fullName(person)}</strong><span>{person.correo}</span></div></div></td><td><span>{registrationDate(person.fechaAlta)}</span><small>Solicitud #{person.idCliente}</small></td><td><span className="status-badge"><i /> Pendiente</span></td><td><button className="review-button" aria-label={`Revisar a ${fullName(person)}`} onClick={event => { lastTrigger.current = event.currentTarget; setSelected(person.idCliente) }}>Revisar <Icon name="arrow" /></button></td></tr>)}
+                : <div className="users-table-scroll"><table className="users-table"><caption className="sr-only">Usuarios pendientes de aprobación</caption><thead><tr><th scope="col">Usuario</th><th scope="col">Solicitud</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead><tbody>
+                  {visible.map(person => <tr key={person.idCliente}><td><div className="user-cell"><span className="avatar">{initials(person)}</span><div><strong>{fullName(person)}</strong><span>{person.correo}</span></div></div></td><td><span>{requestDate(person.fechaSolicitud) || registrationDate(person.fechaAlta)}</span><small>{person.numeroSolicitud > 1 ? `${person.numeroSolicitud}.ª solicitud · reintento` : 'Primera solicitud'}</small></td><td><span className={`status-badge${person.numeroSolicitud > 1 ? ' is-retry' : ''}`}><i /> {person.numeroSolicitud > 1 ? 'Reintento' : 'Pendiente'}</span></td><td><button className="review-button" aria-label={`Revisar a ${fullName(person)}`} onClick={event => { lastTrigger.current = event.currentTarget; setSelected(person.idCliente) }}>Revisar <Icon name="arrow" /></button></td></tr>)}
                 </tbody></table></div>}
           <div className="users-pagination"><span>{loading ? 'Actualizando lista' : `Mostrando ${filtered.length ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} de ${filtered.length}`}</span><div><button aria-label="Página anterior" disabled={currentPage <= 1 || loading} onClick={() => setPage(currentPage - 1)}>←</button><strong aria-current="page">{currentPage}</strong><button aria-label="Página siguiente" disabled={currentPage >= totalPages || loading} onClick={() => setPage(currentPage + 1)}>→</button></div></div>
         </section>
       </main>
-    {selected !== null && <ApprovalDialog key={selected} clientId={selected} onClose={closeDetail} onApproved={approved} onExpired={onExpired} onStale={reload} />}
+    {selected !== null && <ApprovalDialog key={selected} clientId={selected} onClose={closeDetail} onApproved={approved} onRejected={rejected} onExpired={onExpired} onStale={reload} />}
   </>
 }

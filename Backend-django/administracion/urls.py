@@ -6,6 +6,7 @@ app_name = 'administracion'
 
 urlpatterns = [
     path('api/web/admin/resumen/', api.resumen, name='resumen'),
+    path('api/web/admin/actividad/', api.actividad, name='actividad'),
     path('api/web/admin/entrenamientos/', api.entrenamientos, name='entrenamientos'),
     path(
         'api/web/admin/entrenamientos/<int:id_cliente>/',

@@ -89,6 +89,23 @@ CREATE TABLE cliente (
   CONSTRAINT fk_cliente_nivelact FOREIGN KEY (id_nivel_actividad)         REFERENCES nivel_actividad (id_nivel_actividad)
 ) ENGINE=InnoDB;
 
+-- Historial de solicitudes de acceso: una por registro y otra por cada reintento tras un rechazo.
+CREATE TABLE solicitud_acceso (
+  id_solicitud_acceso  BIGINT        NOT NULL AUTO_INCREMENT,
+  id_cliente           BIGINT        NOT NULL,
+  estado               VARCHAR(15)   NOT NULL DEFAULT 'PENDIENTE',
+  mensaje_cliente      VARCHAR(300)  NULL,
+  motivo_rechazo       VARCHAR(500)  NULL,
+  fecha_solicitud      DATETIME      NOT NULL,
+  fecha_resolucion     DATETIME      NULL,
+  id_administrador     BIGINT        NULL,
+  PRIMARY KEY (id_solicitud_acceso),
+  KEY idx_solicitud_cliente_fecha (id_cliente, fecha_solicitud),
+  CONSTRAINT fk_solicitud_cliente FOREIGN KEY (id_cliente) REFERENCES cliente (id_cliente),
+  CONSTRAINT fk_solicitud_admin   FOREIGN KEY (id_administrador) REFERENCES usuario (id_usuario),
+  CONSTRAINT ck_solicitud_estado  CHECK (estado IN ('PENDIENTE', 'APROBADA', 'RECHAZADA'))
+) ENGINE=InnoDB;
+
 CREATE TABLE registro_fisico (
   id_registro_fisico  BIGINT       NOT NULL AUTO_INCREMENT,
   id_cliente          BIGINT       NOT NULL,
@@ -315,7 +332,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 INSERT INTO tipo_estado (id_tipo_estado, nombre, descripcion) VALUES
   (1, 'PENDIENTE', 'Registrado, a la espera de validacion del administrador'),
   (2, 'ACTIVO',    'Registro habilitado para su uso'),
-  (3, 'INACTIVO',  'Registro deshabilitado, conservado para historial');
+  (3, 'INACTIVO',  'Registro deshabilitado, conservado para historial'),
+  (4, 'RECHAZADO', 'Solicitud de acceso rechazada; el cliente puede volver a solicitar');
 
 INSERT INTO tipo_objetivo (nombre, descripcion) VALUES
   ('Perder grasa',        'Reducir porcentaje de grasa corporal'),
