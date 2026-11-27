@@ -76,6 +76,7 @@ export default function ClientLayout({ user, section, onNavigate, onLogout, logo
         </div>
         {link('nutricion', <><Icon name="food" /> Nutrición</>)}
         {link('progreso', <><Icon name="activity" /> Mi progreso</>)}
+        {link('asistente', <><Icon name="sparkles" /> Asistente IA</>)}
         {link('membresia', <><Icon name="card" /> Mi membresía</>)}
       </nav>
       <div className="client-sidebar-footer">
@@ -142,7 +143,8 @@ export default function ClientLayout({ user, section, onNavigate, onLogout, logo
       </details>
       {link('nutricion', <><Icon name="food" /> Nutrición</>)}
       {link('progreso', <><Icon name="activity" /> Progreso</>)}
-      {link('membresia', <><Icon name="card" /> Membresía</>)}
+      {link('asistente', <><Icon name="sparkles" /> IA</>)}
+      {link('membresia', <><Icon name="card" /> Plan</>)}
     </nav>
   </div>
 }

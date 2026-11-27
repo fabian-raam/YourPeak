@@ -35,6 +35,11 @@ export const clientSections = {
     label: 'Mi progreso',
     description: 'Registra tu peso y observa cómo cambia con el tiempo.',
   },
+  asistente: {
+    path: '/cliente/asistente',
+    label: 'Asistente IA',
+    description: 'Resuelve tus dudas de alimentación y ejercicio.',
+  },
 }
 
 export const clientSectionFromPath = path => Object.keys(clientSections).find(section => clientSections[section].path === path)
