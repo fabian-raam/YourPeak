@@ -1,11 +1,14 @@
 import ClientToast from '../components/ClientToast'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
+import RowMenu from '../components/RowMenu'
+import { exerciseImage } from '../utils/exerciseIllustrations'
 import ExerciseDialog from '../components/ExerciseDialog'
 import { getExerciseCatalogs, listExercises } from '../services/exercises'
 import './ExercisesCatalog.css'
 
 const PAGE_SIZE = 8
+const capitalize = value => value ? value.charAt(0) + value.slice(1).toLowerCase() : ''
 const normalize = value => String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 export default function ExercisesCatalog({ onExpired, logoutError }) {
@@ -111,16 +114,17 @@ export default function ExercisesCatalog({ onExpired, logoutError }) {
             : <div className="users-table-scroll"><table className="users-table exercise-table"><caption className="sr-only">Catálogo de ejercicios</caption>
               <thead><tr><th scope="col">Ejercicio</th><th scope="col">Grupo muscular</th><th scope="col">Nivel mínimo</th><th scope="col">Medición</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
               <tbody>{visible.map(item => <tr key={item.idEjercicio}>
-                <td><div className="user-cell"><span className="catalog-row-icon"><Icon name="dumbbell" /></span><div><strong>{item.nombre}</strong><span>Ejercicio #{item.idEjercicio}</span></div></div></td>
-                <td>{item.grupoMuscular}</td><td>{item.nivelExperiencia}</td><td>{item.tipoMedicion}</td>
+                <td><div className="user-cell">{exerciseImage(item.nombre)
+                  ? <img className="catalog-thumb" src={exerciseImage(item.nombre)} alt="" loading="lazy" />
+                  : <span className="catalog-row-icon"><Icon name="dumbbell" /></span>}<div><strong>{item.nombre}</strong><span>Ejercicio #{item.idEjercicio}</span></div></div></td>
+                <td>{item.grupoMuscular}</td><td><span className={`level-badge ${normalize(item.nivelExperiencia)}`}>{item.nivelExperiencia}</span></td><td>{capitalize(item.tipoMedicion)}</td>
                 <td><span className={`status-badge plan-status ${item.estado === 'ACTIVO' ? 'is-active' : 'is-inactive'}`}><i />{item.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}</span></td>
-                <td><div className="plan-actions">
-                  <button type="button" className="plan-view" aria-label={`Ver ${item.nombre}`} onClick={event => openDialog('detail', item.idEjercicio, event)}><Icon name="eye" /> Ver</button>
-                  <button type="button" className="plan-edit" aria-label={`Editar ${item.nombre}`} onClick={event => openDialog('edit', item.idEjercicio, event)}><Icon name="edit" /> Editar</button>
-                  <button type="button" className={item.estado === 'ACTIVO' ? 'plan-deactivate' : 'plan-activate'}
-                    aria-label={`${item.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'} ${item.nombre}`}
-                    onClick={event => openDialog('status', item.idEjercicio, event)}><Icon name="power" /> {item.estado === 'ACTIVO' ? 'Desactivar' : 'Activar'}</button>
-                </div></td>
+                <td><RowMenu label={`Acciones de ${item.nombre}`} items={[
+                  { label: 'Ver detalle', icon: 'eye', onClick: event => openDialog('detail', item.idEjercicio, event) },
+                  { label: 'Editar', icon: 'edit', onClick: event => openDialog('edit', item.idEjercicio, event) },
+                  { label: item.estado === 'ACTIVO' ? 'Desactivar' : 'Activar', icon: 'power', tone: item.estado === 'ACTIVO' ? 'danger' : 'ok',
+                    onClick: event => openDialog('status', item.idEjercicio, event) },
+                ]} /></td>
               </tr>)}</tbody></table></div>}
       <div className="users-pagination"><span>{loading ? 'Actualizando catálogo' : error ? 'Catálogo no disponible' : `${filtered.length} ${filtered.length === 1 ? 'ejercicio' : 'ejercicios'}`}</span>
         <div><button aria-label="Página anterior" disabled={currentPage <= 1 || unavailable} onClick={() => setPage(currentPage - 1)}>←</button>

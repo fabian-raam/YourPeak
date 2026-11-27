@@ -99,3 +99,17 @@
   background: #fff;
   border-color: #b9cce8;
 }
+
+/* Rechazo con motivo y contexto de solicitudes anteriores. */
+.user-approval-dialog .approval-history { display: grid; gap: 6px; margin-top: 16px; padding: 12px 14px; border-left: 4px solid #f26b2d; border-radius: 10px; background: #fdf1e7; }
+.user-approval-dialog .approval-history p { margin: 0; color: #6b2a0e; font-size: 14px; line-height: 1.5; }
+.user-approval-dialog .approval-reason { width: 100%; padding: 10px 12px; border: 1px solid #b9cce8; border-radius: 10px; color: #172033; background: #fff; font: 400 15px/1.45 'IBM Plex Sans', sans-serif; resize: vertical; }
+.user-approval-dialog .approval-reason:focus-visible { outline: 2px solid #1f5597; outline-offset: 1px; }
+.user-approval-dialog .approval-reason-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.user-approval-dialog .approval-reason-chips button { padding: 6px 10px; border: 1px solid #d3e0f2; border-radius: 999px; color: #405571; background: #f4f7fb; font: 500 12.5px 'IBM Plex Sans', sans-serif; cursor: pointer; }
+.user-approval-dialog .approval-reason-chips button:hover { border-color: #7fa5da; color: #174ea6; }
+.light-workspace .user-approval-dialog .reject-button { color: #b3261e; border-color: #efc2bd; }
+.light-workspace .user-approval-dialog .reject-button:hover:not(:disabled) { color: #8f1d17; background: #fff0ee; border-color: #e6a8a5; }
+.light-workspace .user-approval-dialog .primary.reject-confirm { background: #c8412a; border-color: #c8412a; }
+.light-workspace .user-approval-dialog .primary.reject-confirm:hover:not(:disabled) { background: #a83521; }
+.user-approval-dialog .reject-button { margin-right: auto; order: -1; }

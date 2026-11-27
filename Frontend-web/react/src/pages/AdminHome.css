@@ -1,0 +1,83 @@
+/* Resumen del administrador · centro de operaciones (estilo C) */
+.ah-page { --ah-ink: #0b0d12; --ah-muted: #5f6673; --ah-line: #e2e4e9; --ah-soft: #f4f5f7; --ah-blue: #2166e8; }
+
+.ah-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
+.ah-kpi {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--ah-line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 2px 10px #0b0d1208;
+}
+.ah-kpi-icon { display: grid; grid-row: span 3; place-items: center; width: 42px; height: 42px; border-radius: 12px; color: var(--ah-blue); background: #eaf1fd; }
+.ah-kpi-icon svg { width: 19px; height: 19px; }
+.ah-kpi small { color: var(--ah-muted); font-size: 13px; }
+.ah-kpi strong { color: var(--ah-ink); font: 800 36px/1.1 'Barlow Condensed', sans-serif; }
+.ah-kpi em { color: var(--ah-muted); font-size: 12px; font-style: normal; }
+.ah-kpi.warn .ah-kpi-icon { color: #a86f00; background: #fdf4dd; }
+.ah-kpi.danger .ah-kpi-icon { color: #c0392b; background: #fde9e7; }
+.ah-kpi.danger strong { color: #c0392b; }
+.ah-kpi.ok .ah-kpi-icon { color: #3f7a0e; background: #eef8e2; }
+
+.ah-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.ah-col { display: grid; gap: 16px; }
+.ah-card { padding: 18px 20px; border: 1px solid var(--ah-line); border-radius: 20px; background: #fff; box-shadow: 0 2px 10px #0b0d1208; }
+.ah-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.light-workspace .ah-card h2 { margin: 0; color: var(--ah-ink); font: 800 22px/1.1 'Barlow Condensed', sans-serif; text-transform: uppercase; }
+.ah-link { display: inline-flex; align-items: center; gap: 5px; padding: 4px 0; border: 0; color: var(--ah-blue); background: none; font: 600 13.5px 'IBM Plex Sans', sans-serif; cursor: pointer; }
+.ah-link svg { width: 14px; height: 14px; }
+.ah-link:hover { text-decoration: underline; }
+.light-workspace .ah-sub { margin: 14px 0 6px; color: var(--ah-muted); font: 700 12px 'IBM Plex Sans', sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+
+.ah-rows { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ah-rows li { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 8px 10px; border-radius: 14px; background: var(--ah-soft); }
+.ah-rows li > div { display: grid; flex: 1; min-width: 0; }
+.ah-rows strong { overflow: hidden; color: var(--ah-ink); font-size: 14.5px; text-overflow: ellipsis; white-space: nowrap; }
+.ah-rows small { overflow: hidden; color: var(--ah-muted); font-size: 12.5px; text-overflow: ellipsis; white-space: nowrap; }
+.ah-rows .primary.compact, .ah-rows .secondary-button { flex: none; min-height: 34px; padding: 6px 12px; font-size: 13px; }
+.ah-avatar { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 50%; color: #164ea8; background: #e9effc; font-size: 12px; font-weight: 700; }
+.ah-avatar.alt { color: #b24a17; background: #fdf1e7; }
+.ah-rank b { flex: none; color: var(--ah-ink); font: 800 22px 'Barlow Condensed', sans-serif; }
+.ah-rank b i { color: var(--ah-muted); font: 500 12px 'IBM Plex Sans', sans-serif; font-style: normal; }
+.ah-rank-n { width: 14px; flex: none; color: var(--ah-muted); font: 800 20px 'Barlow Condensed', sans-serif; }
+.ah-empty { display: flex; align-items: center; gap: 8px; margin: 0; padding: 12px; border: 1px dashed var(--ah-line); border-radius: 14px; color: var(--ah-muted); font-size: 13.5px; }
+.ah-empty svg { width: 16px; height: 16px; color: #3f7a0e; }
+.ah-more { margin: 6px 0 0; color: var(--ah-muted); font-size: 12.5px; }
+
+.ah-pill { display: inline-flex; flex: none; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 9px; color: var(--ah-muted); background: var(--ah-soft); font-size: 12px; font-weight: 700; white-space: nowrap; }
+.ah-pill svg { width: 13px; height: 13px; }
+.ah-pill.warn { color: #8a5b00; background: #fdf4dd; }
+
+.ah-big { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 6px 0 10px; }
+.ah-big strong { color: var(--ah-ink); font: 800 42px/1 'Barlow Condensed', sans-serif; }
+.ah-big span { color: var(--ah-muted); font-size: 13.5px; }
+.ah-big em { margin-left: auto; padding: 3px 8px; border-radius: 8px; color: #3f7a0e; background: #eef8e2; font-size: 12.5px; font-style: normal; font-weight: 700; }
+.ah-big em.down { color: #b24a17; background: #fdeee6; }
+
+.ah-chart { display: flex; align-items: flex-end; gap: 7px; height: 150px; }
+.ah-bar { display: flex; flex: 1; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; height: 100%; min-width: 0; }
+.ah-bar i { width: 100%; min-height: 3px; border-radius: 7px 7px 3px 3px; background: linear-gradient(180deg, #2166e8, #5d93f0); }
+.ah-bar i.is-today { background: #7bc41f; }
+.ah-bar small { color: var(--ah-muted); font-size: 11px; }
+.ah-bar-value { min-height: 14px; color: var(--ah-muted); font-size: 11px; font-weight: 600; }
+
+.ah-catalog { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+.ah-catalog button { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px dashed #cfd3da; border-radius: 14px; color: var(--ah-muted); background: transparent; font: 500 13.5px 'IBM Plex Sans', sans-serif; text-align: left; cursor: pointer; }
+.ah-catalog button:hover { border-style: solid; border-color: var(--ah-blue); background: #fff; }
+.ah-catalog svg { width: 18px; height: 18px; flex: none; }
+.ah-catalog b { color: var(--ah-ink); font: 800 22px 'Barlow Condensed', sans-serif; }
+
+@media (max-width: 1200px) {
+  .ah-kpis, .ah-catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ah-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .ah-kpis, .ah-catalog { grid-template-columns: minmax(0, 1fr); }
+  .ah-rows li { flex-wrap: wrap; }
+  .ah-rows li > div { flex-basis: calc(100% - 48px); }
+  .ah-chart { gap: 3px; height: 120px; }
+  .ah-bar-value { display: none; }
+}
