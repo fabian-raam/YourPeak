@@ -93,13 +93,17 @@ fun LoginScreen(
         }
     }
 
-    LoginContenido(
-        estado = estado,
-        alCambiarCorreo = viewModel::cambiarCorreo,
-        alCambiarContrasena = viewModel::cambiarContrasena,
-        alEnviar = viewModel::iniciarSesion,
-        alIrARegistro = alIrARegistro
-    )
+    GoogleAccess("Continuar con Google", estado.cargando, alIniciarSesion) { googleBusy, googleButton ->
+        LoginContenido(
+            estado = estado,
+            alCambiarCorreo = viewModel::cambiarCorreo,
+            alCambiarContrasena = viewModel::cambiarContrasena,
+            alEnviar = viewModel::iniciarSesion,
+            alIrARegistro = alIrARegistro,
+            googleBusy = googleBusy,
+            googleButton = googleButton
+        )
+    }
 }
 
 @Composable
@@ -108,7 +112,9 @@ private fun LoginContenido(
     alCambiarCorreo: (String) -> Unit,
     alCambiarContrasena: (String) -> Unit,
     alEnviar: () -> Unit,
-    alIrARegistro: () -> Unit
+    alIrARegistro: () -> Unit,
+    googleBusy: Boolean = false,
+    googleButton: @Composable () -> Unit = { GoogleButton("Continuar con Google") {} }
 ) {
     val foco = LocalFocusManager.current
     var mostrarContrasena by rememberSaveable { mutableStateOf(false) }
@@ -194,7 +200,7 @@ private fun LoginContenido(
                 ayuda = "Acceso exclusivo con tu correo @tecsup.edu.pe.",
                 error = estado.errores["correo"],
                 tipoTeclado = KeyboardType.Email,
-                habilitado = !estado.cargando,
+                habilitado = !estado.cargando && !googleBusy,
                 longitudMaxima = 254
             )
             Spacer(Modifier.height(14.dp))
@@ -208,7 +214,7 @@ private fun LoginContenido(
                 esContrasena = true,
                 contrasenaVisible = mostrarContrasena,
                 alCambiarVisibilidad = { mostrarContrasena = !mostrarContrasena },
-                habilitado = !estado.cargando,
+                habilitado = !estado.cargando && !googleBusy,
                 longitudMaxima = 128,
                 ultimo = true,
                 alEnviar = { foco.clearFocus(); alEnviar() }
@@ -220,10 +226,13 @@ private fun LoginContenido(
                 texto = "INICIAR SESI\u00D3N",
                 textoEnProceso = "INICIANDO SESI\u00D3N...",
                 alPresionar = { foco.clearFocus(); alEnviar() },
-                cargando = estado.cargando
+                cargando = estado.cargando,
+                habilitado = !googleBusy
             )
 
-            Spacer(Modifier.height((alturaMaxima * 0.22f).coerceAtLeast(52.dp)))
+            GoogleDivider()
+            googleButton()
+            Spacer(Modifier.height(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                 horizontalArrangement = Arrangement.Center,
@@ -234,7 +243,7 @@ private fun LoginContenido(
                     color = TextoSuave,
                     style = MaterialTheme.typography.bodyMedium.copy(fontSize = 15.sp)
                 )
-                TextButton(onClick = alIrARegistro, enabled = !estado.cargando) {
+                TextButton(onClick = alIrARegistro, enabled = !estado.cargando && !googleBusy) {
                     Text(
                         text = "Reg\u00EDstrate",
                         color = Azul,
@@ -253,11 +262,12 @@ fun BotonAutenticacion(
     textoEnProceso: String,
     alPresionar: () -> Unit,
     cargando: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    habilitado: Boolean = true
 ) {
     Button(
         onClick = alPresionar,
-        enabled = !cargando,
+        enabled = !cargando && habilitado,
         modifier = modifier.fillMaxWidth().heightIn(min = 60.dp),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(

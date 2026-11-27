@@ -3,7 +3,10 @@ package com.ramirez.yourpeak.data.repository
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import com.ramirez.yourpeak.data.model.ApiErrorResponse
+import com.ramirez.yourpeak.data.model.GoogleCompleteRequest
+import com.ramirez.yourpeak.data.model.GoogleTokenRequest
 import com.ramirez.yourpeak.data.model.LoginRequest
+import kotlinx.coroutines.CancellationException
 import com.ramirez.yourpeak.data.model.LoginResponse
 import com.ramirez.yourpeak.data.model.RegistroRequest
 import com.ramirez.yourpeak.data.model.RegistroResponse
@@ -19,7 +22,8 @@ sealed interface ApiResult<out T> {
     data class Exito<T>(val datos: T) : ApiResult<T>
     data class Error(
         val mensaje: String,
-        val campos: Map<String, String> = emptyMap()
+        val campos: Map<String, String> = emptyMap(),
+        val estadoHttp: Int? = null
     ) : ApiResult<Nothing>
 }
 
@@ -37,6 +41,14 @@ class AuthRepository(
         }
         return resultado
     }
+
+    suspend fun googleChallenge() = llamar { api.googleChallenge() }
+
+    suspend fun googleLogin(nonce: String, credential: String) =
+        llamar { api.googleLogin(GoogleTokenRequest(nonce, credential)) }
+
+    suspend fun googleComplete(request: GoogleCompleteRequest) =
+        llamar { api.googleComplete(request) }
 
     suspend fun registrar(
         nombre: String,
@@ -64,6 +76,8 @@ class AuthRepository(
             return ApiResult.Error(
                 "No se pudo conectar con el servidor. Revisa tu conexión e inténtalo de nuevo."
             )
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: RuntimeException) {
             logger.log(Level.WARNING, "Error inesperado en respuesta del servidor", e)
             return ApiResult.Error("El servidor devolvió una respuesta inválida.")
@@ -92,7 +106,7 @@ class AuthRepository(
             in 500..599 -> "El servicio no está disponible. Inténtalo más tarde."
             else -> "Ocurrió un error inesperado (${respuesta.code()})."
         }
-        return ApiResult.Error(mensaje, error?.campos.orEmpty())
+        return ApiResult.Error(mensaje, error?.campos.orEmpty(), respuesta.code())
     }
 
     private fun normalizarCorreo(correo: String) = correo.trim().lowercase(Locale.ROOT)

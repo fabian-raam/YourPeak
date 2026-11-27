@@ -91,6 +91,7 @@ fun AppNavigation() {
 
         composable(Rutas.REGISTRO) {
             RegistroScreen(
+                alIniciarSesionConGoogle = ::navegarSegunCuenta,
                 alRegistrarse = { correo, mensaje ->
                     navController.navigate(Rutas.login(correo, mensaje)) {
                         popUpTo(Rutas.SPLASH)

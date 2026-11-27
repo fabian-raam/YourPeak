@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramirez.yourpeak.R
+import com.ramirez.yourpeak.data.model.LoginResponse
 import com.ramirez.yourpeak.domain.Fechas
 import com.ramirez.yourpeak.ui.components.Aviso
 import com.ramirez.yourpeak.ui.components.TipoAviso
@@ -55,6 +56,7 @@ import com.ramirez.yourpeak.ui.theme.YourPeakTheme
 fun RegistroScreen(
     alRegistrarse: (correo: String, mensaje: String) -> Unit,
     alIrALogin: () -> Unit,
+    alIniciarSesionConGoogle: (LoginResponse) -> Unit,
     viewModel: RegistroViewModel = viewModel(factory = RegistroViewModel.Factory)
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -66,19 +68,23 @@ fun RegistroScreen(
         }
     }
 
-    RegistroContenido(
-        estado = estado,
-        acciones = RegistroAcciones(
-            nombre = viewModel::cambiarNombre,
-            apellido = viewModel::cambiarApellido,
-            fecha = viewModel::cambiarFecha,
-            correo = viewModel::cambiarCorreo,
-            contrasena = viewModel::cambiarContrasena,
-            confirmacion = viewModel::cambiarConfirmacion,
-            enviar = viewModel::registrar,
-            irALogin = alIrALogin
+    GoogleAccess("Registrarse con Google", estado.cargando, alIniciarSesionConGoogle) { googleBusy, googleButton ->
+        RegistroContenido(
+            estado = estado,
+            acciones = RegistroAcciones(
+                nombre = viewModel::cambiarNombre,
+                apellido = viewModel::cambiarApellido,
+                fecha = viewModel::cambiarFecha,
+                correo = viewModel::cambiarCorreo,
+                contrasena = viewModel::cambiarContrasena,
+                confirmacion = viewModel::cambiarConfirmacion,
+                enviar = viewModel::registrar,
+                irALogin = alIrALogin
+            ),
+            googleBusy = googleBusy,
+            googleButton = googleButton
         )
-    )
+    }
 }
 
 private class RegistroAcciones(
@@ -93,12 +99,17 @@ private class RegistroAcciones(
 )
 
 @Composable
-private fun RegistroContenido(estado: RegistroUiState, acciones: RegistroAcciones) {
+private fun RegistroContenido(
+    estado: RegistroUiState,
+    acciones: RegistroAcciones,
+    googleBusy: Boolean = false,
+    googleButton: @Composable () -> Unit = { GoogleButton("Registrarse con Google") {} }
+) {
     val foco = LocalFocusManager.current
     var mostrarCalendario by rememberSaveable { mutableStateOf(false) }
     var mostrarContrasena by rememberSaveable { mutableStateOf(false) }
     var mostrarConfirmacion by rememberSaveable { mutableStateOf(false) }
-    val habilitado = !estado.cargando
+    val habilitado = !estado.cargando && !googleBusy
 
     BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black)) {
         val altura = maxHeight
@@ -138,6 +149,8 @@ private fun RegistroContenido(estado: RegistroUiState, acciones: RegistroAccione
             )
             Spacer(Modifier.height(12.dp))
             Aviso(estado.mensajeError, TipoAviso.Error)
+            googleButton()
+            GoogleDivider()
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 CampoAutenticacion(
@@ -223,7 +236,8 @@ private fun RegistroContenido(estado: RegistroUiState, acciones: RegistroAccione
                 texto = "CREAR CUENTA",
                 textoEnProceso = "CREANDO CUENTA...",
                 alPresionar = { foco.clearFocus(); acciones.enviar() },
-                cargando = estado.cargando
+                cargando = estado.cargando,
+                habilitado = !googleBusy
             )
             Spacer(Modifier.height(12.dp))
             Row(
@@ -259,7 +273,7 @@ private fun RegistroContenido(estado: RegistroUiState, acciones: RegistroAccione
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SelectorFecha(fechaActual: String, alConfirmar: (String) -> Unit, alCancelar: () -> Unit) {
+internal fun SelectorFecha(fechaActual: String, alConfirmar: (String) -> Unit, alCancelar: () -> Unit) {
     val inicioDeHoy = remember { Fechas.inicioDeHoyUtcMillis() }
     val estadoCalendario = rememberDatePickerState(
         initialSelectedDateMillis = Fechas.millisUtcDesdeIso(fechaActual),
