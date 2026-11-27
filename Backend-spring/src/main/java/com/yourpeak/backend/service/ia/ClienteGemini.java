@@ -50,12 +50,28 @@ public class ClienteGemini {
 
     /** Envía el prompt pidiendo una respuesta JSON y devuelve el texto generado. */
     public Optional<String> generarJson(String prompt) {
+        return enviar(Map.of(
+                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", prompt)))),
+                "generationConfig", Map.of("responseMimeType", "application/json", "temperature", 0.4)
+        ));
+    }
+
+    /**
+     * Conversación con instrucciones de sistema e historial (roles "user" y "model").
+     * Devuelve el JSON generado por el modelo.
+     */
+    public Optional<String> conversarJson(String instrucciones, List<Map<String, Object>> contenidos) {
+        return enviar(Map.of(
+                "systemInstruction", Map.of("parts", List.of(Map.of("text", instrucciones))),
+                "contents", contenidos,
+                "generationConfig", Map.of("responseMimeType", "application/json", "temperature", 0.5,
+                        "maxOutputTokens", 1200)
+        ));
+    }
+
+    private Optional<String> enviar(Map<String, Object> cuerpo) {
         if (!configurado()) return Optional.empty();
         try {
-            Map<String, Object> cuerpo = Map.of(
-                    "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", prompt)))),
-                    "generationConfig", Map.of("responseMimeType", "application/json", "temperature", 0.4)
-            );
             HttpRequest solicitud = HttpRequest.newBuilder(URI.create(urlBase + "/models/" + modelo + ":generateContent"))
                     .timeout(Duration.ofSeconds(25))
                     .header("Content-Type", "application/json")

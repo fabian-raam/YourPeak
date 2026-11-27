@@ -20,6 +20,8 @@ urlpatterns = [
     # Rutina personal: solo permite asignar ejercicios a los días disponibles del cliente.
     path('api/web/cliente/rutina/', api.rutina_cliente, name='rutina-cliente'),
     path('api/web/cliente/rutina/generar/', api.generar_rutina_cliente, name='generar-rutina-cliente'),
+    # Asistente con IA: solo alimentación y ejercicio.
+    path('api/web/cliente/asistente/', api.asistente_cliente, name='asistente-cliente'),
     path(
         'api/web/cliente/rutina/ejercicios/',
         api.ejercicios_disponibles_rutina,
