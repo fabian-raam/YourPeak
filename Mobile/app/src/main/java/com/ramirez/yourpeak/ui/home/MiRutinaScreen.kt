@@ -263,6 +263,7 @@ private fun EjercicioAsignadoFila(
         Row(Modifier.padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
             IlustracionEjercicio(
                 imagenRuta = ejercicio.imagenRuta,
+                nombre = ejercicio.nombre,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(12.dp),
                 modifier = Modifier.width(76.dp).height(60.dp)

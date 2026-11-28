@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { createExercise, getExercise, getExerciseCatalogs, setExerciseStatus, updateExercise } from '../services/exercises'
 import Icon from './Icon'
-import { exerciseImage, exerciseSlug } from '../utils/exerciseIllustrations'
+import { exerciseImage, exerciseSlug, uploadedExerciseImage } from '../utils/exerciseIllustrations'
 
 const emptyExercise = {
   nombre: '', idGrupoMuscular: '', idNivelExperiencia: '', idTipoMedicion: '',
@@ -23,7 +23,7 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
   const dialog = useRef(null)
   const saving = useRef(false)
   const titleId = useId()
-  const [mode] = useState(initialMode)
+  const [mode, setMode] = useState(initialMode)
   const [exercise, setExercise] = useState(null)
   const [catalogs, setCatalogs] = useState(null)
   const [form, setForm] = useState(emptyExercise)
@@ -146,8 +146,15 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
           && { imagenRuta: exerciseSlug(exercise.nombre) }),
       }
       const result = formMode
-        ? creating ? await createExercise(datos) : await updateExercise(exerciseId, datos)
+        ? creating ? await createExercise(datos) : await updateExercise(exercise.idEjercicio, datos)
         : await setExerciseStatus(exerciseId, active ? 'INACTIVO' : 'ACTIVO')
+      if (datos.imagenBase64 && (!uploadedExerciseImage(result.imagenRuta) || result.imagenRuta === exercise?.imagenRuta)) {
+        setExercise(result)
+        setMode('edit')
+        setError('Los datos del ejercicio se guardaron, pero el servidor no confirmó la imagen. Comprueba que Spring Boot esté ejecutando la versión que admite la carga de imágenes y vuelve a guardar.')
+        onStale()
+        return
+      }
       onSaved(result, creating ? 'created' : editing ? 'edited' : 'status')
     } catch (err) {
       if (err.status === 401) { onExpired(); return }

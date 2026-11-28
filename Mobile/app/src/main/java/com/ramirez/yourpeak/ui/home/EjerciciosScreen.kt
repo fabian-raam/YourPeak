@@ -226,6 +226,7 @@ private fun EjercicioTarjeta(
         Column {
             IlustracionEjercicio(
                 imagenRuta = ejercicio.imagenRuta,
+                nombre = ejercicio.nombre,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(topStart = 17.dp, topEnd = 17.dp),
                 modifier = Modifier.fillMaxWidth().height(108.dp)
@@ -279,6 +280,7 @@ private fun DetalleEjercicio(ejercicio: EjercicioResponse) {
         Column {
             IlustracionEjercicio(
                 imagenRuta = ejercicio.imagenRuta,
+                nombre = ejercicio.nombre,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(topStart = 19.dp, topEnd = 19.dp),
                 modifier = Modifier.fillMaxWidth().aspectRatio(1.5f)
@@ -318,7 +320,7 @@ private fun DatoDetalle(texto: String) {
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 private fun DetalleEjercicioDialog(ejercicio: EjercicioResponse, cerrar: () -> Unit) {
     val estadoHoja = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val ilustracion = pintorIlustracionEjercicio(ejercicio.imagenRuta)
+    val ilustracion = pintorIlustracionEjercicio(ejercicio.imagenRuta, ejercicio.nombre)
     val medicion = when (ejercicio.tipoMedicion?.uppercase()) {
         "REPETICIONES" -> "Repeticiones"
         "TIEMPO" -> "Tiempo"

@@ -31,6 +31,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
+import java.text.Normalizer
 import java.util.Locale
 
 private val rutaSubida = Regex("/api/ejercicios/imagenes/[a-f0-9]{32}\\.(jpg|png)")
@@ -44,9 +45,9 @@ private val cacheImagenes by lazy {
 internal fun esImagenSubida(ruta: String?): Boolean = ruta != null && rutaSubida.matches(ruta)
 
 @Composable
-internal fun pintorIlustracionEjercicio(ruta: String?): Painter? {
+internal fun pintorIlustracionEjercicio(ruta: String?, nombre: String?): Painter? {
     if (!esImagenSubida(ruta)) {
-        return recursoIlustracionEjercicio(ruta)?.let { painterResource(it) }
+        return recursoIlustracionEjercicio(ruta, nombre)?.let { painterResource(it) }
     }
 
     val url = BuildConfig.API_BASE_URL + ruta.orEmpty().trimStart('/')
@@ -74,16 +75,23 @@ internal fun pintorIlustracionEjercicio(ruta: String?): Painter? {
  * Convención: "aperturas-con-mancuernas" -> "exercise_aperturas_con_mancuernas".
  */
 @Composable
-fun recursoIlustracionEjercicio(imagenRuta: String?): Int? {
+private fun recursoIlustracionEjercicio(imagenRuta: String?, nombre: String?): Int? {
     val context = LocalContext.current
-    return remember(context, imagenRuta) {
-        val clave = claveIlustracion(imagenRuta) ?: return@remember null
-
-        context.resources
-            .getIdentifier("exercise_$clave", "drawable", context.packageName)
-            .takeIf { it != 0 }
+    return remember(context, imagenRuta, nombre) {
+        sequenceOf(claveIlustracion(imagenRuta), claveIlustracionPorNombre(nombre))
+            .filterNotNull()
+            .map { clave -> context.resources.getIdentifier("exercise_$clave", "drawable", context.packageName) }
+            .firstOrNull { it != 0 }
     }
 }
+
+internal fun claveIlustracionPorNombre(nombre: String?): String? = nombre
+    ?.let { Normalizer.normalize(it, Normalizer.Form.NFD) }
+    ?.replace(Regex("\\p{M}+"), "")
+    ?.lowercase(Locale.ROOT)
+    ?.replace(Regex("[^a-z0-9]+"), "_")
+    ?.trim('_')
+    ?.takeIf { it.isNotEmpty() }
 
 /** Nombre del recurso (sin el prefijo exercise_) para una imagenRuta, o null si no es válida. */
 internal fun claveIlustracion(imagenRuta: String?): String? = imagenRuta
@@ -98,11 +106,12 @@ internal fun claveIlustracion(imagenRuta: String?): String? = imagenRuta
 @Composable
 fun IlustracionEjercicio(
     imagenRuta: String?,
+    nombre: String?,
     grupoMuscular: String?,
     forma: Shape,
     modifier: Modifier = Modifier
 ) {
-    val painter = pintorIlustracionEjercicio(imagenRuta)
+    val painter = pintorIlustracionEjercicio(imagenRuta, nombre)
     Box(
         modifier = modifier.clip(forma).background(FondoIlustracion),
         contentAlignment = Alignment.Center
