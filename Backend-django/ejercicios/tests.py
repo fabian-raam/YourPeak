@@ -1,6 +1,7 @@
 """Pruebas de la API Django que actúa como proxy del catálogo de Spring."""
 import io
 import json
+from email.message import Message
 from urllib.error import HTTPError, URLError
 from unittest.mock import patch
 
@@ -22,6 +23,22 @@ class ApiEjerciciosTests(TestCase):
         llamada = getattr(cliente, metodo)
         cuerpo = None if datos is None else json.dumps(datos)
         return llamada(ruta, cuerpo, content_type='application/json')
+
+    @patch('ejercicios.api.urlopen')
+    def test_lee_imagen_del_catalogo_desde_spring(self, abrir):
+        nombre = 'a' * 32 + '.png'
+        upstream = abrir.return_value.__enter__.return_value
+        upstream.read.return_value = b'imagen de prueba'
+        upstream.headers = Message()
+        upstream.headers['Content-Type'] = 'image/png'
+        upstream.headers['Cache-Control'] = 'max-age=86400, public'
+
+        respuesta = self.client.get(f'/api/web/ejercicios/imagenes/{nombre}/')
+        self.assertEqual(respuesta.status_code, 200)
+        self.assertEqual(respuesta.content, b'imagen de prueba')
+        self.assertEqual(respuesta['Content-Type'], 'image/png')
+        self.assertEqual(respuesta['Cache-Control'], 'max-age=86400, public')
+        self.assertTrue(abrir.call_args.args[0].endswith(f'/api/ejercicios/imagenes/{nombre}'))
 
     @patch('ejercicios.api._spring_request')
     @patch('cuentas.api._spring_request')

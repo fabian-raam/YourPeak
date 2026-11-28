@@ -1,6 +1,9 @@
 """Proxy web del catálogo de ejercicios administrado por Spring Boot."""
 from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
+from django.conf import settings
+from django.http import HttpResponse
 from django.views.decorators.http import require_GET, require_http_methods
 
 from cuentas.api import (
@@ -12,6 +15,21 @@ from cuentas.api import (
     spring_error,
 )
 from cuentas.views import _spring_request
+
+
+@require_GET
+def imagen_ejercicio(request, nombre):
+    """Sirve las imágenes del catálogo bajo el mismo origen que la web."""
+    ruta = f'{settings.SPRING_API_BASE_URL.rstrip("/")}/api/ejercicios/imagenes/{nombre}'
+    try:
+        with urlopen(ruta, timeout=5) as respuesta:
+            imagen = HttpResponse(respuesta.read(), content_type=respuesta.headers.get_content_type())
+            imagen['Cache-Control'] = respuesta.headers.get('Cache-Control', 'no-cache')
+            return imagen
+    except HTTPError as excepcion:
+        return HttpResponse(status=404 if excepcion.code == 404 else 502)
+    except (URLError, TimeoutError):
+        return HttpResponse(status=503)
 
 
 def _reenviar_a_spring(request, ruta, metodo, mensaje_error, datos=None, status_exito=200):

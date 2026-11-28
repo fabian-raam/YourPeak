@@ -2,21 +2,44 @@ package com.yourpeak.backend;
 
 import com.yourpeak.backend.dto.CambiarEstadoEjercicioRequest;
 import com.yourpeak.backend.dto.EjercicioRequest;
+import com.yourpeak.backend.dto.EjercicioResponse;
 import com.yourpeak.backend.repository.EjercicioRepository;
 import com.yourpeak.backend.service.EjercicioService;
+import com.yourpeak.backend.service.ia.ClienteGemini;
+import jakarta.servlet.Filter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Base64;
+import javax.imageio.ImageIO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Comprueba el CRUD lógico del catálogo usando persistencia H2 y las entidades JPA. */
 @SpringBootTest
@@ -25,7 +48,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
-        "spring.jpa.hibernate.ddl-auto=create-drop"
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "yourpeak.internal-api-key=pruebas-imagenes"
 })
 @Transactional
 class EjercicioCatalogoH2Tests {
@@ -34,6 +58,14 @@ class EjercicioCatalogoH2Tests {
     @Autowired private EjercicioService servicio;
     @Autowired private EjercicioRepository ejercicios;
     @Autowired private JdbcTemplate jdbc;
+    @Autowired private WebApplicationContext web;
+    @MockitoBean private ClienteGemini gemini;
+    @TempDir static Path imagenes;
+
+    @DynamicPropertySource
+    static void configurarImagenes(DynamicPropertyRegistry registry) {
+        registry.add("yourpeak.ejercicios.imagenes-dir", () -> imagenes.toString());
+    }
 
     @BeforeEach
     void prepararCatalogos() {
@@ -107,6 +139,64 @@ class EjercicioCatalogoH2Tests {
         ResponseStatusException noAdmin = assertThrows(ResponseStatusException.class,
                 () -> servicio.listar(999L));
         assertEquals(403, noAdmin.getStatusCode().value());
+    }
+
+    @Test
+    void creaConsultaConservaYReemplazaImagen() throws Exception {
+        byte[] primeraImagen = png(0xff445566);
+        var mvc = MockMvcBuilders.webAppContextSetup(web)
+                .addFilters(web.getBean("springSecurityFilterChain", Filter.class))
+                .build();
+        var json = JsonMapper.builder().build();
+        var carga = post("/api/admin/ejercicios")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-Admin-User-Id", ID_ADMIN)
+                .content(json.writeValueAsBytes(requestConImagen("Press banca", primeraImagen)));
+        mvc.perform(carga).andExpect(status().isForbidden());
+        var resultado = mvc.perform(carga.header("X-Internal-Api-Key", "pruebas-imagenes"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsByteArray();
+        var creado = json.readValue(resultado, EjercicioResponse.class);
+        mvc.perform(get(creado.imagenRuta()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/png"))
+                .andExpect(content().bytes(primeraImagen));
+
+        var editado = servicio.actualizar(creado.idEjercicio(),
+                request("Press inclinado", 1, 1, (short) 1), ID_ADMIN);
+        assertEquals(creado.imagenRuta(), editado.imagenRuta());
+        byte[] segundaImagen = png(0xffaabbcc);
+        var reemplazado = servicio.actualizar(creado.idEjercicio(),
+                requestConImagen("Press inclinado", segundaImagen), ID_ADMIN);
+        assertNotEquals(creado.imagenRuta(), reemplazado.imagenRuta());
+        assertEquals(reemplazado.imagenRuta(), servicio.obtener(creado.idEjercicio(), ID_ADMIN).imagenRuta());
+        mvc.perform(get(reemplazado.imagenRuta()))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(segundaImagen));
+    }
+
+    @Test
+    void descartaArchivoInvalidoYConservaEjercicio() {
+        var creado = servicio.crear(request("Press banca", 1, 1, (short) 1), ID_ADMIN);
+        var error = assertThrows(ResponseStatusException.class, () -> servicio.actualizar(
+                creado.idEjercicio(), requestConImagen("Press inclinado", new byte[]{1, 2, 3}), ID_ADMIN));
+        assertEquals(400, error.getStatusCode().value());
+        var guardado = servicio.obtener(creado.idEjercicio(), ID_ADMIN);
+        assertEquals("Press banca", guardado.nombre());
+        assertNull(guardado.imagenRuta());
+    }
+
+    private static byte[] png(int color) throws IOException {
+        var imagen = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
+        imagen.setRGB(0, 0, color);
+        var salida = new ByteArrayOutputStream();
+        ImageIO.write(imagen, "png", salida);
+        return salida.toByteArray();
+    }
+
+    private EjercicioRequest requestConImagen(String nombre, byte[] imagen) {
+        return new EjercicioRequest(1, 1, (short) 1, nombre,
+                null, null, null, Base64.getEncoder().encodeToString(imagen));
     }
 
     private EjercicioRequest request(String nombre, int grupo, int nivel, short medicion) {

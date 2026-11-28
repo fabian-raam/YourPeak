@@ -1,8 +1,12 @@
 package com.yourpeak.backend.repository;
 
 import com.yourpeak.backend.model.Ejercicio;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +18,10 @@ public interface EjercicioRepository extends JpaRepository<Ejercicio, Integer> {
     @Override
     @EntityGraph(attributePaths = {"grupoMuscular", "nivelExperiencia", "tipoMedicion", "tipoEstado"})
     Optional<Ejercicio> findById(Integer idEjercicio);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select e from Ejercicio e where e.idEjercicio = :id")
+    Optional<Ejercicio> buscarParaEditar(@Param("id") Integer idEjercicio);
 
     boolean existsByNombreIgnoreCase(String nombre);
     boolean existsByNombreIgnoreCaseAndIdEjercicioNot(String nombre, Integer idEjercicio);

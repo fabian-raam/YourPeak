@@ -91,7 +91,7 @@ function WorkoutHero({ routine, onNavigate }) {
   const exercises = workout?.ejercicios ?? []
   const groups = [...new Set(exercises.map(item => item.grupoMuscular).filter(Boolean))]
   const title = groups.length > 0 && groups.length <= 2 ? groups.join(' + ') : 'Rutina semanal'
-  const cover = exercises.map(item => exerciseImage(item.nombre)).find(Boolean)
+  const cover = exercises.map(exerciseImage).find(Boolean)
   const minutes = workout && minutesBetween(workout.horaInicio, workout.horaFin)
   const byAi = exercises.some(item => item.origen === 'IA')
   const eyebrow = !workout ? 'Mi rutina'
@@ -119,7 +119,7 @@ function WorkoutHero({ routine, onNavigate }) {
     </div>
     {exercises.length > 0 && <ul className="ch-hero-exercises" aria-label="Primeros ejercicios">
       {exercises.slice(0, 4).map(item => {
-        const image = exerciseImage(item.nombre)
+        const image = exerciseImage(item)
         return <li key={item.idPlanEjercicio ?? item.idEjercicio}>
           {image ? <img src={image} alt="" loading="lazy" /> : <span className="ch-hero-placeholder"><Icon name="dumbbell" /></span>}
           <div><strong>{item.nombre}</strong>

@@ -114,8 +114,8 @@ export default function ExercisesCatalog({ onExpired, logoutError }) {
             : <div className="users-table-scroll"><table className="users-table exercise-table"><caption className="sr-only">Catálogo de ejercicios</caption>
               <thead><tr><th scope="col">Ejercicio</th><th scope="col">Grupo muscular</th><th scope="col">Nivel mínimo</th><th scope="col">Medición</th><th scope="col">Estado</th><th scope="col">Acciones</th></tr></thead>
               <tbody>{visible.map(item => <tr key={item.idEjercicio}>
-                <td><div className="user-cell">{exerciseImage(item.nombre)
-                  ? <img className="catalog-thumb" src={exerciseImage(item.nombre)} alt="" loading="lazy" />
+                <td><div className="user-cell">{exerciseImage(item)
+                  ? <img className="catalog-thumb" src={exerciseImage(item)} alt="" loading="lazy" />
                   : <span className="catalog-row-icon"><Icon name="dumbbell" /></span>}<div><strong>{item.nombre}</strong><span>Ejercicio #{item.idEjercicio}</span></div></div></td>
                 <td>{item.grupoMuscular}</td><td><span className={`level-badge ${normalize(item.nivelExperiencia)}`}>{item.nivelExperiencia}</span></td><td>{capitalize(item.tipoMedicion)}</td>
                 <td><span className={`status-badge plan-status ${item.estado === 'ACTIVO' ? 'is-active' : 'is-inactive'}`}><i />{item.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}</span></td>

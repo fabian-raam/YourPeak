@@ -29,6 +29,7 @@ public class EjercicioService {
     private final NivelExperienciaRepository nivelRepository;
     private final TipoMedicionRepository medicionRepository;
     private final TipoEstadoRepository estadoRepository;
+    private final ImagenEjercicioStorage imagenes;
 
     public EjercicioService(
             AdministradorRepository administradorRepository,
@@ -36,7 +37,8 @@ public class EjercicioService {
             GrupoMuscularRepository grupoRepository,
             NivelExperienciaRepository nivelRepository,
             TipoMedicionRepository medicionRepository,
-            TipoEstadoRepository estadoRepository
+            TipoEstadoRepository estadoRepository,
+            ImagenEjercicioStorage imagenes
     ) {
         this.administradorRepository = administradorRepository;
         this.ejercicioRepository = ejercicioRepository;
@@ -44,6 +46,7 @@ public class EjercicioService {
         this.nivelRepository = nivelRepository;
         this.medicionRepository = medicionRepository;
         this.estadoRepository = estadoRepository;
+        this.imagenes = imagenes;
     }
 
     @Transactional(readOnly = true)
@@ -80,6 +83,7 @@ public class EjercicioService {
         verificarAdministrador(idUsuarioAdministrador);
         String nombre = normalizarNombre(request.nombre());
         verificarNombreDisponible(nombre, null);
+        TipoEstado estado = buscarEstado("ACTIVO");
         Ejercicio ejercicio = new Ejercicio(
                 buscarGrupo(request.idGrupoMuscular()),
                 buscarNivel(request.idNivelExperiencia()),
@@ -87,8 +91,8 @@ public class EjercicioService {
                 nombre,
                 request.descripcion(),
                 request.equipamiento(),
-                request.imagenRuta(),
-                buscarEstado("ACTIVO")
+                rutaImagen(request, null),
+                estado
         );
         return respuesta(ejercicioRepository.save(ejercicio));
     }
@@ -100,7 +104,7 @@ public class EjercicioService {
             Long idUsuarioAdministrador
     ) {
         verificarAdministrador(idUsuarioAdministrador);
-        Ejercicio ejercicio = buscarEjercicio(idEjercicio);
+        Ejercicio ejercicio = buscarEjercicioParaEditar(idEjercicio);
         String nombre = normalizarNombre(request.nombre());
         verificarNombreDisponible(nombre, idEjercicio);
         ejercicio.actualizar(
@@ -110,7 +114,7 @@ public class EjercicioService {
                 nombre,
                 request.descripcion(),
                 request.equipamiento(),
-                request.imagenRuta()
+                rutaImagen(request, ejercicio.getImagenRuta())
         );
         return respuesta(ejercicio);
     }
@@ -122,9 +126,22 @@ public class EjercicioService {
             Long idUsuarioAdministrador
     ) {
         verificarAdministrador(idUsuarioAdministrador);
-        Ejercicio ejercicio = buscarEjercicio(idEjercicio);
+        Ejercicio ejercicio = buscarEjercicioParaEditar(idEjercicio);
         ejercicio.cambiarEstado(buscarEstado(request.estado()));
         return respuesta(ejercicio);
+    }
+
+    private String rutaImagen(EjercicioRequest request, String actual) {
+        if (request.imagenBase64() != null) {
+            return imagenes.guardar(request.imagenBase64());
+        }
+        if (actual != null && actual.startsWith(ImagenEjercicioStorage.RUTA + "/")) {
+            return actual;
+        }
+        if (request.imagenRuta() != null && request.imagenRuta().startsWith(ImagenEjercicioStorage.RUTA + "/")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sube un archivo para asignar una imagen al ejercicio.");
+        }
+        return request.imagenRuta() == null ? actual : request.imagenRuta();
     }
 
     private void verificarAdministrador(Long idUsuario) {
@@ -138,6 +155,12 @@ public class EjercicioService {
 
     private Ejercicio buscarEjercicio(Integer id) {
         return ejercicioRepository.findById(id).orElseThrow(() -> new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "No se encontró el ejercicio solicitado."
+        ));
+    }
+
+    private Ejercicio buscarEjercicioParaEditar(Integer id) {
+        return ejercicioRepository.buscarParaEditar(id).orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND, "No se encontró el ejercicio solicitado."
         ));
     }
