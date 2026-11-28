@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import { getRoutineExercises } from '../services/routine'
 import { normalizeSearch } from '../utils/format'
+import { uploadedExerciseImage } from '../utils/exerciseIllustrations'
 import './ClientExercises.css'
 
 const illustrationFiles = import.meta.glob('../assets/exercises/*.jpg', { eager: true, query: '?url', import: 'default' })
@@ -121,6 +122,8 @@ export default function ClientExercises({ onExpired }) {
 }
 
 function getIllustration(exercise) {
+  const uploaded = uploadedExerciseImage(exercise.imagenRuta)
+  if (uploaded) return { src: uploaded, alt: `Imagen de ${exercise.nombre}`, uploaded: true }
   const exerciseKey = normalizeSearch(exercise.nombre).trim().replace(/\s+/g, '-')
   return illustrations.get(exercise.imagenRuta) ?? illustrations.get(exerciseKey)
 }
@@ -187,11 +190,11 @@ function ExerciseMovement({ illustration }) {
 
   if (illustration && !imageFailed) return <figure className="client-exercise-movement">
     <img src={illustration.src} alt={illustration.alt} onError={() => setImageFailed(true)} />
-    <figcaption className="client-movement-labels" aria-hidden="true">
+    {!illustration.uploaded && <figcaption className="client-movement-labels" aria-hidden="true">
       {illustration.hold ? <span>Posición de sostén</span> : <>
         <span><b>1</b> Inicio</span><span><b>2</b> Final</span>
       </>}
-    </figcaption>
+    </figcaption>}
   </figure>
 
   return <div className="client-detail-note">

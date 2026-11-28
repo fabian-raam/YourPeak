@@ -29,8 +29,16 @@ public record EjercicioRequest(
         String equipamiento,
 
         @Size(max = 255, message = "La ruta de imagen admite hasta 255 caracteres.")
-        String imagenRuta
+        String imagenRuta,
+
+        @Size(max = 1398104, message = "La imagen admite hasta 1 MB.")
+        String imagenBase64
 ) {
+    public EjercicioRequest(Integer grupo, Integer nivel, Short medicion, String nombre,
+                            String descripcion, String equipamiento, String imagenRuta) {
+        this(grupo, nivel, medicion, nombre, descripcion, equipamiento, imagenRuta, null);
+    }
+
     public EjercicioRequest {
         nombre = nombre == null ? null : nombre.strip();
         descripcion = normalizarOpcional(descripcion);

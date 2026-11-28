@@ -1,17 +1,29 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { createExercise, getExercise, getExerciseCatalogs, setExerciseStatus, updateExercise } from '../services/exercises'
 import Icon from './Icon'
+import { exerciseImage, exerciseSlug, uploadedExerciseImage } from '../utils/exerciseIllustrations'
 
 const emptyExercise = {
   nombre: '', idGrupoMuscular: '', idNivelExperiencia: '', idTipoMedicion: '',
   descripcion: '', equipamiento: '',
 }
 
+const imageTypes = ['image/jpeg', 'image/png']
+
+function readImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result.split(',')[1])
+    reader.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSaved, onEdit, onExpired, onStale }) {
   const dialog = useRef(null)
   const saving = useRef(false)
   const titleId = useId()
-  const [mode] = useState(initialMode)
+  const [mode, setMode] = useState(initialMode)
   const [exercise, setExercise] = useState(null)
   const [catalogs, setCatalogs] = useState(null)
   const [form, setForm] = useState(emptyExercise)
@@ -20,11 +32,20 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
   const [error, setError] = useState('')
   const [fields, setFields] = useState({})
   const [stale, setStale] = useState(false)
+  const [image, setImage] = useState(null)
+  const [imageError, setImageError] = useState('')
+  const fileInput = useRef(null)
   const creating = mode === 'create'
   const editing = mode === 'edit'
   const changingStatus = mode === 'status'
   const formMode = creating || editing
   const active = exercise?.estado === 'ACTIVO'
+  const currentImage = exercise ? exerciseImage(exercise) : null
+  const imagePreview = image?.url ?? currentImage
+
+  useEffect(() => {
+    if (image) return () => URL.revokeObjectURL(image.url)
+  }, [image])
 
   useEffect(() => {
     dialog.current?.showModal()
@@ -70,9 +91,31 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
     setError('')
   }
 
+  function changeImage(event) {
+    const file = event.target.files[0]
+    if (!file) return
+    setImage(null)
+    setError('')
+    setFields(previous => ({ ...previous, imagenBase64: undefined }))
+    if (!imageTypes.includes(file.type) || file.size === 0 || file.size > 1024 * 1024) {
+      setImageError('Selecciona una imagen JPG o PNG de hasta 1 MB.')
+      return
+    }
+    setImageError('')
+    setImage({ file, url: URL.createObjectURL(file) })
+  }
+
+  function discardImage() {
+    fileInput.current.value = ''
+    setImage(null)
+    setImageError('')
+    setError('')
+    setFields(previous => ({ ...previous, imagenBase64: undefined }))
+  }
+
   async function submit(event) {
     event.preventDefault()
-    if (saving.current || stale || loading) return
+    if (saving.current || stale || loading || imageError) return
     const nextFields = {}
     if (formMode) {
       if (!form.nombre.trim()) nextFields.nombre = 'Ingresa el nombre del ejercicio.'
@@ -98,11 +141,20 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
         idTipoMedicion: Number(form.idTipoMedicion),
         descripcion: form.descripcion.trim() || null,
         equipamiento: form.equipamiento.trim() || null,
-        imagenRuta: exercise?.imagenRuta ?? null,
+        ...(image && { imagenBase64: await readImage(image.file) }),
+        ...(editing && !image && !exercise.imagenRuta && currentImage
+          && { imagenRuta: exerciseSlug(exercise.nombre) }),
       }
       const result = formMode
-        ? creating ? await createExercise(datos) : await updateExercise(exerciseId, datos)
+        ? creating ? await createExercise(datos) : await updateExercise(exercise.idEjercicio, datos)
         : await setExerciseStatus(exerciseId, active ? 'INACTIVO' : 'ACTIVO')
+      if (datos.imagenBase64 && (!uploadedExerciseImage(result.imagenRuta) || result.imagenRuta === exercise?.imagenRuta)) {
+        setExercise(result)
+        setMode('edit')
+        setError('Los datos del ejercicio se guardaron, pero el servidor no confirmó la imagen. Comprueba que Spring Boot esté ejecutando la versión que admite la carga de imágenes y vuelve a guardar.')
+        onStale()
+        return
+      }
       onSaved(result, creating ? 'created' : editing ? 'edited' : 'status')
     } catch (err) {
       if (err.status === 401) { onExpired(); return }
@@ -152,6 +204,16 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
           <small>Opcional, máximo 500 caracteres.</small>
         </div>
         <div className="field"><label htmlFor="exercise-equipamiento">Equipamiento</label><div className="input-wrap"><input id="exercise-equipamiento" name="equipamiento" value={form.equipamiento} onChange={change} maxLength={100} placeholder="Ej. Barra" /></div><small>Opcional.</small></div>
+        <div className="field exercise-image-field">
+          <label htmlFor="exercise-imagen">Imagen del ejercicio</label>
+          {imagePreview && <img src={imagePreview} alt={image ? 'Vista previa de la nueva imagen' : 'Imagen actual del ejercicio'} />}
+          <input ref={fileInput} id="exercise-imagen" type="file" accept="image/jpeg,image/png"
+            onChange={changeImage} aria-invalid={Boolean(imageError || fields.imagenBase64)}
+            aria-describedby="exercise-image-hint" />
+          <small id="exercise-image-hint">Opcional. JPG o PNG, hasta 1 MB y 2048 × 2048 píxeles.</small>
+          {(imageError || fields.imagenBase64) && <small className="field-error" role="alert">{imageError || fields.imagenBase64}</small>}
+          {(image || imageError) && <button type="button" className="secondary-button" onClick={discardImage}>Quitar selección</button>}
+        </div>
       </fieldset>}
       {!formMode && exercise && <>
         <div className="exercise-summary"><span className="stat-icon accent"><Icon name="dumbbell" /></span><div><h3>{exercise.nombre}</h3>
@@ -168,7 +230,7 @@ export default function ExerciseDialog({ exerciseId, initialMode, onClose, onSav
       {error && <p className="alert" role="alert">{error}</p>}
       <div className="dialog-actions">
         <button type="button" className="secondary-button" disabled={busy} onClick={close}>{stale ? 'Volver al catálogo' : formMode || changingStatus ? 'Cancelar' : 'Cerrar'}</button>
-        {!stale && (formMode || changingStatus) && <button className={changingStatus && active ? 'primary compact catalog-deactivate' : 'primary compact'} type="submit" disabled={busy}>
+        {!stale && (formMode || changingStatus) && <button className={changingStatus && active ? 'primary compact catalog-deactivate' : 'primary compact'} type="submit" disabled={busy || Boolean(imageError)}>
           {busy ? 'Guardando…' : creating ? 'Crear ejercicio' : editing ? 'Guardar cambios' : active ? 'Desactivar' : 'Activar'}</button>}
         {!stale && mode === 'detail' && exercise && <button className="primary compact" type="button" onClick={onEdit}>Editar ejercicio</button>}
       </div>

@@ -379,7 +379,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
           const selected = date.toDateString() === selectedDate.toDateString()
           const isCurrentDay = date.getTime() === today.getTime()
           const hasRoutine = day.disponible && day.ejercicios.length > 0
-          const cover = hasRoutine && day.ejercicios.map(item => exerciseImage(item.nombre)).find(Boolean)
+          const cover = hasRoutine && day.ejercicios.map(exerciseImage).find(Boolean)
           const trained = trainedDates.has(isoDate(date))
           const doneToday = isCurrentDay ? day.ejercicios.filter(item => completedExerciseIds.has(item.idPlanEjercicio)).length : 0
           const progress = trained && !isCurrentDay ? 100 : hasRoutine ? doneToday / day.ejercicios.length * 100 : 0
@@ -415,7 +415,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
             {selectedDay.ejercicios.length ? <ol className="routine-exercise-list">
               {selectedDay.ejercicios.map((exercise, index) => {
                 const done = isToday && completedExerciseIds.has(exercise.idPlanEjercicio)
-                const image = exerciseImage(exercise.nombre)
+                const image = exerciseImage(exercise)
                 return <li key={exercise.idEjercicio} id={exercise.idPlanEjercicio ? `routine-exercise-${exercise.idPlanEjercicio}` : undefined}
                   className={[addedId === exercise.idEjercicio && 'routine-exercise-added', done && 'is-done', dragIndex === index && 'is-dragging'].filter(Boolean).join(' ')}
                   draggable={!saving && !generating}
@@ -565,7 +565,7 @@ export default function ClientRoutine({ onExpired, onNavigate, initialDate }) {
 /** Portada del día: ilustración, grupos, totales y avance de hoy. */
 function RoutineHero({ day, dateLabel, isToday, completed, onContinue, onAdd }) {
   const exercises = day.ejercicios
-  const cover = exercises.map(item => exerciseImage(item.nombre)).find(Boolean)
+  const cover = exercises.map(exerciseImage).find(Boolean)
   const minutes = minutesBetween(day.horaInicio, day.horaFin)
   const totalSeries = exercises.reduce((sum, item) => sum + Number(item.series || 0), 0)
   const hasAi = exercises.some(item => item.origen === 'IA')

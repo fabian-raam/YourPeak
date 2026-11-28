@@ -195,6 +195,10 @@ En administración, **Desactivar** se distingue con texto y borde rojos en las t
 - **Ejercicios:** el administrador puede listar, consultar, crear, editar, desactivar y reactivar ejercicios. La desactivación conserva el registro con estado inactivo.
 - **Alimentos:** el administrador puede listar, consultar, crear y editar alimentos. El modelo actual carece de un campo de estado y la API solo admite esas operaciones. Si se requiere ocultar alimentos conservando los registros de ingesta, queda pendiente definir esa regla y añadir soporte en el modelo y la API.
 
+En **Agregar ejercicio** y **Editar ejercicio**, puedes seleccionar una imagen JPG o PNG de hasta 1 MB y 2048 × 2048 píxeles. La vista previa aparece en el formulario y el archivo se guarda al confirmar. Si editas el ejercicio sin seleccionar un archivo, se conserva su imagen.
+
+Spring guarda los archivos en `imagenes-ejercicios/`, relativa a su directorio de arranque, y guarda la referencia en la columna existente `ejercicio.imagen_ruta`. Puedes configurar un directorio persistente con `YOURPEAK_IMAGENES_EJERCICIOS_DIR`. En una instalación compartida, web y Android cargan las imágenes del mismo Spring. Incluye el directorio de imágenes en las copias de seguridad junto con MySQL.
+
 Para probar los catálogos, ejecuta [`yourpeak_datos_iniciales.sql`](Backend-spring/database/yourpeak_datos_iniciales.sql) en tu base local `yourpeak_db`, una vez que las tablas estén creadas. El script agrega 16 ejercicios y 32 alimentos de demostración y omite los nombres que ya existen. Después, pulsa **Actualizar** en cada catálogo del panel.
 
 ### Área web del cliente
@@ -214,7 +218,7 @@ Los clientes activos con membresía vigente cuentan con menú lateral en escrito
 
 El catálogo **Ejercicios** y el selector de **Mi rutina** consultan los ejercicios activos en `GET /api/web/cliente/rutina/ejercicios/`.
 
-Los 16 ejercicios del catálogo inicial tienen una ilustración en su tarjeta y en **Ver detalle → El movimiento**. Los ejercicios dinámicos muestran las posiciones de inicio y final. La plancha frontal muestra la posición de sostén. Para añadir una ilustración, guarda el archivo JPG en `Frontend-web/react/src/assets/exercises/` y registra su clave y texto alternativo en `ClientExercises.jsx`. El catálogo busca primero una clave en `imagenRuta` y luego la clave formada a partir del nombre del ejercicio. Los ejercicios sin ilustración conservan el ícono de mancuerna y su ficha de detalle.
+Los 16 ejercicios del catálogo inicial tienen una ilustración en su tarjeta y en **Ver detalle → El movimiento**. Los ejercicios dinámicos muestran las posiciones de inicio y final. La plancha frontal muestra la posición de sostén. Cuando el administrador sube una imagen, esta se muestra en el catálogo y en el detalle. Los ejercicios sin ilustración conservan el ícono de mancuerna y su ficha de detalle.
 
 #### Comprobar el flujo del cliente en local
 

@@ -10,12 +10,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.text.style.TextOverflow
 import com.ramirez.yourpeak.ui.components.IlustracionEjercicio
-import com.ramirez.yourpeak.ui.components.recursoIlustracionEjercicio
+import com.ramirez.yourpeak.ui.components.esImagenSubida
+import com.ramirez.yourpeak.ui.components.pintorIlustracionEjercicio
 import com.ramirez.yourpeak.ui.components.BotonIconoDetalle
 import com.ramirez.yourpeak.ui.theme.BarlowCondensed
 import com.ramirez.yourpeak.ui.theme.Carbon
@@ -226,6 +226,7 @@ private fun EjercicioTarjeta(
         Column {
             IlustracionEjercicio(
                 imagenRuta = ejercicio.imagenRuta,
+                nombre = ejercicio.nombre,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(topStart = 17.dp, topEnd = 17.dp),
                 modifier = Modifier.fillMaxWidth().height(108.dp)
@@ -279,6 +280,7 @@ private fun DetalleEjercicio(ejercicio: EjercicioResponse) {
         Column {
             IlustracionEjercicio(
                 imagenRuta = ejercicio.imagenRuta,
+                nombre = ejercicio.nombre,
                 grupoMuscular = ejercicio.grupoMuscular,
                 forma = RoundedCornerShape(topStart = 19.dp, topEnd = 19.dp),
                 modifier = Modifier.fillMaxWidth().aspectRatio(1.5f)
@@ -318,7 +320,7 @@ private fun DatoDetalle(texto: String) {
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 private fun DetalleEjercicioDialog(ejercicio: EjercicioResponse, cerrar: () -> Unit) {
     val estadoHoja = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val recursoImagen = recursoIlustracionEjercicio(ejercicio.imagenRuta)
+    val ilustracion = pintorIlustracionEjercicio(ejercicio.imagenRuta, ejercicio.nombre)
     val medicion = when (ejercicio.tipoMedicion?.uppercase()) {
         "REPETICIONES" -> "Repeticiones"
         "TIEMPO" -> "Tiempo"
@@ -360,7 +362,7 @@ private fun DetalleEjercicioDialog(ejercicio: EjercicioResponse, cerrar: () -> U
                 Spacer(Modifier.height(16.dp))
                 EncabezadoDetalle("EL MOVIMIENTO")
                 Spacer(Modifier.height(10.dp))
-                if (recursoImagen != null) {
+                if (ilustracion != null) {
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(18.dp),
@@ -369,12 +371,12 @@ private fun DetalleEjercicioDialog(ejercicio: EjercicioResponse, cerrar: () -> U
                     ) {
                         Column {
                             Image(
-                                painter = painterResource(recursoImagen),
+                                painter = ilustracion,
                                 contentDescription = "Ilustraci\u00f3n del ejercicio ${ejercicio.nombre}",
                                 modifier = Modifier.fillMaxWidth().height(220.dp),
                                 contentScale = ContentScale.Fit
                             )
-                            Row(
+                            if (!esImagenSubida(ejercicio.imagenRuta)) Row(
                                 modifier = Modifier.fillMaxWidth()
                                     .background(Color(0xFF151515))
                                     .padding(horizontal = 14.dp, vertical = 9.dp),
